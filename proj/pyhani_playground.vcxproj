@@ -23,7 +23,7 @@
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\Scene.cpp" />
     <ClCompile Include="..\src\TriangleShaderScene.cpp" />
-    <ClCompile Include="..\src\Simulation.cpp" />
+    <ClCompile Include="..\src\GflwWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\submodules\anttweakbar\src\AntTweakBar.vcxproj">
@@ -41,7 +41,7 @@
     <ClInclude Include="..\src\linmath.h" />
     <ClInclude Include="..\src\Scene.h" />
     <ClInclude Include="..\src\TriangleShaderScene.h" />
-    <ClInclude Include="..\src\Simulation.h" />
+    <ClInclude Include="..\src\GflwWindow.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
