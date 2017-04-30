@@ -27,7 +27,7 @@
     <ClCompile Include="..\src\GlfwWindowManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GflwWindow.cpp">
+    <ClCompile Include="..\src\GlfwWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,10 +44,10 @@
     <ClInclude Include="..\src\GlfwWindowManager.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GflwWindow.h">
+    <ClInclude Include="..\src\EventQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\EventQueue.h">
+    <ClInclude Include="..\src\GlfwWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

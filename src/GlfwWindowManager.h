@@ -2,10 +2,7 @@
 
 #include <atomic>
 #include <thread>
-#include <queue>
 #include <future>
-#include <mutex>
-#include <variant>
 #include <memory>
 
 #include <GLFW/glfw3.h>
@@ -28,9 +25,16 @@ struct DestroyWindowRequest
 	GLFWwindow* window;
 };
 
+struct SetKeyCallbackRequest
+{
+	GLFWwindow* window;
+	GLFWkeyfun cbfun;
+};
+
 using ExitEvent = Event<ExitRequest, void>;
 using CreateWindowEvent = Event<CreateWindowRequest, GLFWwindow*>;
 using DestroyWindowEvent = Event<DestroyWindowRequest, void>;
+using SetKeyCallbackEvent = Event<SetKeyCallbackRequest, void>;
 
 //! Global window and GLFW manager singleton class.
 /*
@@ -41,6 +45,9 @@ using DestroyWindowEvent = Event<DestroyWindowRequest, void>;
  */
 class GlfwWindowManager
 {
+	using event_queue_type = EventQueue<ExitEvent, CreateWindowEvent, DestroyWindowEvent, SetKeyCallbackEvent>;
+	static event_queue_type m_eventQueue;
+
 public:
 	//! Unique pointer type returned by the static create() method.
 	using GlfwWindowManagerUniquePtr = std::unique_ptr<GlfwWindowManager, void(*)(GlfwWindowManager*)>;
@@ -68,6 +75,8 @@ public:
 	static std::future<GLFWwindow*> requestWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share);
 	//! Posts an event to destroy the specified window using glfwDestroyWindow().
 	static std::future<void> destroyWindow(GLFWwindow* window);
+	//! Posts an event to set the keyboard callback of the specified window using glfwSetKeyCallback().
+	static std::future<void> setKeyCallback(GLFWwindow* window, GLFWkeyfun cbfun);
 
 private:
 	//! Constructs a GlfwWindowManager and initializes GLFW. Use the static create() method instead.
@@ -88,6 +97,4 @@ private:
 	const static std::thread::id m_mainThreadId;
 	//! Returns whether the current thread id is the same as the id of the thread used to initialize global, static variables.
 	static bool isMainThread();
-
-	static EventQueue<ExitEvent, CreateWindowEvent, DestroyWindowEvent> m_eventQueue;
 };

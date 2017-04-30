@@ -1,13 +1,13 @@
 #pragma once
 
-#include "GflwWindow.h"
+#include "GlfwWindow.h"
 
 #include <iostream>
 
 #include "TriangleShaderScene.h"
 #include "GlfwWindowManager.h"
 
-GflwWindow::GflwWindow()
+GlfwWindow::GlfwWindow()
 	: m_continueRenderLoop(false)
 {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -17,7 +17,7 @@ GflwWindow::GflwWindow()
 	auto futureWindow = GlfwWindowManager::requestWindow(1024, 768, "Simulation", nullptr, nullptr);
 	m_window = futureWindow.get();
 
-	glfwSetKeyCallback(m_window, key_callback);
+	GlfwWindowManager::setKeyCallback(m_window, key_callback).wait();
 
 	const auto previousContext = glfwGetCurrentContext();
 	glfwMakeContextCurrent(m_window);
@@ -33,7 +33,7 @@ GflwWindow::GflwWindow()
 	glfwMakeContextCurrent(previousContext);
 }
 
-GflwWindow::~GflwWindow()
+GlfwWindow::~GlfwWindow()
 {
 	// Cleanup simulation
 	cleanup();
@@ -43,7 +43,7 @@ GflwWindow::~GflwWindow()
 	std::cout << "(sim) Simulation done." << "\n";
 }
 
-void GflwWindow::executeRenderLoop()
+void GlfwWindow::executeRenderLoop()
 {
 	if (m_continueRenderLoop) return;
 
@@ -60,11 +60,11 @@ void GflwWindow::executeRenderLoop()
 	glfwMakeContextCurrent(previousContext);
 }
 
-std::future<void> GflwWindow::stopRenderLoop()
+std::future<void> GlfwWindow::stopRenderLoop()
 {
 }
 
-bool GflwWindow::initialize()
+bool GlfwWindow::initialize()
 {
 	if (!TwInit(TW_OPENGL, nullptr)) {
 		std::cerr << "AntTweakBar initialization failed: " << TwGetLastError() << "\n";
@@ -99,7 +99,7 @@ bool GflwWindow::initialize()
 	return true;
 }
 
-void GflwWindow::render()
+void GlfwWindow::render()
 {
 	static int width, height;
 	glfwGetFramebufferSize(m_window, &width, &height);
@@ -117,12 +117,12 @@ void GflwWindow::render()
 	glfwSwapBuffers(m_window);
 }
 
-void GflwWindow::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void GlfwWindow::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-void GflwWindow::cleanup()
+void GlfwWindow::cleanup()
 {
 }

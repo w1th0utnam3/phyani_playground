@@ -10,11 +10,11 @@
 
 #include "Scene.h"
 
-class GflwWindow
+class GlfwWindow
 {
 public:
-	GflwWindow();
-	~GflwWindow();
+	GlfwWindow();
+	~GlfwWindow();
 
 	void executeRenderLoop();
 

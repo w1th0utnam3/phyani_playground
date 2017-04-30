@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "GflwWindow.h"
+#include "GlfwWindow.h"
 #include "GlfwWindowManager.h"
 
 int main()
@@ -13,7 +13,7 @@ int main()
 		// Create a window for the simulation
 		auto windowThread = std::thread([]()
 		{
-			GflwWindow window;
+			GlfwWindow window;
 			// Start rendering of the window
 			window.executeRenderLoop();
 			// After the window is closed, the event loop will be stopped

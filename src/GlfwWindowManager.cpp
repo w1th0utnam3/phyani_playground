@@ -11,7 +11,7 @@ std::atomic<bool> GlfwWindowManager::m_initialized(false);
 std::atomic<bool> GlfwWindowManager::m_continueEventLoop(false);
 const std::thread::id GlfwWindowManager::m_mainThreadId = std::this_thread::get_id();
 
-EventQueue<ExitEvent, CreateWindowEvent, DestroyWindowEvent> GlfwWindowManager::m_eventQueue;
+GlfwWindowManager::event_queue_type GlfwWindowManager::m_eventQueue;
 
 auto GlfwWindowManager::create(bool throwOnFailure) -> GlfwWindowManagerUniquePtr
 {
@@ -119,6 +119,13 @@ void GlfwWindowManager::processEvents()
 			glfwDestroyWindow(request.window);
 			event.promise.set_value();
 		}
+
+		void operator()(SetKeyCallbackEvent& event) const
+		{
+			auto& request = event.request;
+			glfwSetKeyCallback(request.window, request.cbfun);
+			event.promise.set_value();
+		}
 	} eventVisitor;
 
 	while (m_continueEventLoop && !m_eventQueue.empty()) {
@@ -157,6 +164,11 @@ std::future<GLFWwindow*> GlfwWindowManager::requestWindow(int width, int height,
 std::future<void> GlfwWindowManager::destroyWindow(GLFWwindow* window)
 {
 	return m_eventQueue.postEvent(DestroyWindowRequest{window});
+}
+
+std::future<void> GlfwWindowManager::setKeyCallback(GLFWwindow* window, GLFWkeyfun cbfun)
+{
+	return m_eventQueue.postEvent(SetKeyCallbackRequest{ window, cbfun });
 }
 
 bool GlfwWindowManager::isMainThread()
