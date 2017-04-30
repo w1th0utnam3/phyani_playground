@@ -10,6 +10,28 @@
 
 #include <GLFW/glfw3.h>
 
+#include "EventQueue.h"
+
+struct ExitRequest {};
+
+struct CreateWindowRequest
+{
+	int width;
+	int height;
+	const char* title;
+	GLFWmonitor* monitor;
+	GLFWwindow* share;
+};
+
+struct DestroyWindowRequest
+{
+	GLFWwindow* window;
+};
+
+using ExitEvent = Event<ExitRequest, void>;
+using CreateWindowEvent = Event<CreateWindowRequest, GLFWwindow*>;
+using DestroyWindowEvent = Event<DestroyWindowRequest, void>;
+
 //! Global window and GLFW manager singleton class.
 /*
  * This class can be used as a scoped GLFW manager which initializes GLFW and runs the event loop
@@ -67,42 +89,5 @@ private:
 	//! Returns whether the current thread id is the same as the id of the thread used to initialize global, static variables.
 	static bool isMainThread();
 
-	template <typename PromisedT, typename EventT>
-	struct EventTask
-	{
-		using promised_type = PromisedT;
-		using event_type = EventT;
-
-		std::promise<PromisedT> promise;
-		EventT event;
-	};
-
-	struct ExitEvent { };
-
-	struct CreateWindowEvent
-	{
-		int width;
-		int height;
-		const char* title;
-		GLFWmonitor* monitor;
-		GLFWwindow* share;
-	};
-
-	struct DestroyWindowEvent
-	{
-		GLFWwindow* window;
-	};
-
-	using ExitEventRequest = EventTask<void, ExitEvent>;
-	using CreateWindowEventRequest = EventTask<GLFWwindow*, CreateWindowEvent>;
-	using DestroyWindowEventRequest = EventTask<void, DestroyWindowEvent>;
-
-	using EventRequestVariant = std::variant<ExitEventRequest,
-	                                         CreateWindowEventRequest,
-	                                         DestroyWindowEventRequest>;
-
-	//! Mutex for the event queue.
-	static std::mutex m_eventQueueMutex;
-	//! The queue used to store events.
-	static std::queue<EventRequestVariant> m_eventQueue;
+	static EventQueue<ExitEvent, CreateWindowEvent, DestroyWindowEvent> m_eventQueue;
 };

@@ -4,12 +4,14 @@
 #include <stdexcept>
 #include <string>
 
+
+#include "EventQueue.h"
+
 std::atomic<bool> GlfwWindowManager::m_initialized(false);
 std::atomic<bool> GlfwWindowManager::m_continueEventLoop(false);
 const std::thread::id GlfwWindowManager::m_mainThreadId = std::this_thread::get_id();
 
-std::mutex GlfwWindowManager::m_eventQueueMutex;
-std::queue<GlfwWindowManager::EventRequestVariant> GlfwWindowManager::m_eventQueue;
+EventQueue<ExitEvent, CreateWindowEvent, DestroyWindowEvent> GlfwWindowManager::m_eventQueue;
 
 auto GlfwWindowManager::create(bool throwOnFailure) -> GlfwWindowManagerUniquePtr
 {
@@ -88,44 +90,40 @@ void GlfwWindowManager::processEvents()
 		return;
 	}
 
-	while (!m_eventQueue.empty()) {
-		// Define the visitor which processes all possible event types
-		struct
+	// Define the visitor which processes all possible event types
+	static const struct
+	{
+		void operator()(ExitEvent& event) const
 		{
-			void operator()(ExitEventRequest& request)
-			{
-				// Change the flag to break event loop
-				GlfwWindowManager::m_continueEventLoop = false;
-				request.promise.set_value();
+			// Change the flag to break event loop
+			m_continueEventLoop = false;
+			event.promise.set_value();
+		}
+
+		void operator()(CreateWindowEvent& event) const
+		{
+			auto& request = event.request;
+			// Try to create a new window
+			auto window = glfwCreateWindow(request.width, request.height, request.title, request.monitor, request.share);
+			if (!window) {
+				const std::string error = "GLFW window could not be created!";
+				std::cerr << error << "\n";
 			}
+			event.promise.set_value(window);
+		}
 
-			void operator()(CreateWindowEventRequest& request)
-			{
-				auto& event = request.event;
-				// Try to create a new window
-				auto window = glfwCreateWindow(event.width, event.height, event.title, event.monitor, event.share);
-				if (!window) {
-					const std::string error = "GLFW window could not be created!";
-					std::cerr << error << "\n";
-				}
-				request.promise.set_value(window);
-			}
+		// Destroy a window
+		void operator()(DestroyWindowEvent& event) const
+		{
+			auto& request = event.request;
+			glfwDestroyWindow(request.window);
+			event.promise.set_value();
+		}
+	} eventVisitor;
 
-			// Destroy a window
-			void operator()(DestroyWindowEventRequest& request)
-			{
-				auto& event = request.event;
-				glfwDestroyWindow(event.window);
-				request.promise.set_value();
-			}
-		} eventVisitor;
-
-		// Apply the visitor to the oldest event
-		std::visit(eventVisitor, m_eventQueue.front());
-		m_eventQueue.pop();
-
-		// Loop through queue if no exit event was encountered
-		if (!m_continueEventLoop) break;
+	while (m_continueEventLoop && !m_eventQueue.empty()) {
+		// The event queue ensures thread safety
+		m_eventQueue.processOldestEvent(eventVisitor);
 	}
 }
 
@@ -141,48 +139,24 @@ void GlfwWindowManager::executeEventLoop()
 	m_continueEventLoop = true;
 	while (m_continueEventLoop) {
 		// Wait for new GLFW events
-		glfwWaitEvents(); {
-			// Lock queue mutex, as processEvents() is not thread safe
-			std::lock_guard<std::mutex> lock(m_eventQueueMutex);
-			processEvents();
-		}
+		glfwWaitEvents();
+		processEvents();
 	}
 }
 
 std::future<void> GlfwWindowManager::exitEventLoop()
 {
-	std::promise<void>* promise; {
-		std::lock_guard<std::mutex> lock(m_eventQueueMutex);
-		m_eventQueue.emplace(ExitEventRequest{std::promise<void>()});
-		promise = &(std::get<ExitEventRequest>(m_eventQueue.back())).promise;
-		glfwPostEmptyEvent();
-	}
-
-	return promise->get_future();
+	return m_eventQueue.postEvent(ExitRequest());
 }
 
 std::future<GLFWwindow*> GlfwWindowManager::requestWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share)
 {
-	std::promise<GLFWwindow*>* promise; {
-		std::lock_guard<std::mutex> lock(m_eventQueueMutex);
-		m_eventQueue.emplace(CreateWindowEventRequest{std::promise<GLFWwindow*>(), CreateWindowEvent{width, height, title, monitor, share}});
-		promise = &(std::get<CreateWindowEventRequest>(m_eventQueue.back())).promise;
-		glfwPostEmptyEvent();
-	}
-
-	return promise->get_future();
+	return m_eventQueue.postEvent(CreateWindowRequest{width, height, title, monitor, share});
 }
 
 std::future<void> GlfwWindowManager::destroyWindow(GLFWwindow* window)
 {
-	std::promise<void>* promise; {
-		std::lock_guard<std::mutex> lock(m_eventQueueMutex);
-		m_eventQueue.emplace(DestroyWindowEventRequest{std::promise<void>(), DestroyWindowEvent{window}});
-		promise = &(std::get<DestroyWindowEventRequest>(m_eventQueue.back())).promise;
-		glfwPostEmptyEvent();
-	}
-
-	return promise->get_future();
+	return m_eventQueue.postEvent(DestroyWindowRequest{window});
 }
 
 bool GlfwWindowManager::isMainThread()

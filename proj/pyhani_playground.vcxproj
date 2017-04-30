@@ -37,6 +37,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\EventQueue.h" />
     <ClInclude Include="..\src\GlfwWindowManager.h" />
     <ClInclude Include="..\src\linmath.h" />
     <ClInclude Include="..\src\Scene.h" />

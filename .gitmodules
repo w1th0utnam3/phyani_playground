@@ -9,4 +9,4 @@
 	url = https://github.com/leapmotion/anttweakbar.git
 [submodule "submodules/noname_tools"]
 	path = submodules/noname_tools
-	url = https://github.com/w1th0utnam3/noname_tools.git
+url=git@github.com:w1th0utnam3/noname_tools.git
