@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <atomic>
 #include <thread>
 #include <queue>
 #include <future>
@@ -9,6 +10,13 @@
 
 #include <GLFW/glfw3.h>
 
+//! Global window and GLFW manager singleton class.
+/*
+ * This class can be used as a scoped GLFW manager which initializes GLFW and runs the event loop
+ * for all opened GLFW windows. When the manager leaves scope, GLFW is terminated cleanly. Furthermore, 
+ * the manager offers asynchronous event methods, allowing GLFW functions which 
+ * can be only called safely from the main thread, to be called indirectly from any thread.
+ */
 class GlfwWindowManager
 {
 public:
@@ -30,7 +38,7 @@ public:
 	//! Processes all events that were posted to the event queue of the window manager.
 	static void processEvents();
 	//! Starts a blocking event loop that waits fro GLFW events.
-	static void startEventLoop();
+	static void executeEventLoop();
 
 	//! Posts an event to exit the event loop.
 	static std::future<void> exitEventLoop();
@@ -50,12 +58,12 @@ private:
 	static void errorCallback(int error, const char* description);
 
 	//! Flag indicating whether GLFW is currently initialized.
-	static bool m_initialized;
+	static std::atomic<bool> m_initialized;
 	//! Flag used to indicate whether the event loop should continue or an exit event was received.
-	static bool m_continueEventLoop;
+	static std::atomic<bool> m_continueEventLoop;
 
 	//! Thread id of the thread that initialized the global, static variables.
-	static std::thread::id m_mainThreadId;
+	const static std::thread::id m_mainThreadId;
 	//! Returns whether the current thread id is the same as the id of the thread used to initialize global, static variables.
 	static bool isMainThread();
 

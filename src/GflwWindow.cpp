@@ -8,31 +8,29 @@
 #include "GlfwWindowManager.h"
 
 GflwWindow::GflwWindow()
+	: m_continueRenderLoop(false)
 {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-	// Initialize window context
+	// Request a new window from GLFW
 	auto futureWindow = GlfwWindowManager::requestWindow(1024, 768, "Simulation", nullptr, nullptr);
 	m_window = futureWindow.get();
 
 	glfwSetKeyCallback(m_window, key_callback);
+
+	const auto previousContext = glfwGetCurrentContext();
 	glfwMakeContextCurrent(m_window);
 	gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 	glfwSwapInterval(1);
 
-	// Initialize simulation
+	// Initialize window
 	if (!initialize()) {
 		std::cerr << "Simulation could not be initialized." << "\n";
 		return;
 	}
 
-	// Run render loop
-	while (!glfwWindowShouldClose(m_window)) {
-		render();
-	}
-	glfwMakeContextCurrent(nullptr);
-	std::cout << "(sim) Simulation done." << "\n";
+	glfwMakeContextCurrent(previousContext);
 }
 
 GflwWindow::~GflwWindow()
@@ -41,7 +39,29 @@ GflwWindow::~GflwWindow()
 	cleanup();
 	// Request to destroy window but don't wait
 	GlfwWindowManager::destroyWindow(m_window);
-	GlfwWindowManager::exitEventLoop();
+
+	std::cout << "(sim) Simulation done." << "\n";
+}
+
+void GflwWindow::executeRenderLoop()
+{
+	if (m_continueRenderLoop) return;
+
+	const auto previousContext = glfwGetCurrentContext();
+	glfwMakeContextCurrent(m_window);
+
+	// Run render loop
+	m_continueRenderLoop = true;
+	while (m_continueRenderLoop && !glfwWindowShouldClose(m_window)) {
+		render();
+	}
+	m_continueRenderLoop = false;
+
+	glfwMakeContextCurrent(previousContext);
+}
+
+std::future<void> GflwWindow::stopRenderLoop()
+{
 }
 
 bool GflwWindow::initialize()
@@ -103,4 +123,6 @@ void GflwWindow::key_callback(GLFWwindow* window, int key, int scancode, int act
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-void GflwWindow::cleanup() {}
+void GflwWindow::cleanup()
+{
+}

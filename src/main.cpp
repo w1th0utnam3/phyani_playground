@@ -11,18 +11,21 @@ int main()
 		std::cout << "(main) Initialized Glfw." << "\n";
 
 		// Create a window for the simulation
-		auto simWindow = GflwWindow::createWindowThread([]()
+		auto windowThread = std::thread([]()
 		{
+			GflwWindow window;
+			// Start rendering of the window
+			window.executeRenderLoop();
 			// After the window is closed, the event loop will be stopped
 			GlfwWindowManager::exitEventLoop();
 		});
 
 		// Start the event loop, this statement blocks the main thread
-		GlfwWindowManager::startEventLoop();
+		GlfwWindowManager::executeEventLoop();
 
-		// Wait until the window thread is done
+		// Wait until the window thread finished executing
 		std::cout << "(main) Waiting for window thread..." << "\n";
-		simWindow.join();
+		windowThread.join();
 	}
 
 	std::cout << "(main) Bye." << "\n";

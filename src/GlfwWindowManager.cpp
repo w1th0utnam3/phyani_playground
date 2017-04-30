@@ -4,9 +4,9 @@
 #include <stdexcept>
 #include <string>
 
-bool GlfwWindowManager::m_initialized = false;
-bool GlfwWindowManager::m_continueEventLoop = false;
-std::thread::id GlfwWindowManager::m_mainThreadId = std::this_thread::get_id();
+std::atomic<bool> GlfwWindowManager::m_initialized(false);
+std::atomic<bool> GlfwWindowManager::m_continueEventLoop(false);
+const std::thread::id GlfwWindowManager::m_mainThreadId = std::this_thread::get_id();
 
 std::mutex GlfwWindowManager::m_eventQueueMutex;
 std::queue<GlfwWindowManager::EventRequestVariant> GlfwWindowManager::m_eventQueue;
@@ -129,7 +129,7 @@ void GlfwWindowManager::processEvents()
 	}
 }
 
-void GlfwWindowManager::startEventLoop()
+void GlfwWindowManager::executeEventLoop()
 {
 	// Make sure that this function is only called from the main thread
 	if (!isMainThread()) {

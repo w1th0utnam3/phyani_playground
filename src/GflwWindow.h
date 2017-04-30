@@ -1,6 +1,7 @@
 #pragma once
 
-#include <thread>
+#include <atomic>
+#include <future>
 #include <vector>
 #include <memory>
 
@@ -12,24 +13,15 @@
 class GflwWindow
 {
 public:
-	//! Creates a thread with a new GflwWindow
-	template <typename T>
-	static std::thread GflwWindow::createWindowThread(T then)
-	{
-		return std::thread([&]() {
-				GflwWindow window;
-				then();
-			});
-	}
-
-	static std::thread GflwWindow::createWindowThread()
-	{
-		return createWindowThread([]() {});
-	}
-
-private:
 	GflwWindow();
 	~GflwWindow();
+
+	void executeRenderLoop();
+
+	std::future<void> stopRenderLoop();
+
+private:
+	std::atomic<bool> m_continueRenderLoop;
 
 	bool initialize();
 	void cleanup();
