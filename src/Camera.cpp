@@ -1,63 +1,86 @@
 ﻿#include "Camera.h"
 
-Camera::Camera()
-	: m_translation(0, 0, 0)
-	  , m_rotation(1, 0, 0, 0)
-	  , m_zoom(1) {}
+#include <algorithm>
+#include <cmath>
+#include <iostream>
 
-void Camera::zoom(double zoomIncrement)
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/geometric.hpp>
+
+Camera::Camera(int width, int height)
+	: m_modelView()
+	, m_rotation(1, 0, 0, 0)
+	, m_translation(0, 0, -1)
+	, m_scaling(160, 160, 160)
+	, m_projection()
+	, m_viewportSize(width, height)
 {
-	m_zoom += zoomIncrement;
+	updateModelViewMatrix();
+	updateProjectionMatrix();
 }
 
-void Camera::translate(double x, double y, double z)
+void Camera::rotate(double angle, glm::dvec3 axis)
 {
-	m_translation[0] += x;
-	m_translation[1] += y;
-	m_translation[2] += z;
+	glm::dvec3 rotatedAxis = glm::inverse(m_rotation)*axis;
+	m_rotation = glm::rotate(m_rotation, angle, rotatedAxis);
+	bool resok = (std::isfinite(m_rotation[0]) 
+				&& std::isfinite(m_rotation[1]) 
+				&& std::isfinite(m_rotation[2]) 
+				&& std::isfinite(m_rotation[3]));
+	if (!resok) throw std::runtime_error("Illegal quat");
+	updateModelViewMatrix();
 }
 
-void Camera::rotate(double angleX, double angleY, double angleZ)
-{ 
-	{
-		Eigen::AngleAxisd angleAxisX(angleX, Eigen::Vector3d(1, 0, 0));
-		Eigen::Quaterniond quatX(angleAxisX);
-		m_rotation = m_rotation * quatX;
-	} 
-	{
-		Eigen::AngleAxisd angleAxisY(angleY, Eigen::Vector3d(0, 1, 0));
-		Eigen::Quaterniond quatY(angleAxisY);
-		m_rotation = m_rotation * quatY;
-	} 
-	{
-		Eigen::AngleAxisd angleAxisZ(angleY, Eigen::Vector3d(0, 0, 1));
-		Eigen::Quaterniond quatZ(angleAxisZ);
-		m_rotation = m_rotation * quatZ;
-	}
+void Camera::rotate(const void* quat)
+{
+	std::memcpy(glm::value_ptr(m_rotation), quat, 4 * sizeof(double));
+	updateModelViewMatrix();
 }
 
-Eigen::Matrix4d Camera::toModelViewMatrix()
+void Camera::setViewportSize(int width, int height)
 {
-	//auto rotationMatrix = m_rotation.toRotationMatrix();
-	Eigen::Matrix4d transformationMatrix = Eigen::Matrix4d::Identity();
-	transformationMatrix.block<3, 3>(0, 0) = m_rotation.toRotationMatrix();
-	transformationMatrix.block<3, 1>(0, 3) = m_translation;
-	transformationMatrix(0, 0) *= m_zoom;
-	transformationMatrix(1, 1) *= m_zoom;
-	transformationMatrix(2, 2) *= m_zoom;
-	return transformationMatrix;
+	m_viewportSize.x = width;
+	m_viewportSize.y = height;
+	updateProjectionMatrix();
 }
 
-Eigen::Vector3d* Camera::translation()
+glm::dmat4 Camera::modelViewMatrix() const
 {
-	return &m_translation;
+	return m_modelView;
 }
 
-Eigen::Quaterniond* Camera::rotation()
+glm::dmat4 Camera::projectionMatrix() const
 {
-	return &m_rotation;
+	return m_projection;
 }
-double* Camera::zoom()
+
+glm::ivec2 Camera::viewportSize() const
 {
-	return &m_zoom;
+	return m_viewportSize;
+}
+
+glm::tquat<double> Camera::rotation() const
+{
+	return m_rotation;
+}
+
+void Camera::rotation(void* quat) const
+{
+	std::memcpy(quat, glm::value_ptr(m_rotation), 4 * sizeof(double));
+}
+
+void Camera::updateModelViewMatrix()
+{
+	m_modelView = glm::translate(glm::dmat4(), m_translation);
+	m_modelView = glm::scale(m_modelView, m_scaling);
+	m_modelView = glm::rotate(m_modelView, glm::angle(m_rotation), glm::axis(m_rotation));
+}
+
+void Camera::updateProjectionMatrix()
+{	
+	const double diag = std::hypot(m_viewportSize.x, m_viewportSize.y);
+	m_projection = glm::ortho<double>(-0.5*m_viewportSize.x, 0.5*m_viewportSize.x, 
+									  -0.5*m_viewportSize.y, 0.5*m_viewportSize.y, -diag, diag);
 }

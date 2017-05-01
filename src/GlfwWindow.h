@@ -6,14 +6,14 @@
 #include <memory>
 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include <AntTweakBar.h>
 
 #include "Scene.h"
 
 struct Interaction
 {
-	double mousePosXOld = 0;
-	double mousePosYOld = 0;
+	glm::dvec2 lastMousePos = glm::dvec2(0, 0);
 	int pressedButton = -1;
 };
 
@@ -29,6 +29,7 @@ public:
 
 private:
 	std::atomic<bool> m_continueRenderLoop;
+	int m_drawMode;
 	double m_lastFrametime;
 	double m_fps;
 
@@ -43,11 +44,6 @@ private:
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void window_size_callback(GLFWwindow* window, int width, int height);
-
-	template <std::size_t N, typename T = double>
-	static void copyFromTw(const void* in, void* out) { std::memcpy(out, in, N * sizeof(T)); }
-	template <std::size_t N, typename T = double>
-	static void copyToTw(void* out, void* in) { std::memcpy(out, in, N * sizeof(T)); }
 
 	GLFWwindow* m_window;
 	TwBar* m_tweakBar;

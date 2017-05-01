@@ -13,9 +13,11 @@ int main()
 		// Create a window for the simulation
 		auto windowThread = std::thread([]()
 		{
-			GlfwWindow window;
-			// Start rendering of the window
-			window.executeRenderLoop();
+			{
+				GlfwWindow window;
+				// Start rendering of the window
+				window.executeRenderLoop();
+			}
 			// After the window is closed, the event loop will be stopped
 			GlfwWindowManager::exitEventLoop();
 		});

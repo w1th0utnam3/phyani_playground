@@ -5,6 +5,10 @@
 #include <iostream>
 #include <vector>
 
+#include <glm/glm.hpp>
+#include <glm/geometric.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "TriangleShaderScene.h"
 #include "DemoScene.h"
 #include "GlfwWindowManager.h"
@@ -13,14 +17,16 @@
 
 GlfwWindow::GlfwWindow()
 	: m_continueRenderLoop(false)
+	, m_drawMode(GL_FILL)
 	, m_lastFrametime(0)
 	, m_fps(0)
+	, m_camera(1280, 720)
 {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
 	// Request a new window from GLFW
-	auto futureWindow = GlfwWindowManager::requestWindow(1024, 768, "Simulation", nullptr, nullptr);
+	auto futureWindow = GlfwWindowManager::requestWindow(m_camera.viewportSize().x, m_camera.viewportSize().y, "Simulation", nullptr, nullptr);
 	m_window = futureWindow.get();
 	glfwSetWindowUserPointer(m_window, static_cast<void*>(this));
 
@@ -49,6 +55,16 @@ GlfwWindow::GlfwWindow()
 
 GlfwWindow::~GlfwWindow()
 {
+	// Unregister callbacks
+	auto callbackRequests = noname::tools::move_construct_vector(
+		GlfwWindowManager::setMouseButtonCallback(m_window, nullptr),
+		GlfwWindowManager::setCursorPosCallback(m_window, nullptr),
+		GlfwWindowManager::setScrollCallback(m_window, nullptr),
+		GlfwWindowManager::setKeyCallback(m_window, nullptr),
+		GlfwWindowManager::setWindowSizeCallback(m_window, nullptr)
+	);
+	if (GlfwWindowManager::isInitialized()) for (auto& fut : callbackRequests) fut.wait();
+
 	// Cleanup simulation
 	cleanup();
 	// Request to destroy window but don't wait
@@ -66,14 +82,22 @@ void GlfwWindow::executeRenderLoop()
 
 	// Run render loop
 	m_continueRenderLoop = true;
+	double tRef = glfwGetTime();
 	while (m_continueRenderLoop && !glfwWindowShouldClose(m_window)) {
-		const double t = glfwGetTime();
+		const double tFrameStart = glfwGetTime();
 
 		render();
 
-		const double dt = glfwGetTime() - t;
-		m_lastFrametime = dt/1000.0;
-		m_fps = 60.0/dt;
+		const double tFrameEnd = glfwGetTime();
+		const double dt = tFrameEnd - tFrameStart;
+		m_lastFrametime = dt*1000.0;
+		m_fps = 1/dt;
+
+		static constexpr double dtMin = 4*(1.0 / 60);
+		if (tFrameEnd - tRef > dtMin) {
+			tRef = tFrameEnd;
+			TwRefreshBar(m_tweakBar);
+		}
 	}
 	m_continueRenderLoop = false;
 
@@ -90,29 +114,60 @@ bool GlfwWindow::initialize()
 	if (!TwInit(TW_OPENGL, nullptr)) {
 		std::cerr << "AntTweakBar initialization failed: " << TwGetLastError() << "\n";
 	}
-	TwWindowSize(1024, 768);
+	TwWindowSize(m_camera.viewportSize().x, m_camera.viewportSize().y);
+
+	auto fromTwRotationCallback = [](const void* twData, void* userPointer)
+	{
+		auto window = static_cast<GlfwWindow*>(userPointer);
+		window->m_camera.rotate(twData);
+	};
+
+	auto toTwRotationCallback = [](void* twData, void* userPointer)
+	{
+		auto window = static_cast<GlfwWindow*>(userPointer);
+		window->m_camera.rotation(twData);
+	};
+
+	auto fromTwWireframeCallback = [](const void* twData, void* userPointer)
+	{
+		auto window = static_cast<GlfwWindow*>(userPointer);
+		std::cout << std::boolalpha << window->m_drawMode << " " << *static_cast<const bool*>(twData) << "\n";
+		window->m_drawMode = (*static_cast<const bool*>(twData)) ? GL_LINE : GL_FILL;
+	};
+
+	auto toTwWireframeCallback = [](void* twData, void* userPointer)
+	{
+		auto window = static_cast<GlfwWindow*>(userPointer);
+		*static_cast<bool*>(twData) = (window->m_drawMode == GL_LINE);
+	};
 
 	// Create a tweak bar
 	m_tweakBar = TwNewBar("TweakBar");
-	TwDefine(" GLOBAL help='MiniGL TweakBar.' "); // Message added to the help bar.
+	TwDefine(" GLOBAL help='MiniGL TweakBar.' ");
 	TwDefine(" TweakBar size='250 400' position='5 5' color='96 200 224' text=dark ");
 	TwAddVarCB(m_tweakBar, "Rotation", 
-		TW_TYPE_QUAT4D, copyFromTw<4, double>, copyToTw<4, double>, static_cast<void*>(m_camera.rotation()->coeffs().data()),
+		TW_TYPE_QUAT4D, fromTwRotationCallback, toTwRotationCallback, static_cast<void*>(this),
 		" label='Rotation' open help='Change the rotation.' ");
-	TwAddVarRO(m_tweakBar, "Frame time", TW_TYPE_DOUBLE, &m_lastFrametime, " label='Frame time' precision=5");
-	TwAddVarRO(m_tweakBar, "FPS", TW_TYPE_DOUBLE, &m_fps, " label='FPS' precision=5");
+	TwAddVarRO(m_tweakBar, "Frame time (ms)", TW_TYPE_DOUBLE, &m_lastFrametime, " label='Frame time (ms)' precision=2");
+	TwAddVarRO(m_tweakBar, "FPS", TW_TYPE_DOUBLE, &m_fps, " label='FPS' precision=2");
+	TwAddVarCB(m_tweakBar, "Wireframe", TW_TYPE_BOOLCPP, fromTwWireframeCallback, toTwWireframeCallback, static_cast<void*>(this),
+		" label='Wireframe' key=w help='Toggle wireframe mode.' ");
 
 	/*
 	TwAddVarRO(tweakBar, "Time", TW_TYPE_FLOAT, &m_time, " label='Time' precision=5");
 	TwAddVarCB(tweakBar, "Simulate", TW_TYPE_BOOL32, setSimulateCB, getSimulateCB, NULL, "label='Simulate' key=SPACE");
 	// Add callback to toggle auto-rotate mode (callback functions are defined above).
-	TwAddVarCB(tweakBar, "Wireframe", TW_TYPE_BOOL32, setWireframeCB, getWireframeCB, NULL,
-		" label='Wireframe' key=w help='Toggle wireframe mode.' ");
 	TwAddVarCB(tweakBar, "Enable export", TW_TYPE_BOOL32, setExportCB, getExportCB, nullptr, "label='Enable export'");
 	TwAddVarRW(tweakBar, "Export FPS", TW_TYPE_UINT32, &m_exportFps, "label='Export FPS'");
 	*/
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClearColor(0.95f, 0.95f, 1.0f, 1.0f);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	// Create the triangle shader scene
 	//m_scenes.emplace_back(new TriangleShaderScene());
@@ -125,11 +180,10 @@ bool GlfwWindow::initialize()
 
 void GlfwWindow::render()
 {
-	static int width, height;
-	glfwGetFramebufferSize(m_window, &width, &height);
+	glViewport(0, 0, m_camera.viewportSize().x, m_camera.viewportSize().y);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glViewport(0, 0, width, height);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glPolygonMode(GL_FRONT_AND_BACK, m_drawMode);
 
 	//! Render all scenes
 	for (auto& scene : m_scenes) {
@@ -145,29 +199,54 @@ void GlfwWindow::mouse_button_callback(GLFWwindow* glfwWindow, int button, int a
 {
 	if (TwEventMouseButtonGLFW(button, action)) return;
 	auto window = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(glfwWindow));
+
 	window->m_interaction.pressedButton = (action == GLFW_PRESS) ? button : -1;
+
+	static double xpos, ypos;
+	glfwGetCursorPos(glfwWindow, &xpos, &ypos);
+	window->m_interaction.lastMousePos.x = xpos;
+	window->m_interaction.lastMousePos.y = ypos;
 }
 
 void GlfwWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos, double ypos)
 {
 	if (TwEventMousePosGLFW(xpos, ypos)) return;
 	auto window = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(glfwWindow));
-
-	const double dx = window->m_interaction.mousePosXOld - xpos;
-	const double dy = ypos - window->m_interaction.mousePosYOld;
+	const int width = window->m_camera.viewportSize().x;
+	const int height = window->m_camera.viewportSize().y;
 
 	if (window->m_interaction.pressedButton == GLFW_MOUSE_BUTTON_LEFT) {
-		window->m_camera.rotate(dy / 100, -dx / 100, 0);
+		glm::dvec3 oldMouseVec(  window->m_interaction.lastMousePos.x - 0.5*width,
+								-(window->m_interaction.lastMousePos.y - 0.5*height), 0);
+		glm::dvec3 newMouseVec(   xpos - 0.5*width,
+								-(ypos - 0.5*height), 0);
+
+		const double arcballRadius = std::hypot(0.5*width, 0.5*height);
+		oldMouseVec /= arcballRadius;
+		newMouseVec /= arcballRadius;
+
+		if (glm::length(oldMouseVec) < 1) {
+			oldMouseVec.z = std::sqrt(1.0 - std::pow(glm::length(oldMouseVec), 2));
+		} else return;
+
+		if (glm::length(newMouseVec) < 1) {
+			newMouseVec.z = std::sqrt(1.0 - std::pow(glm::length(newMouseVec), 2));
+		} else newMouseVec = glm::normalize(newMouseVec);
+
+		const double angle = std::acos(std::min(1.0, glm::dot(oldMouseVec, newMouseVec)));
+		const glm::dvec3 axis = glm::cross(oldMouseVec, newMouseVec);
+
+		window->m_camera.rotate(angle, axis);
 	}
 
-	window->m_interaction.mousePosXOld = xpos;
-	window->m_interaction.mousePosYOld = ypos;
+	window->m_interaction.lastMousePos.x = xpos;
+	window->m_interaction.lastMousePos.y = ypos;
 }
 
 void GlfwWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, double yoffset)
 {
 	auto window = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(glfwWindow));
-	window->m_camera.zoom(0.01*yoffset);
+	//window->m_camera.zoom(0.01*yoffset);
 }
 
 void GlfwWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
@@ -180,6 +259,9 @@ void GlfwWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int
 
 void GlfwWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int height)
 {
+	auto window = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(glfwWindow));
+	window->m_camera.setViewportSize(width, height);
+
 	TwWindowSize(width, height);
 }
 

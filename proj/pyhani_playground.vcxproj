@@ -161,7 +161,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>GLFW_INCLUDE_NONE;TW_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>

@@ -1,7 +1,12 @@
 ﻿#include "DemoScene.h"
 
+#include <array>
+
 #include <glad/glad.h>
 #include <Eigen/Geometry>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void DemoScene::initializeSceneContent()
 {
@@ -10,11 +15,18 @@ void DemoScene::initializeSceneContent()
 
 void DemoScene::renderSceneContent()
 {
+	glMatrixMode(GL_PROJECTION);
+	const auto projection = m_camera->projectionMatrix();
+	glLoadMatrixd(glm::value_ptr(projection));
 	glMatrixMode(GL_MODELVIEW);
-	auto tranform = m_camera->toModelViewMatrix();
-	glLoadMatrixd(tranform.data());
+	const auto transform = m_camera->modelViewMatrix();
+	glLoadMatrixd(glm::value_ptr(transform));
 
 	drawCoordinateSystem(2);
+	static const std::array<float, 4> green{ 0.0f, 1.0f, 0.0f, 1.0f };
+	static const std::array<float, 4> blue{ 0.0f, 0.0f, 1.0f, 1.0f };
+
+	drawTetrahedron(Eigen::Vector3d::Zero(), Eigen::Vector3d::UnitX(), Eigen::Vector3d::UnitY(), Eigen::Vector3d::UnitZ(), green.data());
 }
 
 void DemoScene::initializeLight()
@@ -97,4 +109,32 @@ void DemoScene::drawCoordinateSystem(double axisLength)
 	glVertex3dv(&zAxis[0]);
 	glEnd();
 	glLineWidth(1);
+}
+
+void DemoScene::drawTriangle(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &c, const Eigen::Vector3d &norm, const float *color)
+{
+	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+
+	glBegin(GL_TRIANGLES);
+	glNormal3dv(&norm[0]);
+	glVertex3dv(&a[0]);
+	glVertex3dv(&b[0]);
+	glVertex3dv(&c[0]);
+	glEnd();
+}
+
+void DemoScene::drawTetrahedron(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &c, const Eigen::Vector3d &d, const float *color)
+{
+	Eigen::Vector3d normal1 = (b - a).cross(c - a);
+	Eigen::Vector3d normal2 = (b - a).cross(d - a);
+	Eigen::Vector3d normal3 = (c - a).cross(d - a);
+	Eigen::Vector3d normal4 = (c - b).cross(d - b);
+	drawTriangle(a, b, c, normal1, color);
+	drawTriangle(a, b, d, normal2, color);
+	drawTriangle(a, c, d, normal3, color);
+	drawTriangle(b, c, d, normal4, color);
 }

@@ -1,26 +1,35 @@
 ﻿#pragma once
 
-#include <Eigen/Geometry>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 class Camera
 {
 public:
-	Camera();
+	Camera(int width, int height);
 
-	void zoom(double zoomIncrement);
-	void translate(double x, double y, double z);
-	void rotate(double angleX, double angleY, double angleZ);
+	void rotate(double angle, glm::dvec3 axis);
+	void rotate(const void* quat);
+	void setViewportSize(int width, int height);
 
-	Eigen::Matrix4d toModelViewMatrix();
+	glm::dmat4 modelViewMatrix() const;
+	glm::dmat4 projectionMatrix() const;
+	glm::ivec2 viewportSize() const;
 
-	Eigen::Vector3d* translation();
-	Eigen::Quaterniond* rotation();
-	double* zoom();
+	glm::tquat<double> rotation() const;
+	void rotation(void* quat) const;
 
 private:
+	void updateModelViewMatrix();
+	void updateProjectionMatrix();
+
 	// TODO: Annotate with world/camera coordinate system
 
-	Eigen::Vector3d m_translation;
-	Eigen::Quaterniond m_rotation;
-	double m_zoom;
+	glm::dmat4 m_modelView;
+	glm::tquat<double> m_rotation;
+	glm::dvec3 m_translation;
+	glm::dvec3 m_scaling;
+
+	glm::dmat4 m_projection;
+	glm::ivec2 m_viewportSize;
 };
