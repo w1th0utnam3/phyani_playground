@@ -10,3 +10,6 @@
 [submodule "submodules/noname_tools"]
 	path = submodules/noname_tools
 url=git@github.com:w1th0utnam3/noname_tools.git
+[submodule "submodules/glm"]
+	path = submodules/glm
+	url = https://github.com/g-truc/glm.git
