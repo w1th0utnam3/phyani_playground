@@ -120,10 +120,45 @@ void GlfwWindowManager::processEvents()
 			event.promise.set_value();
 		}
 
+		void operator()(SetMouseButtonCallbackEvent& event) const
+		{
+			auto& request = event.request;
+			glfwSetMouseButtonCallback(request.window, request.cbfun);
+			event.promise.set_value();
+		}
+
+		void operator()(SetCursorPosCallbackEevent& event) const
+		{
+			auto& request = event.request;
+			glfwSetCursorPosCallback(request.window, request.cbfun);
+			event.promise.set_value();
+		}
+
+		void operator()(SetScrollCallbackEvent& event) const
+		{
+			auto& request = event.request;
+			glfwSetScrollCallback(request.window, request.cbfun);
+			event.promise.set_value();
+		}
+
 		void operator()(SetKeyCallbackEvent& event) const
 		{
 			auto& request = event.request;
 			glfwSetKeyCallback(request.window, request.cbfun);
+			event.promise.set_value();
+		}
+
+		void operator()(SetCharCallbackEvent& event) const
+		{
+			auto& request = event.request;
+			glfwSetCharCallback(request.window, request.cbfun);
+			event.promise.set_value();
+		}
+
+		void operator()(SetWindowSizeCallbackEvent& event) const
+		{
+			auto& request = event.request;
+			glfwSetWindowSizeCallback(request.window, request.cbfun);
 			event.promise.set_value();
 		}
 	} eventVisitor;
@@ -166,9 +201,34 @@ std::future<void> GlfwWindowManager::destroyWindow(GLFWwindow* window)
 	return m_eventQueue.postEvent(DestroyWindowRequest{window});
 }
 
+std::future<void> GlfwWindowManager::setMouseButtonCallback(GLFWwindow* window, GLFWmousebuttonfun cbfun)
+{
+	return m_eventQueue.postEvent(SetMouseButtonCallbackRequest{ window, cbfun });
+}
+
+std::future<void> GlfwWindowManager::setCursorPosCallback(GLFWwindow* window, GLFWcursorposfun cbfun)
+{
+	return m_eventQueue.postEvent(SetCursorPosCallbackRequest{ window, cbfun });
+}
+
+std::future<void> GlfwWindowManager::setScrollCallback(GLFWwindow* window, GLFWscrollfun cbfun)
+{
+	return m_eventQueue.postEvent(SetScrollCallbackRequest{ window, cbfun });
+}
+
 std::future<void> GlfwWindowManager::setKeyCallback(GLFWwindow* window, GLFWkeyfun cbfun)
 {
 	return m_eventQueue.postEvent(SetKeyCallbackRequest{ window, cbfun });
+}
+
+std::future<void> GlfwWindowManager::setCharCallback(GLFWwindow* window, GLFWcharfun cbfun)
+{
+	return m_eventQueue.postEvent(SetCharCallbackRequest{ window, cbfun });
+}
+
+std::future<void> GlfwWindowManager::setWindowSizeCallback(GLFWwindow* window, GLFWwindowsizefun cbfun)
+{
+	return m_eventQueue.postEvent(SetWindowSizeCallbackRequest{ window, cbfun });
 }
 
 bool GlfwWindowManager::isMainThread()

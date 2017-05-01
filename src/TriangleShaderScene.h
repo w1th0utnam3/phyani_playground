@@ -12,8 +12,8 @@ public:
 	~TriangleShaderScene() = default;
 
 protected:
-	virtual void initializeImpl();
-	virtual void renderImpl();
+	virtual void initializeSceneContent();
+	virtual void renderSceneContent();
 
 private:
 	//! Buffer for triangle vertices

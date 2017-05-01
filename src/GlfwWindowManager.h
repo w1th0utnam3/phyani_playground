@@ -25,16 +25,29 @@ struct DestroyWindowRequest
 	GLFWwindow* window;
 };
 
-struct SetKeyCallbackRequest
+template <typename CallbackT, std::size_t id = 0>
+struct SetCallbackRequest
 {
 	GLFWwindow* window;
-	GLFWkeyfun cbfun;
+	CallbackT cbfun;
 };
 
-using ExitEvent = Event<ExitRequest, void>;
+using SetMouseButtonCallbackRequest = SetCallbackRequest<GLFWmousebuttonfun>;
+using SetCursorPosCallbackRequest = SetCallbackRequest<GLFWcursorposfun>;
+using SetScrollCallbackRequest = SetCallbackRequest<GLFWscrollfun, 1>;
+using SetKeyCallbackRequest = SetCallbackRequest<GLFWkeyfun>;
+using SetCharCallbackRequest = SetCallbackRequest<GLFWcharfun>;
+using SetWindowSizeCallbackRequest = SetCallbackRequest<GLFWwindowsizefun>;
+
+using ExitEvent = VoidEvent<ExitRequest>;
 using CreateWindowEvent = Event<CreateWindowRequest, GLFWwindow*>;
-using DestroyWindowEvent = Event<DestroyWindowRequest, void>;
-using SetKeyCallbackEvent = Event<SetKeyCallbackRequest, void>;
+using DestroyWindowEvent = VoidEvent<DestroyWindowRequest>;
+using SetMouseButtonCallbackEvent = VoidEvent<SetMouseButtonCallbackRequest>;
+using SetCursorPosCallbackEevent = VoidEvent<SetCursorPosCallbackRequest>;
+using SetScrollCallbackEvent = VoidEvent<SetScrollCallbackRequest>;
+using SetKeyCallbackEvent = VoidEvent<SetKeyCallbackRequest>;
+using SetCharCallbackEvent = VoidEvent<SetCharCallbackRequest>;
+using SetWindowSizeCallbackEvent = VoidEvent<SetWindowSizeCallbackRequest>;
 
 //! Global window and GLFW manager singleton class.
 /*
@@ -45,7 +58,15 @@ using SetKeyCallbackEvent = Event<SetKeyCallbackRequest, void>;
  */
 class GlfwWindowManager
 {
-	using event_queue_type = EventQueue<ExitEvent, CreateWindowEvent, DestroyWindowEvent, SetKeyCallbackEvent>;
+	using event_queue_type = EventQueue<ExitEvent, 
+										CreateWindowEvent, 
+										DestroyWindowEvent, 
+										SetMouseButtonCallbackEvent, 
+										SetCursorPosCallbackEevent, 
+										SetScrollCallbackEvent, 
+										SetKeyCallbackEvent, 
+										SetCharCallbackEvent,
+										SetWindowSizeCallbackEvent>;
 	static event_queue_type m_eventQueue;
 
 public:
@@ -75,8 +96,18 @@ public:
 	static std::future<GLFWwindow*> requestWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share);
 	//! Posts an event to destroy the specified window using glfwDestroyWindow().
 	static std::future<void> destroyWindow(GLFWwindow* window);
+	//! Posts an event to set the keyboard callback of the specified window using glfwSetMouseButtonCallback().
+	static std::future<void> setMouseButtonCallback(GLFWwindow* window, GLFWmousebuttonfun cbfun);
+	//! Posts an event to set the keyboard callback of the specified window using glfwSetCursorPosCallback().
+	static std::future<void> setCursorPosCallback(GLFWwindow* window, GLFWcursorposfun cbfun);
+	//! Posts an event to set the keyboard callback of the specified window using glfwSetScrollCallback().
+	static std::future<void> setScrollCallback(GLFWwindow* window, GLFWscrollfun cbfun);
 	//! Posts an event to set the keyboard callback of the specified window using glfwSetKeyCallback().
 	static std::future<void> setKeyCallback(GLFWwindow* window, GLFWkeyfun cbfun);
+	//! Posts an event to set the keyboard callback of the specified window using glfwSetCharCallback().
+	static std::future<void> setCharCallback(GLFWwindow* window, GLFWcharfun cbfun);
+	//! Posts an event to set the keyboard callback of the specified window using glfwSetWindowSizeCallback().
+	static std::future<void> setWindowSizeCallback(GLFWwindow* window, GLFWwindowsizefun cbfun);
 
 private:
 	//! Constructs a GlfwWindowManager and initializes GLFW. Use the static create() method instead.
@@ -85,6 +116,7 @@ private:
 	~GlfwWindowManager();
 	//! Deletes the supplied GlfwWindowManager. Used as a deleter for the unqiue pointer returned by create().
 	static void deleter(GlfwWindowManager* manager);
+
 	//! Prints the supplied error. Used as a callback for GLFW errors.
 	static void errorCallback(int error, const char* description);
 

@@ -26,14 +26,18 @@ struct Event
 	std::promise<PromisedT> promise;
 };
 
+//! Event type with a void response type
+template< typename RequestT>
+using VoidEvent = Event<RequestT, void>;
+
 //! An event queue which stores requests of the user and returns future objects to await a result.
 template <typename... EventTs>
 class EventQueue : protected std::queue<std::variant<Event<typename EventTs::request_type, typename EventTs::promised_type>...>>
 {
-	// Make sure that we have more than one event type
+	// Make sure that we have at least one event type
 	static_assert(sizeof...(EventTs) > 0, "The number of event types has to be larger than zero.");
 	// Make sure that request types are unique
-	static_assert(noname::tools::unique_types_v<typename EventTs::request_type...>, "The request types of the supplied events have to be unique.");
+	static_assert(noname::tools::unique_elements_v<typename EventTs::request_type...>, "The request types of the supplied events have to be unique.");
 
 	//! Alias for the promised result type associated to the 'RequestT'.
 	template <typename RequestT>

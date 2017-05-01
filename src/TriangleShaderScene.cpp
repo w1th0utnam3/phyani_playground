@@ -4,9 +4,9 @@
 
 #include <GLFW\glfw3.h>
 
-void TriangleShaderScene::initializeImpl()
+void TriangleShaderScene::initializeSceneContent()
 {
-	constexpr struct
+	static constexpr struct
 	{
 		float x, y;
 		float r, g, b;
@@ -22,7 +22,7 @@ void TriangleShaderScene::initializeImpl()
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	constexpr const char* vertex_shader_text =
+	static constexpr const char* vertex_shader_text =
 		"uniform mat4 MVP;\n"
 		"attribute vec3 vCol;\n"
 		"attribute vec2 vPos;\n"
@@ -32,7 +32,7 @@ void TriangleShaderScene::initializeImpl()
 		"    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
 		"    color = vCol;\n"
 		"}\n";
-	constexpr const char* fragment_shader_text =
+	static constexpr const char* fragment_shader_text =
 		"varying vec3 color;\n"
 		"void main()\n"
 		"{\n"
@@ -66,7 +66,7 @@ void TriangleShaderScene::initializeImpl()
 	glVertexAttribPointer(m_vcolLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void*>(sizeof(float) * 2));
 }
 
-void TriangleShaderScene::renderImpl()
+void TriangleShaderScene::renderSceneContent()
 {
 	static int width, height;
 	static float ratio;

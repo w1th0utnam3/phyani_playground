@@ -2,6 +2,8 @@
 
 struct GLFWwindow;
 
+#include "Camera.h"
+
 //! Base class of scenes that can be rendered in an OpenGL context
 class Scene
 {
@@ -16,13 +18,19 @@ public:
 	void render();
 	//! Returns the window of the Scene
 	GLFWwindow* window();
+	//! Returns the camera of the Scene
+	Camera* camera();
+	//! Sets the camera of the Scene
+	void setCamera(Camera* camera);
 
 protected:
 	//! Method that subclasses should override to initialize buffers, shaders, etc.
-	virtual void initializeImpl() {};
+	virtual void initializeSceneContent() {};
 	//! Method that subclasses should override to render the specific scene
-	virtual void renderImpl() {};
+	virtual void renderSceneContent() {};
 
+	//! Camera of the Scene
+	Camera* m_camera;
 private:
 	//! Flag indicating whether the Scene was initialized
 	bool m_initialized;

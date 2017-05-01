@@ -19,16 +19,26 @@ void Scene::initialize(GLFWwindow* window)
 	}
 
 	m_window = window;
-	initializeImpl();
+	initializeSceneContent();
 }
 
 void Scene::render()
 {
 	assert(m_initialized);
-	renderImpl();
+	renderSceneContent();
 }
 
 GLFWwindow* Scene::window()
 {
 	return m_window;
+}
+
+Camera* Scene::camera()
+{
+	return m_camera;
+}
+
+void Scene::setCamera(Camera* camera)
+{
+	m_camera = camera;
 }
