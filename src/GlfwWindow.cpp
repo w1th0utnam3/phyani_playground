@@ -197,7 +197,7 @@ void GlfwWindow::render()
 
 void GlfwWindow::mouse_button_callback(GLFWwindow* glfwWindow, int button, int action, int mods)
 {
-	if (TwEventMouseButtonGLFW(button, action)) return;
+	if (TwEventMouseButtonGLFW3(glfwWindow, button, action, mods)) return;
 	auto window = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(glfwWindow));
 
 	window->m_interaction.pressedButton = (action == GLFW_PRESS) ? button : -1;
@@ -210,7 +210,7 @@ void GlfwWindow::mouse_button_callback(GLFWwindow* glfwWindow, int button, int a
 
 void GlfwWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos, double ypos)
 {
-	if (TwEventMousePosGLFW(xpos, ypos)) return;
+	if (TwEventCursorPosGLFW3(glfwWindow, xpos, ypos)) return;
 	auto window = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(glfwWindow));
 	const int width = window->m_camera.viewportSize().x;
 	const int height = window->m_camera.viewportSize().y;
@@ -254,7 +254,7 @@ void GlfwWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
 
-	if (TwEventKeyGLFW(key, action)) return;
+	if (TwEventKeyGLFW3(glfwWindow, key, scancode, action, mods)) return;
 }
 
 void GlfwWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int height)

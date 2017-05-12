@@ -28,8 +28,8 @@
     <ClCompile Include="..\src\GlfwWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\submodules\anttweakbar\src\AntTweakBar.vcxproj">
-      <Project>{b99e1fa1-c30a-45f2-9d57-9e9c21b2df42}</Project>
+    <ProjectReference Include="anttweakbar\TweakBar\AntTweakBar.vcxproj">
+      <Project>{0b532ee6-203e-323b-bf19-08c710804c37}</Project>
     </ProjectReference>
     <ProjectReference Include="glad\glad.vcxproj">
       <Project>{08f20750-6fcd-4327-845b-0fa3b188dc06}</Project>
@@ -119,6 +119,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,6 +132,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,6 +147,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,8 +163,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;TW_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>TW_EXPORTS;GLFW_INCLUDE_NONE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
