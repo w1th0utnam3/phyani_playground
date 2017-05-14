@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "GlfwWindow.h"
+#include "RenderWindow.h"
 #include "GlfwWindowManager.h"
 
 int main()
@@ -14,7 +14,7 @@ int main()
 		auto windowThread = std::thread([]()
 		{
 			{
-				GlfwWindow window;
+				RenderWindow window;
 				// Start rendering of the window
 				window.executeRenderLoop();
 			}
