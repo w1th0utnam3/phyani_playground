@@ -37,6 +37,7 @@ using SetCursorPosCallbackRequest = SetCallbackRequest<GLFWcursorposfun>;
 using SetScrollCallbackRequest = SetCallbackRequest<GLFWscrollfun, 1>;
 using SetKeyCallbackRequest = SetCallbackRequest<GLFWkeyfun>;
 using SetCharCallbackRequest = SetCallbackRequest<GLFWcharfun>;
+using SetCharModsCallbackRequest = SetCallbackRequest<GLFWcharmodsfun>;
 using SetWindowSizeCallbackRequest = SetCallbackRequest<GLFWwindowsizefun>;
 
 using ExitEvent = VoidEvent<ExitRequest>;
@@ -47,6 +48,7 @@ using SetCursorPosCallbackEevent = VoidEvent<SetCursorPosCallbackRequest>;
 using SetScrollCallbackEvent = VoidEvent<SetScrollCallbackRequest>;
 using SetKeyCallbackEvent = VoidEvent<SetKeyCallbackRequest>;
 using SetCharCallbackEvent = VoidEvent<SetCharCallbackRequest>;
+using SetCharModsCallbackEvent = VoidEvent<SetCharModsCallbackRequest>;
 using SetWindowSizeCallbackEvent = VoidEvent<SetWindowSizeCallbackRequest>;
 
 //! Global window and GLFW manager singleton class.
@@ -66,7 +68,10 @@ class GlfwWindowManager
 										SetScrollCallbackEvent, 
 										SetKeyCallbackEvent, 
 										SetCharCallbackEvent,
+										SetCharModsCallbackEvent,
 										SetWindowSizeCallbackEvent>;
+
+	//! The event queue used to store window management events
 	static event_queue_type m_eventQueue;
 
 public:
@@ -106,6 +111,8 @@ public:
 	static std::future<void> setKeyCallback(GLFWwindow* window, GLFWkeyfun cbfun);
 	//! Posts an event to set the keyboard callback of the specified window using glfwSetCharCallback().
 	static std::future<void> setCharCallback(GLFWwindow* window, GLFWcharfun cbfun);
+	//! Posts an event to set the keyboard callback of the specified window using glfwSetCharModsCallback().
+	static std::future<void> setCharModsCallback(GLFWwindow* window, GLFWcharmodsfun cbfun);
 	//! Posts an event to set the keyboard callback of the specified window using glfwSetWindowSizeCallback().
 	static std::future<void> setWindowSizeCallback(GLFWwindow* window, GLFWwindowsizefun cbfun);
 

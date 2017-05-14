@@ -155,6 +155,13 @@ void GlfwWindowManager::processEvents()
 			event.promise.set_value();
 		}
 
+		void operator()(SetCharModsCallbackEvent& event) const
+		{
+			auto& request = event.request;
+			glfwSetCharModsCallback(request.window, request.cbfun);
+			event.promise.set_value();
+		}
+
 		void operator()(SetWindowSizeCallbackEvent& event) const
 		{
 			auto& request = event.request;
@@ -224,6 +231,11 @@ std::future<void> GlfwWindowManager::setKeyCallback(GLFWwindow* window, GLFWkeyf
 std::future<void> GlfwWindowManager::setCharCallback(GLFWwindow* window, GLFWcharfun cbfun)
 {
 	return m_eventQueue.postEvent(SetCharCallbackRequest{ window, cbfun });
+}
+
+std::future<void> GlfwWindowManager::setCharModsCallback(GLFWwindow* window, GLFWcharmodsfun cbfun)
+{
+	return m_eventQueue.postEvent(SetCharModsCallbackRequest{ window, cbfun });
 }
 
 std::future<void> GlfwWindowManager::setWindowSizeCallback(GLFWwindow* window, GLFWwindowsizefun cbfun)

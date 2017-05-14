@@ -35,6 +35,7 @@ RenderWindow::RenderWindow()
 		GlfwWindowManager::setCursorPosCallback(m_window, cursor_position_callback),
 		GlfwWindowManager::setScrollCallback(m_window, scroll_callback),
 		GlfwWindowManager::setKeyCallback(m_window, key_callback),
+		GlfwWindowManager::setCharModsCallback(m_window, charmods_callback),
 		GlfwWindowManager::setWindowSizeCallback(m_window, window_size_callback)
 	);
 	for (auto& fut : callbackRequests) fut.wait();
@@ -61,6 +62,7 @@ RenderWindow::~RenderWindow()
 		GlfwWindowManager::setCursorPosCallback(m_window, nullptr),
 		GlfwWindowManager::setScrollCallback(m_window, nullptr),
 		GlfwWindowManager::setKeyCallback(m_window, nullptr),
+		GlfwWindowManager::setCharModsCallback(m_window, nullptr),
 		GlfwWindowManager::setWindowSizeCallback(m_window, nullptr)
 	);
 	if (GlfwWindowManager::isInitialized()) for (auto& fut : callbackRequests) fut.wait();
@@ -131,7 +133,6 @@ bool RenderWindow::initialize()
 	auto fromTwWireframeCallback = [](const void* twData, void* userPointer)
 	{
 		auto window = static_cast<RenderWindow*>(userPointer);
-		std::cout << std::boolalpha << window->m_drawMode << " " << *static_cast<const bool*>(twData) << "\n";
 		window->m_drawMode = (*static_cast<const bool*>(twData)) ? GL_LINE : GL_FILL;
 	};
 
@@ -255,6 +256,11 @@ void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, i
 		glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
 
 	if (TwEventKeyGLFW3(glfwWindow, key, scancode, action, mods)) return;
+}
+
+void RenderWindow::charmods_callback(GLFWwindow* glfwWindow, unsigned int codepoint, int mods)
+{
+	if (TwEventCharModsGLFW3(glfwWindow, codepoint, mods)) return;
 }
 
 void RenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int height)
