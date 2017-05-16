@@ -1,5 +1,3 @@
-#pragma once
-
 #include "RenderWindow.h"
 
 #include <iostream>
@@ -15,15 +13,21 @@
 
 #include "noname_tools\vector_tools.h"
 
+
 RenderWindow::RenderWindow()
+	: RenderWindow(3, 0)
+{
+}
+
+RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	: m_continueRenderLoop(false)
 	, m_drawMode(GL_FILL)
 	, m_lastFrametime(0)
 	, m_fps(0)
 	, m_camera(1280, 720)
 {
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glVersionMajor);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, glVersionMinor);
 
 	// Request a new window from GLFW
 	auto futureWindow = GlfwWindowManager::requestWindow(m_camera.viewportSize().x, m_camera.viewportSize().y, "Simulation", nullptr, nullptr);
@@ -106,7 +110,7 @@ void RenderWindow::executeRenderLoop()
 	glfwMakeContextCurrent(previousContext);
 }
 
-std::future<void> RenderWindow::stopRenderLoop()
+void RenderWindow::requestStopRenderLoop()
 {
 	m_continueRenderLoop = false;
 }
