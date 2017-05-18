@@ -13,9 +13,11 @@
 
 #include "noname_tools\vector_tools.h"
 
+#define DEFAULT_GL_MAJOR 4
+#define DEFAULT_GL_MINOR 3
 
 RenderWindow::RenderWindow()
-	: RenderWindow(3, 0)
+	: RenderWindow(DEFAULT_GL_MAJOR, DEFAULT_GL_MINOR)
 {
 }
 
@@ -28,6 +30,7 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glVersionMajor);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, glVersionMinor);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
 	// Request a new window from GLFW
 	auto futureWindow = GlfwWindowManager::requestWindow(m_camera.viewportSize().x, m_camera.viewportSize().y, "Simulation", nullptr, nullptr);
