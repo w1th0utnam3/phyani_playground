@@ -52,6 +52,10 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 	glfwSwapInterval(1);
 
+	m_camera.setTranslation(0, 0, -1);
+	m_camera.setScaling(160, 160, 160);
+	m_camera.setAsDefault();
+
 	// Initialize window
 	if (!initialize()) {
 		std::cerr << "Simulation could not be initialized." << "\n";
@@ -59,10 +63,6 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	}
 
 	glfwMakeContextCurrent(previousContext);
-
-	m_camera.setTranslation(0, 0, -1);
-	m_camera.setScaling(160, 160, 160);
-	m_camera.setAsDefault();
 }
 
 RenderWindow::~RenderWindow()
@@ -160,10 +160,12 @@ bool RenderWindow::initialize()
 	TwAddVarCB(m_tweakBar, "Rotation", 
 		TW_TYPE_QUAT4D, fromTwRotationCallback, toTwRotationCallback, static_cast<void*>(this),
 		" label='Rotation' open help='Change the rotation.' ");
-	TwAddVarRO(m_tweakBar, "Frame time (ms)", TW_TYPE_DOUBLE, &m_lastFrametime, " label='Frame time (ms)' precision=2");
+	TwAddVarRO(m_tweakBar, "FrameTime", TW_TYPE_DOUBLE, &m_lastFrametime, " label='Frame time (ms)' precision=2");
 	TwAddVarRO(m_tweakBar, "FPS", TW_TYPE_DOUBLE, &m_fps, " label='FPS' precision=2");
 	TwAddVarCB(m_tweakBar, "Wireframe", TW_TYPE_BOOLCPP, fromTwWireframeCallback, toTwWireframeCallback, static_cast<void*>(this),
 		" label='Wireframe' key=w help='Toggle wireframe mode.' ");
+	TwAddButton(m_tweakBar, "ResetCamera", [](void* userPointer) {static_cast<Camera*>(userPointer)->resetToDefault(); }, static_cast<void*>(&m_camera), 
+		" label='Reset camera'");
 
 	/*
 	TwAddVarRO(tweakBar, "Time", TW_TYPE_FLOAT, &m_time, " label='Time' precision=5");
