@@ -1,13 +1,11 @@
 ﻿#include "Camera.h"
 
-#include <algorithm>
 #include <cmath>
 #include <iostream>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/geometric.hpp>
 
 Camera::Camera(int width, int height)
 	: m_modelView()
@@ -15,6 +13,7 @@ Camera::Camera(int width, int height)
 	, m_translation(0, 0, -1)
 	, m_scaling(160, 160, 160)
 	, m_projection()
+	, m_zoom(1.0)
 	, m_viewportSize(width, height)
 {
 	updateModelViewMatrix();
@@ -25,11 +24,6 @@ void Camera::rotate(double angle, glm::dvec3 axis)
 {
 	glm::dvec3 rotatedAxis = glm::inverse(m_rotation)*axis;
 	m_rotation = glm::rotate(m_rotation, angle, rotatedAxis);
-	bool resok = (std::isfinite(m_rotation[0]) 
-				&& std::isfinite(m_rotation[1]) 
-				&& std::isfinite(m_rotation[2]) 
-				&& std::isfinite(m_rotation[3]));
-	if (!resok) throw std::runtime_error("Illegal quat");
 	updateModelViewMatrix();
 }
 
@@ -37,6 +31,12 @@ void Camera::rotate(const void* quat)
 {
 	std::memcpy(glm::value_ptr(m_rotation), quat, 4 * sizeof(double));
 	updateModelViewMatrix();
+}
+
+void Camera::setZoom(double zoom)
+{
+	m_zoom = zoom;
+	updateProjectionMatrix();
 }
 
 void Camera::setViewportSize(int width, int height)
@@ -71,6 +71,11 @@ void Camera::rotation(void* quat) const
 	std::memcpy(quat, glm::value_ptr(m_rotation), 4 * sizeof(double));
 }
 
+double Camera::zoom() const
+{
+	return m_zoom;
+}
+
 void Camera::updateModelViewMatrix()
 {
 	m_modelView = glm::translate(glm::dmat4(), m_translation);
@@ -81,6 +86,6 @@ void Camera::updateModelViewMatrix()
 void Camera::updateProjectionMatrix()
 {	
 	const double diag = std::hypot(m_viewportSize.x, m_viewportSize.y);
-	m_projection = glm::ortho<double>(-0.5*m_viewportSize.x, 0.5*m_viewportSize.x, 
-									  -0.5*m_viewportSize.y, 0.5*m_viewportSize.y, -diag, diag);
+	m_projection = glm::ortho<double>(-0.5*m_viewportSize.x*m_zoom, 0.5*m_viewportSize.x*m_zoom,
+									  -0.5*m_viewportSize.y*m_zoom, 0.5*m_viewportSize.y*m_zoom, -diag, diag);
 }

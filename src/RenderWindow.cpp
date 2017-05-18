@@ -250,8 +250,10 @@ void RenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos,
 
 void RenderWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, double yoffset)
 {
+	if (TwEventScrollGLFW3(glfwWindow, xoffset, yoffset)) return;
+
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
-	//window->m_camera.zoom(0.01*yoffset);
+	window->m_camera.setZoom(window->m_camera.zoom() * ((yoffset > 0) ? 1.1 : 0.9));
 }
 
 void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
