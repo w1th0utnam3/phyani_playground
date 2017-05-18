@@ -21,9 +21,6 @@
     <ClCompile Include="..\src\Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\TriangleShaderScene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\GlfwWindowManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -38,13 +35,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\linmath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\TriangleShaderScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\EventQueue.h">

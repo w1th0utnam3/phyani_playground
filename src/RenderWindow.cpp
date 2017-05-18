@@ -3,11 +3,11 @@
 #include <iostream>
 #include <vector>
 
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "TriangleShaderScene.h"
 #include "DemoScene.h"
 #include "GlfwWindowManager.h"
 
