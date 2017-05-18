@@ -125,13 +125,13 @@ bool RenderWindow::initialize()
 	auto fromTwRotationCallback = [](const void* twData, void* userPointer)
 	{
 		auto window = static_cast<RenderWindow*>(userPointer);
-		window->m_camera.rotate(twData);
+		window->m_camera.rotate(static_cast<const double*>(twData));
 	};
 
 	auto toTwRotationCallback = [](void* twData, void* userPointer)
 	{
 		auto window = static_cast<RenderWindow*>(userPointer);
-		window->m_camera.rotation(twData);
+		window->m_camera.rotation(static_cast<double*>(twData));
 	};
 
 	auto fromTwWireframeCallback = [](const void* twData, void* userPointer)

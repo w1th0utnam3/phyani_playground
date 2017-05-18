@@ -27,9 +27,9 @@ void Camera::rotate(double angle, glm::dvec3 axis)
 	updateModelViewMatrix();
 }
 
-void Camera::rotate(const void* quat)
+void Camera::rotate(const double* quat)
 {
-	std::memcpy(glm::value_ptr(m_rotation), quat, 4 * sizeof(double));
+	std::memcpy(glm::value_ptr(m_rotation), static_cast<const void*>(quat), 4 * sizeof(double));
 	updateModelViewMatrix();
 }
 
@@ -66,9 +66,9 @@ glm::tquat<double> Camera::rotation() const
 	return m_rotation;
 }
 
-void Camera::rotation(void* quat) const
+void Camera::rotation(double* quat) const
 {
-	std::memcpy(quat, glm::value_ptr(m_rotation), 4 * sizeof(double));
+	std::memcpy(static_cast<void*>(quat), glm::value_ptr(m_rotation), 4 * sizeof(double));
 }
 
 double Camera::zoom() const
