@@ -56,6 +56,10 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	}
 
 	glfwMakeContextCurrent(previousContext);
+
+	m_camera.setTranslation(0, 0, -1);
+	m_camera.setScaling(160, 160, 160);
+	m_camera.setAsDefault();
 }
 
 RenderWindow::~RenderWindow()
@@ -253,7 +257,7 @@ void RenderWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, doubl
 	if (TwEventScrollGLFW3(glfwWindow, xoffset, yoffset)) return;
 
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
-	window->m_camera.setZoom(window->m_camera.zoom() * ((yoffset > 0) ? 1.1 : 0.9));
+	window->m_camera.zoom((yoffset > 0) ? 1.1 : 0.9);
 }
 
 void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
