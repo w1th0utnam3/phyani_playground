@@ -90,10 +90,10 @@ public:
 
 	//! Returns whether the GlfWindowManager is currently initialized.
 	static bool isInitialized();
-	//! Processes all events that were posted to the event queue of the window manager.
-	static void processEvents();
 	//! Starts a blocking event loop that waits fro GLFW events.
 	static void executeEventLoop();
+	//! Processes all events that were posted to the event queue of the window manager.
+	static void processEvents();
 
 	//! Posts an event to exit the event loop.
 	static std::future<void> stopEventLoop();

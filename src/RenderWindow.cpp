@@ -83,7 +83,7 @@ RenderWindow::~RenderWindow()
 	// Request to destroy window but don't wait
 	GlfwWindowManager::destroyWindow(m_window);
 
-	std::cout << "(sim) Simulation done." << "\n";
+	std::cout << "(win) Window closed." << "\n";
 }
 
 void RenderWindow::executeRenderLoop()
@@ -164,8 +164,20 @@ bool RenderWindow::initialize()
 	TwAddVarRO(m_tweakBar, "FPS", TW_TYPE_DOUBLE, &m_fps, " label='FPS' precision=2");
 	TwAddVarCB(m_tweakBar, "Wireframe", TW_TYPE_BOOLCPP, fromTwWireframeCallback, toTwWireframeCallback, static_cast<void*>(this),
 		" label='Wireframe' key=w help='Toggle wireframe mode.' ");
-	TwAddButton(m_tweakBar, "ResetCamera", [](void* userPointer) {static_cast<Camera*>(userPointer)->resetToDefault(); }, static_cast<void*>(&m_camera), 
+	TwAddButton(m_tweakBar, "ResetCamera", 
+		[](void* userPointer) {static_cast<Camera*>(userPointer)->resetToDefault(); }, static_cast<void*>(&m_camera), 
 		" label='Reset camera'");
+	TwAddButton(m_tweakBar, "IncrementTime", [](void* userPointer)
+	{
+		auto scenes = static_cast<std::vector<std::unique_ptr<Scene>>*>(userPointer);
+		if(!scenes->empty()) {
+			auto demoScene = dynamic_cast<DemoScene*>(scenes->back().get());
+			if (demoScene != nullptr) {
+				demoScene->doTimestep(0.1);
+			}
+		}
+	}, static_cast<void*>(&m_scenes),
+		" label='Increment time'");
 
 	/*
 	TwAddVarRO(tweakBar, "Time", TW_TYPE_FLOAT, &m_time, " label='Time' precision=5");

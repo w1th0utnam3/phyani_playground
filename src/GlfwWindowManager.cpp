@@ -81,6 +81,23 @@ void GlfwWindowManager::errorCallback(int error, const char* description)
 	fprintf(stderr, "Error %d: %s\n", error, description);
 }
 
+void GlfwWindowManager::executeEventLoop()
+{
+	// Make sure that this function is only called from the main thread
+	if (!isMainThread()) {
+		const std::string error = "GLFW event loop can only be run in the main thread!";
+		std::cerr << error << "\n";
+		return;
+	}
+
+	m_continueEventLoop = true;
+	while (m_continueEventLoop) {
+		// Wait for new GLFW events
+		glfwWaitEvents();
+		processEvents();
+	}
+}
+
 void GlfwWindowManager::processEvents()
 {
 	// Make sure that this function is only called in the main thread
@@ -173,23 +190,6 @@ void GlfwWindowManager::processEvents()
 	while (m_continueEventLoop && !m_eventQueue.empty()) {
 		// The event queue ensures thread safety
 		m_eventQueue.processOldestEvent(eventVisitor);
-	}
-}
-
-void GlfwWindowManager::executeEventLoop()
-{
-	// Make sure that this function is only called from the main thread
-	if (!isMainThread()) {
-		const std::string error = "GLFW event loop can only be run in the main thread!";
-		std::cerr << error << "\n";
-		return;
-	}
-
-	m_continueEventLoop = true;
-	while (m_continueEventLoop) {
-		// Wait for new GLFW events
-		glfwWaitEvents();
-		processEvents();
 	}
 }
 

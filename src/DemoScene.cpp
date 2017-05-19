@@ -8,9 +8,27 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+DemoScene::~DemoScene()
+{
+	if (m_simulation.isEventLoopRunning()) m_simulation.stopTimestepLoop().wait();
+	m_simulationThread.join();
+}
+
 void DemoScene::initializeSceneContent()
 {
 	initializeLight();
+
+	// Create a window for the simulation
+	auto simulationPtr = &m_simulation;
+	m_simulationThread = std::move(std::thread([simulationPtr]()
+	{
+		simulationPtr->executeTimestepLoop();
+	}));
+}
+
+void DemoScene::doTimestep(double dt)
+{
+	m_simulation.requestTimestep(dt);
 }
 
 void DemoScene::renderSceneContent()
