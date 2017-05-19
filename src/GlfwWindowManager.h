@@ -9,48 +9,6 @@
 
 #include "EventQueue.h"
 
-struct ExitRequest {};
-
-struct CreateWindowRequest
-{
-	int width;
-	int height;
-	const char* title;
-	GLFWmonitor* monitor;
-	GLFWwindow* share;
-};
-
-struct DestroyWindowRequest
-{
-	GLFWwindow* window;
-};
-
-template <typename CallbackT, std::size_t id = 0>
-struct SetCallbackRequest
-{
-	GLFWwindow* window;
-	CallbackT cbfun;
-};
-
-using SetMouseButtonCallbackRequest = SetCallbackRequest<GLFWmousebuttonfun>;
-using SetCursorPosCallbackRequest = SetCallbackRequest<GLFWcursorposfun>;
-using SetScrollCallbackRequest = SetCallbackRequest<GLFWscrollfun, 1>;
-using SetKeyCallbackRequest = SetCallbackRequest<GLFWkeyfun>;
-using SetCharCallbackRequest = SetCallbackRequest<GLFWcharfun>;
-using SetCharModsCallbackRequest = SetCallbackRequest<GLFWcharmodsfun>;
-using SetWindowSizeCallbackRequest = SetCallbackRequest<GLFWwindowsizefun>;
-
-using ExitEvent = VoidEvent<ExitRequest>;
-using CreateWindowEvent = Event<CreateWindowRequest, GLFWwindow*>;
-using DestroyWindowEvent = VoidEvent<DestroyWindowRequest>;
-using SetMouseButtonCallbackEvent = VoidEvent<SetMouseButtonCallbackRequest>;
-using SetCursorPosCallbackEevent = VoidEvent<SetCursorPosCallbackRequest>;
-using SetScrollCallbackEvent = VoidEvent<SetScrollCallbackRequest>;
-using SetKeyCallbackEvent = VoidEvent<SetKeyCallbackRequest>;
-using SetCharCallbackEvent = VoidEvent<SetCharCallbackRequest>;
-using SetCharModsCallbackEvent = VoidEvent<SetCharModsCallbackRequest>;
-using SetWindowSizeCallbackEvent = VoidEvent<SetWindowSizeCallbackRequest>;
-
 //! Global window and GLFW manager singleton class.
 /*
  * This class can be used as a scoped GLFW manager which initializes GLFW and runs the event loop
@@ -60,7 +18,49 @@ using SetWindowSizeCallbackEvent = VoidEvent<SetWindowSizeCallbackRequest>;
  */
 class GlfwWindowManager
 {
-	using event_queue_type = EventQueue<ExitEvent, 
+	struct StopEventLoopRequest {};
+
+	struct CreateWindowRequest
+	{
+		int width;
+		int height;
+		const char* title;
+		GLFWmonitor* monitor;
+		GLFWwindow* share;
+	};
+
+	struct DestroyWindowRequest
+	{
+		GLFWwindow* window;
+	};
+
+	template <typename CallbackT, std::size_t id = 0>
+	struct SetCallbackRequest
+	{
+		GLFWwindow* window;
+		CallbackT cbfun;
+	};
+
+	using SetMouseButtonCallbackRequest = SetCallbackRequest<GLFWmousebuttonfun>;
+	using SetCursorPosCallbackRequest = SetCallbackRequest<GLFWcursorposfun>;
+	using SetScrollCallbackRequest = SetCallbackRequest<GLFWscrollfun, 1>;
+	using SetKeyCallbackRequest = SetCallbackRequest<GLFWkeyfun>;
+	using SetCharCallbackRequest = SetCallbackRequest<GLFWcharfun>;
+	using SetCharModsCallbackRequest = SetCallbackRequest<GLFWcharmodsfun>;
+	using SetWindowSizeCallbackRequest = SetCallbackRequest<GLFWwindowsizefun>;
+
+	using StopEventLoopEvent = VoidEvent<StopEventLoopRequest>;
+	using CreateWindowEvent = Event<CreateWindowRequest, GLFWwindow*>;
+	using DestroyWindowEvent = VoidEvent<DestroyWindowRequest>;
+	using SetMouseButtonCallbackEvent = VoidEvent<SetMouseButtonCallbackRequest>;
+	using SetCursorPosCallbackEevent = VoidEvent<SetCursorPosCallbackRequest>;
+	using SetScrollCallbackEvent = VoidEvent<SetScrollCallbackRequest>;
+	using SetKeyCallbackEvent = VoidEvent<SetKeyCallbackRequest>;
+	using SetCharCallbackEvent = VoidEvent<SetCharCallbackRequest>;
+	using SetCharModsCallbackEvent = VoidEvent<SetCharModsCallbackRequest>;
+	using SetWindowSizeCallbackEvent = VoidEvent<SetWindowSizeCallbackRequest>;
+
+	using event_queue_type = EventQueue<StopEventLoopEvent, 
 										CreateWindowEvent, 
 										DestroyWindowEvent, 
 										SetMouseButtonCallbackEvent, 
@@ -96,7 +96,7 @@ public:
 	static void executeEventLoop();
 
 	//! Posts an event to exit the event loop.
-	static std::future<void> exitEventLoop();
+	static std::future<void> stopEventLoop();
 	//! Posts an event to create a new window using glfwCreateWindow().
 	static std::future<GLFWwindow*> requestWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share);
 	//! Posts an event to destroy the specified window using glfwDestroyWindow().

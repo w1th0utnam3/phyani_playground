@@ -93,7 +93,7 @@ void GlfwWindowManager::processEvents()
 	// Define the visitor which processes all possible event types
 	static const struct
 	{
-		void operator()(ExitEvent& event) const
+		void operator()(StopEventLoopEvent& event) const
 		{
 			// Change the flag to break event loop
 			m_continueEventLoop = false;
@@ -193,9 +193,9 @@ void GlfwWindowManager::executeEventLoop()
 	}
 }
 
-std::future<void> GlfwWindowManager::exitEventLoop()
+std::future<void> GlfwWindowManager::stopEventLoop()
 {
-	return m_eventQueue.postEvent(ExitRequest());
+	return m_eventQueue.postEvent(StopEventLoopRequest());
 }
 
 std::future<GLFWwindow*> GlfwWindowManager::requestWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share)
