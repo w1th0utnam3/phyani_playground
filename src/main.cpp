@@ -19,7 +19,7 @@ int main()
 				window.executeRenderLoop();
 			}
 			// After the window is closed, the event loop will be stopped
-			GlfwWindowManager::exitEventLoop();
+			GlfwWindowManager::stopEventLoop();
 		});
 
 		// Start the event loop, this statement blocks the main thread
