@@ -60,12 +60,19 @@ public:
 		using PromisedT = promised_type<RequestT>;
 		using EventT = Event<RequestT, PromisedT>;
 
+		// Notify waiting threads that an event occured
+		m_awaitEventPromise.set_value();
+
+		// Store the event with a promise associated to the request
 		std::promise<promised_type<RequestT>>* promise; {
 			std::lock_guard<std::mutex> lock(this->m_queueMutex);
-			// Store the event with a promise associated to the request
 			this->emplace(EventT{request});
 			promise = &std::get<EventT>(this->back()).promise;
 		}
+
+		// Create a new promise to allow other threads to wait for events
+		m_awaitEventPromise = std::move(std::promise<void>());
+		// Return the promise of the enqueued event
 		return promise->get_future();
 	}
 
@@ -87,6 +94,12 @@ public:
 		this->pop();
 	}
 
+	//! Blocks the current thread until an event was enqueued.
+	void waitForEvent()
+	{
+		m_awaitEventPromise.get_future().wait();
+	}
+
 	//! Returns whether the queue is currently empty
 	using container_type::empty;
 	//! Returns the number of events in the queue
@@ -94,4 +107,5 @@ public:
 
 protected:
 	std::mutex m_queueMutex;
+	std::promise<void> m_awaitEventPromise;
 };
