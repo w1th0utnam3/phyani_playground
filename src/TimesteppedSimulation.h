@@ -26,6 +26,7 @@ public:
 
 	void executeTimestepLoop();
 	void processEvents();
+	bool isEventLoopRunning() const;
 
 private:
 	std::atomic<bool> m_continueEventLoop;

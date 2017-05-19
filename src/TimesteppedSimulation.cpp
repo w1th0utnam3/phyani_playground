@@ -28,11 +28,13 @@ void TimesteppedSimulation::executeTimestepLoop()
 {
 	if (m_continueEventLoop) return;
 
+	std::cout << "(sim) Timestep loop started." << "\n";
 	m_continueEventLoop = true;
 	while(m_continueEventLoop) {
 		m_eventQueue.waitForEvent();
 		processEvents();
 	}
+	std::cout << "(sim) Timestep loop stopped." << "\n";
 }
 
 void TimesteppedSimulation::processEvents()
@@ -61,4 +63,9 @@ void TimesteppedSimulation::processEvents()
 		// The event queue ensures thread safety
 		m_eventQueue.processOldestEvent(eventVisitor);
 	}
+}
+
+bool TimesteppedSimulation::isEventLoopRunning() const
+{
+	return m_continueEventLoop;
 }
