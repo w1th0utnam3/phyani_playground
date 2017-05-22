@@ -13,3 +13,6 @@
 [submodule "submodules/anttweakbar"]
 	path = submodules/anttweakbar
 	url = https://github.com/tschw/AntTweakBar.git
+[submodule "submodules/entt"]
+	path = submodules/entt
+	url = https://github.com/skypjack/entt.git
