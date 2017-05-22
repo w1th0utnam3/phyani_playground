@@ -44,7 +44,7 @@
     <ClInclude Include="..\src\DemoScene.h" />
     <ClInclude Include="..\src\EventQueue.h" />
     <ClInclude Include="..\src\GlfwWindowManager.h" />
-    <ClInclude Include="..\src\Integrator.h" />
+    <ClInclude Include="..\src\Integrators.h" />
     <ClInclude Include="..\src\RigidBody.h" />
     <ClInclude Include="..\src\Scene.h" />
     <ClInclude Include="..\src\RenderWindow.h" />

@@ -2,6 +2,12 @@
 
 namespace StateIntegrators
 {
+
+template <typename SystemFunT, typename StateT, typename DataT>
+StateT explicit_euler(SystemFunT fun, double initialTime, double dt, StateT initialState, DataT data)
+{
+	return initialState + dt*fun(initialTime, initialState, data);
+}
 	
 template <typename SystemFunT, typename StateT, typename DataT>
 StateT rk2(SystemFunT fun, double initialTime, double dt, StateT initialState, DataT data)
