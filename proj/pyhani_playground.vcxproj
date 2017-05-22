@@ -23,6 +23,7 @@
     <ClCompile Include="..\src\DemoScene.cpp" />
     <ClCompile Include="..\src\GlfwWindowManager.cpp" />
     <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\RigidBody.cpp" />
     <ClCompile Include="..\src\Scene.cpp" />
     <ClCompile Include="..\src\RenderWindow.cpp" />
     <ClCompile Include="..\src\TimesteppedSimulation.cpp" />
@@ -43,6 +44,8 @@
     <ClInclude Include="..\src\DemoScene.h" />
     <ClInclude Include="..\src\EventQueue.h" />
     <ClInclude Include="..\src\GlfwWindowManager.h" />
+    <ClInclude Include="..\src\Integrator.h" />
+    <ClInclude Include="..\src\RigidBody.h" />
     <ClInclude Include="..\src\Scene.h" />
     <ClInclude Include="..\src\RenderWindow.h" />
     <ClInclude Include="..\src\TimesteppedSimulation.h" />
