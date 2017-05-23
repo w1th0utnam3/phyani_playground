@@ -4,12 +4,10 @@
 #include <array>
 
 #include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
 #include <Eigen/Geometry>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "RigidBodyComponents.h"
+#include "EntityFactory.h"
 
 DemoScene::DemoScene(EntityComponentSystem& ecs)
 	: m_ecs(ecs)
@@ -62,33 +60,23 @@ void DemoScene::renderSceneContent()
 	glLoadMatrixd(glm::value_ptr(transform));
 
 	drawCoordinateSystem(2);
-	static const std::array<float, 4> green{ 0.0f, 1.0f, 0.0f, 1.0f };
-	static const std::array<float, 4> blue{ 0.0f, 0.0f, 1.0f, 1.0f };
 
-	drawTetrahedron(Eigen::Vector3d::Zero(), Eigen::Vector3d::UnitX(), Eigen::Vector3d::UnitY(), Eigen::Vector3d::UnitZ(), green.data());
+	m_renderSystem.render();
 }
 
 void DemoScene::initializeEntities()
 {
 	// Create a rigid body
-	auto body = m_ecs.create<DynamicBody, Position, Velocity, Kinetics, RigidBodyProperties, Joints>();
-	m_ecs.get<RigidBodyProperties>(body).mass = 1.1;
+	auto cubeEntity = EntityFactory::createCube(m_ecs, 1, 0.5, Eigen::Vector3d(0.25, 0.0, 0.25));
+	// Create a fixed particle
+	auto particleEntity = EntityFactory::createParticle(m_ecs, 0.0, Eigen::Vector3d(0.25, 1.5, 0.25));
+	// Create a spring as a joint
+	EntityFactory::createSpring(m_ecs,
+								cubeEntity, Eigen::Vector3d(0.25, 0.25, 0.25),
+								particleEntity, Eigen::Vector3d(0.0, 0.0, 0.0),
+								Joint::DampedSpring{ 0.6, 11, 0.8 });
 
-	// Create a fixed point
-	auto particle = m_ecs.create<Position, Joints>();
-	m_ecs.get<Position>(particle).translation.y() = 2.0;
-
-	// Create a spring for the connection
-	auto spring = m_ecs.create<JointProperties>();
-	auto& springProperties = m_ecs.get<JointProperties>(body);
-	//springProperties.entityA = body;
-	//springProperties.entityB = particle;
-	springProperties.restLength = 1.0;
-	springProperties.elasticity = 0.1;
-	springProperties.damping = 0.05;
-
-	m_ecs.get<Joints>(body).joints.push_back(spring);
-	m_ecs.get<Joints>(particle).joints.push_back(spring);
+	m_animationSystem.initialize();
 }
 
 void DemoScene::initializeLight()
@@ -171,32 +159,4 @@ void DemoScene::drawCoordinateSystem(double axisLength)
 	glVertex3dv(&zAxis[0]);
 	glEnd();
 	glLineWidth(1);
-}
-
-void DemoScene::drawTriangle(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &c, const Eigen::Vector3d &norm, const float *color)
-{
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-
-	glBegin(GL_TRIANGLES);
-	glNormal3dv(&norm[0]);
-	glVertex3dv(&a[0]);
-	glVertex3dv(&b[0]);
-	glVertex3dv(&c[0]);
-	glEnd();
-}
-
-void DemoScene::drawTetrahedron(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &c, const Eigen::Vector3d &d, const float *color)
-{
-	Eigen::Vector3d normal1 = (b - a).cross(c - a);
-	Eigen::Vector3d normal2 = (b - a).cross(d - a);
-	Eigen::Vector3d normal3 = (c - a).cross(d - a);
-	Eigen::Vector3d normal4 = (c - b).cross(d - b);
-	drawTriangle(a, b, c, normal1, color);
-	drawTriangle(a, b, d, normal2, color);
-	drawTriangle(a, c, d, normal3, color);
-	drawTriangle(b, c, d, normal4, color);
 }

@@ -1,17 +1,6 @@
 ﻿#pragma once
 
-#include <registry.hpp>
-
-#include "RigidBodyComponents.h"
-
-using EntityComponentSystem = entt::StandardRegistry<EntityType,
-                                                     DynamicBody,
-                                                     Position,
-                                                     Velocity,
-                                                     Kinetics,
-                                                     RigidBodyProperties,
-                                                     Joints,
-                                                     JointProperties>;
+#include "EntityComponentSystem.h"
 
 class Simulation
 {

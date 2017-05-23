@@ -1,86 +1,152 @@
 ﻿#include "AnimationSystem.h"
 
+#include <cassert>
 #include <iostream>
-
-#include "RigidBodyComponents.h"
 
 AnimationSystem::AnimationSystem(EntityComponentSystem& ecs)
 	: m_ecs(ecs)
-	, m_time(0.0)
+	, m_time(0.0) {}
+
+void AnimationSystem::initialize()
 {
+	prepareNextTimestep();
 }
 
 void AnimationSystem::computeTimestep(double dt)
 {
-	// Update inertia tensors and rotation matrices
-	for (auto rigidBody : m_ecs.view<DynamicBody>()) {
-		auto& position = m_ecs.get<Position>(rigidBody);
-		auto& properties = m_ecs.get<RigidBodyProperties>(rigidBody);
-		//auto& rotation = m_ecs.get<RotationMatrices>(rigidBody);
+	// TODO: Ensure that enough space for sub steps is available
 
-		// Normalize the quaternion and update rotation matrices
-		//updateRotation(position, rotation);
-		// Recompute the transformed inertia tensor
-		//updateInertia(properties, rotation);
-	}
+	// Apply a force to a connected body, accumulates -> not thread safe
+	static const auto applyForce = [this](Connector& connector, const Eigen::Vector3d& force)
+	{
+		if (m_ecs.has<Particle>(connector.parentEntity)) {
+			auto& particle = m_ecs.get<Particle>(connector.parentEntity);
+			particle.externalForce += force;
+		} else if (m_ecs.has<RigidBody>(connector.parentEntity)) {
+			auto& rigidBody = m_ecs.get<RigidBody>(connector.parentEntity);
+			rigidBody.externalForce += force;
+			rigidBody.externalTorque += connector.localPosition.cross(force);
+		} else {
+			assert(false);
+		}
+	};
 
-	// Determine external forces
-	for (auto rigidBody : m_ecs.view<DynamicBody>()) {
-		const auto& position = m_ecs.get<Position>(rigidBody);
-		const auto& properties = m_ecs.get<RigidBodyProperties>(rigidBody);
-		auto& kinetics = m_ecs.get<Kinetics>(rigidBody);
+	for (auto jointEntity : m_ecs.view<Joint>()) {
+		auto& joint = m_ecs.get<Joint>(jointEntity);
 
-		kinetics.force.y() += 9.81*properties.mass;
+		if (auto dampedSpring = std::get_if<Joint::DampedSpring>(&joint.jointProperties)) {
+			Eigen::Vector3d distance = joint.connectors.first.globalPosition - joint.connectors.second.globalPosition;
+			Eigen::Vector3d velocityDifference = joint.connectors.first.globalVelocity - joint.connectors.second.globalVelocity;
+			Eigen::Vector3d firstForce = -(dampedSpring->elasticity*(distance.norm() - dampedSpring->restLength)
+										   + dampedSpring->damping*(velocityDifference.dot(distance)))*distance.normalized();
 
-		if(m_ecs.has<Joints>(rigidBody)) {
-			const auto& joints = m_ecs.get<Joints>(rigidBody);
-			for(auto joint : joints.joints) {
-				const auto& jointProperties = m_ecs.get<JointProperties>(joint);
-				const auto& jointAttachement = otherJointAttachement(jointProperties, rigidBody);
-				//const auto& otherPosition = m_ecs.get<Position>(jointAttachement.entity);
-				//const auto& otherRotation = m_ecs.get<RotationMatrices>(jointAttachement.entity);
-
-				//position.translation + toGlobalCoordinates()
-			}
+			applyForce(joint.connectors.first, firstForce);
+			applyForce(joint.connectors.second, -firstForce);
 		}
 	}
 
-	// Apply time integration
-	for(auto rigidBody : m_ecs.view<DynamicBody>()) {
-		const auto& properties = m_ecs.get<RigidBodyProperties>(rigidBody);
-		auto& position = m_ecs.get<Position>(rigidBody);
+	// Loop over rigid bodies and particles: Integrate time
+	for (auto rigidBodyEntity : m_ecs.view<RigidBody>()) {
+		auto& rigidBody = m_ecs.get<RigidBody>(rigidBodyEntity);
 
-		// Time integration		
+		if (!rigidBody.sleeping) {
+			if(rigidBody.mass > 0) {
+				const auto linearAcceleration = (1 / rigidBody.mass)*rigidBody.externalForce;
+				rigidBody.linearState.linearVelocity += dt*linearAcceleration;
+			}
+
+			if (rigidBody.prinicipalInertia.sum() > 0) {
+				const auto angularAcceleration = rigidBody.globalInverseInertiaMatrix*(rigidBody.externalTorque - (rigidBody.angularState.angularVelocity.cross(rigidBody.globalInertiaMatrix*rigidBody.angularState.angularVelocity)));
+				rigidBody.angularState.angularVelocity += dt*angularAcceleration;
+			}
+
+			const auto& quat = rigidBody.angularState.rotation;
+			const auto halfAngularVelocity = 0.5*rigidBody.angularState.angularVelocity;
+			const auto quatChange = Eigen::Quaterniond(0, halfAngularVelocity.x(), halfAngularVelocity.y(), halfAngularVelocity.z())*quat;
+			
+			rigidBody.linearState.position += dt*rigidBody.linearState.linearVelocity;
+			rigidBody.angularState.rotation = Eigen::Quaterniond(
+				quat.w() + dt*quatChange.w(),
+				quat.x() + dt*quatChange.x(),
+				quat.y() + dt*quatChange.y(),
+				quat.z() + dt*quatChange.z()
+			);
+		}
 	}
+
+	for (auto particleEntity : m_ecs.view<Particle>()) {
+		auto& particle = m_ecs.get<Particle>(particleEntity);
+
+		if (!particle.sleeping) {
+			std::cout << "Doing nothing with particle, mass=" << particle.mass << "\n";
+		}
+	}
+
+	prepareNextTimestep();
 
 	m_time += dt;
 	std::cout << m_time << "\n";
 }
 
-void AnimationSystem::updateRotation(Position& position, RotationMatrices& properties)
+void AnimationSystem::prepareNextTimestep()
 {
-	position.rotation.normalize();
-	properties.rotationMatrix = position.rotation.toRotationMatrix();
-	properties.inverseRotationMatrix = position.rotation.conjugate().toRotationMatrix();
+	// Update the quaternions and rotation matrices of rigid bodies and reset forces
+	for (auto rigidBodyEntity : m_ecs.view<RigidBody>()) {
+		auto& rigidBody = m_ecs.get<RigidBody>(rigidBodyEntity);
+
+		rigidBody.angularState.rotation.normalize();
+		rigidBody.rotationMatrix = rigidBody.angularState.rotation.matrix();
+
+		// Compute transformed inertia matrices
+		if(rigidBody.prinicipalInertia.sum() > 0) {
+			rigidBody.globalInertiaMatrix =
+				(rigidBody.rotationMatrix * rigidBody.prinicipalInertia.asDiagonal()) * rigidBody.rotationMatrix.transpose();
+			rigidBody.globalInverseInertiaMatrix =
+				(rigidBody.rotationMatrix * rigidBody.prinicipalInertia.cwiseInverse().asDiagonal()) * rigidBody.rotationMatrix.transpose();
+		}
+
+		// Add gravity and reset torque
+		rigidBody.externalForce = Eigen::Vector3d(0.0, -9.81 * rigidBody.mass, 0.0);
+		rigidBody.externalTorque = Eigen::Vector3d(0.0, 0.0, 0.0);
+	}
+
+	// Reset forces for particles
+	for (auto particleEntity : m_ecs.view<Particle>()) {
+		auto& particle = m_ecs.get<Particle>(particleEntity);
+		particle.externalForce = Eigen::Vector3d(0.0, -9.81 * particle.mass, 0.0);
+	}
+
+	// Lambda to update the global position/velocity of a connector, thread safe
+	static const auto updateConnector = [this](Connector& connector)
+	{
+		if (m_ecs.has<Particle>(connector.parentEntity)) {
+			const auto& particle = m_ecs.get<Particle>(connector.parentEntity);
+			connector.globalPosition = toGlobalCoordinates(particle, connector.localPosition);
+			connector.globalVelocity = particle.linearState.linearVelocity;
+		} else if (m_ecs.has<RigidBody>(connector.parentEntity)) {
+			const auto& rigidBody = m_ecs.get<RigidBody>(connector.parentEntity);
+			connector.globalPosition = toGlobalCoordinates(rigidBody, connector.localPosition);
+			connector.globalVelocity = rigidBody.angularState.angularVelocity.cross(connector.localPosition)
+				+ rigidBody.linearState.linearVelocity;
+		} else {
+			assert(false);
+		}
+	};
+
+	// Loop over all joints to update connector positions/velocities
+	for (auto jointEntity : m_ecs.view<Joint>()) {
+		auto& joint = m_ecs.get<Joint>(jointEntity);
+		updateConnector(joint.connectors.first);
+		updateConnector(joint.connectors.second);
+	}
 }
 
-void AnimationSystem::updateInertia(RigidBodyProperties& properties, RotationMatrices& rotation)
+Eigen::Vector3d AnimationSystem::toGlobalCoordinates(const Particle& particle, const Eigen::Vector3d& localCoordinates)
 {
-	properties.globalInertiaMatrix = (rotation.rotationMatrix * properties.inertia.asDiagonal()) * rotation.rotationMatrix.transpose();
-	properties.inverseGlobalInertiaMatrix = (rotation.rotationMatrix * properties.inertia.cwiseInverse().asDiagonal()) * rotation.rotationMatrix.transpose();
+	return localCoordinates + particle.linearState.position;
 }
 
-Eigen::Vector3d AnimationSystem::toLocalCoordinates(const Position& position, const RotationMatrices& rotation, const Eigen::Vector3d& globalCoordinates)
+Eigen::Vector3d AnimationSystem::toGlobalCoordinates(const RigidBody& body, const Eigen::Vector3d& localCoordinates)
 {
-	return rotation.rotationMatrix*globalCoordinates + position.translation;
-}
-
-Eigen::Vector3d AnimationSystem::toGlobalCoordinates(const Position& position, const RotationMatrices& rotation, const Eigen::Vector3d& localCoordinates)
-{
-	return rotation.inverseRotationMatrix*(localCoordinates - position.translation);
-}
-
-JointAttachement AnimationSystem::otherJointAttachement(const JointProperties& joint, EntityType current)
-{
-	return (joint.connection.first.entity == current) ? joint.connection.second : joint.connection.first;
+	return body.rotationMatrix * localCoordinates + body.linearState.position;
 }

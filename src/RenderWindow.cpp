@@ -141,11 +141,11 @@ bool RenderWindow::initialize()
 		if(scene != nullptr) {
 			auto demoScene = dynamic_cast<DemoScene*>(scene);
 			if (demoScene != nullptr) {
-				demoScene->doTimestep(0.1);
+				demoScene->doTimestep(0.05);
 			}
 		}
 	}, static_cast<void*>(&m_scene),
-		" label='Increment time'");
+		" label='Increment time' key=SPACE help='Increments the time of the physical animation.' ");
 
 	/*
 	TwAddVarRO(tweakBar, "Time", TW_TYPE_FLOAT, &m_time, " label='Time' precision=5");
