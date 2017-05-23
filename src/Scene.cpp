@@ -14,17 +14,26 @@ Scene::Scene()
 
 void Scene::initialize(GLFWwindow* window)
 {
-	if (m_initialized) {
-		std::cerr << "Scene was already initialized." << "\n";
-	}
+	assert(!m_initialized);
 
+	m_initialized = true;
 	m_window = window;
 	initializeSceneContent();
+}
+
+void Scene::cleanup()
+{
+	assert(m_initialized);
+
+	cleanupSceneContent();
+	m_initialized = false;
+	m_window = nullptr;
 }
 
 void Scene::render()
 {
 	assert(m_initialized);
+
 	renderSceneContent();
 }
 

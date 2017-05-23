@@ -1,5 +1,6 @@
 ﻿#include "DemoScene.h"
 
+#include <iostream>
 #include <array>
 
 #include <glad/glad.h>
@@ -8,27 +9,47 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "RigidBodyComponents.h"
+
+DemoScene::DemoScene(EntityComponentSystem& ecs)
+	: m_ecs(ecs)
+	, m_animationSystem(ecs)
+	, m_renderSystem(ecs)
+{
+}
+
 DemoScene::~DemoScene()
 {
-	if (m_simulation.isEventLoopRunning()) m_simulation.stopTimestepLoop().wait();
-	m_simulationThread.join();
+	//if (m_simulation.isEventLoopRunning()) m_simulation.stopTimestepLoop().wait();
+	//m_simulationThread.join();
 }
 
 void DemoScene::initializeSceneContent()
 {
-	initializeLight();
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glClearColor(0.95f, 0.95f, 1.0f, 1.0f);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	// Create a window for the simulation
+	initializeLight();
+	initializeEntities();
+
+	/*
 	auto simulationPtr = &m_simulation;
 	m_simulationThread = std::move(std::thread([simulationPtr]()
 	{
 		simulationPtr->executeTimestepLoop();
 	}));
+	*/
 }
 
 void DemoScene::doTimestep(double dt)
 {
-	m_simulation.requestTimestep(dt);
+	m_animationSystem.computeTimestep(dt);
+	//m_simulation.requestTimestep(dt);
 }
 
 void DemoScene::renderSceneContent()
@@ -45,6 +66,29 @@ void DemoScene::renderSceneContent()
 	static const std::array<float, 4> blue{ 0.0f, 0.0f, 1.0f, 1.0f };
 
 	drawTetrahedron(Eigen::Vector3d::Zero(), Eigen::Vector3d::UnitX(), Eigen::Vector3d::UnitY(), Eigen::Vector3d::UnitZ(), green.data());
+}
+
+void DemoScene::initializeEntities()
+{
+	// Create a rigid body
+	auto body = m_ecs.create<DynamicBody, Position, Velocity, Kinetics, RigidBodyProperties, Joints>();
+	m_ecs.get<RigidBodyProperties>(body).mass = 1.1;
+
+	// Create a fixed point
+	auto particle = m_ecs.create<Position, Joints>();
+	m_ecs.get<Position>(particle).translation.y() = 2.0;
+
+	// Create a spring for the connection
+	auto spring = m_ecs.create<JointProperties>();
+	auto& springProperties = m_ecs.get<JointProperties>(body);
+	//springProperties.entityA = body;
+	//springProperties.entityB = particle;
+	springProperties.restLength = 1.0;
+	springProperties.elasticity = 0.1;
+	springProperties.damping = 0.05;
+
+	m_ecs.get<Joints>(body).joints.push_back(spring);
+	m_ecs.get<Joints>(particle).joints.push_back(spring);
 }
 
 void DemoScene::initializeLight()

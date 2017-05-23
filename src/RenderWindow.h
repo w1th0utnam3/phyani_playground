@@ -28,6 +28,9 @@ public:
 	//! Destroys the GLFW render window and calls cleanup methods.
 	~RenderWindow();
 
+	//! Sets the scene that should be rendered in the render window.
+	void setScene(std::unique_ptr<Scene>&& scene);
+
 	//! Starts the render loop of this window in the current thread.
 	void executeRenderLoop();
 	//! Sets a flag to stop the render loop at the next iteration.
@@ -74,5 +77,5 @@ private:
 	//! User interaction data.
 	Interaction m_interaction;
 	//! Currently loaded scenes that are rendered in the render loop.
-	std::vector<std::unique_ptr<Scene>> m_scenes;
+	std::unique_ptr<Scene> m_scene;
 };

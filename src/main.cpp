@@ -1,6 +1,8 @@
 #include <iostream>
 
+#include "Simulation.h"
 #include "RenderWindow.h"
+#include "DemoScene.h"
 #include "GlfwWindowManager.h"
 
 int main()
@@ -10,11 +12,16 @@ int main()
 		auto glfwScope = GlfwWindowManager::create();
 		std::cout << "(main) Initialized Glfw." << "\n";
 
+		Simulation simulation;
+		auto& ecs = simulation.getEntityComponentSystem();
+
 		// Create a window for the simulation
-		auto windowThread = std::thread([]()
+		auto windowThread = std::thread([&ecs]()
 		{
 			{
 				RenderWindow window;
+				// Create a scene for the window
+				window.setScene(std::make_unique<DemoScene>(ecs));
 				// Start rendering of the window
 				window.executeRenderLoop();
 			}

@@ -28,6 +28,7 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	, m_fps(0)
 	, m_camera(1280, 720)
 {
+	// Specify OpenGL context profile hints
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glVersionMajor);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, glVersionMinor);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
@@ -37,6 +38,7 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	m_window = futureWindow.get();
 	glfwSetWindowUserPointer(m_window, static_cast<void*>(this));
 
+	// Register all callbacks
 	auto callbackRequests = noname::tools::move_construct_vector(
 		GlfwWindowManager::setMouseButtonCallback(m_window, mouse_button_callback),
 		GlfwWindowManager::setCursorPosCallback(m_window, cursor_position_callback),
@@ -47,11 +49,13 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	);
 	for (auto& fut : callbackRequests) fut.wait();
 
+	// Load the OpenGL functions
 	const auto previousContext = glfwGetCurrentContext();
 	glfwMakeContextCurrent(m_window);
 	gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 	glfwSwapInterval(1);
 
+	// Initialize the camera
 	m_camera.setTranslation(0, 0, -1);
 	m_camera.setScaling(160, 160, 160);
 	m_camera.setAsDefault();
@@ -84,42 +88,6 @@ RenderWindow::~RenderWindow()
 	GlfwWindowManager::destroyWindow(m_window);
 
 	std::cout << "(win) Window closed." << "\n";
-}
-
-void RenderWindow::executeRenderLoop()
-{
-	if (m_continueRenderLoop) return;
-
-	const auto previousContext = glfwGetCurrentContext();
-	glfwMakeContextCurrent(m_window);
-
-	// Run render loop
-	m_continueRenderLoop = true;
-	double tRef = glfwGetTime();
-	while (m_continueRenderLoop && !glfwWindowShouldClose(m_window)) {
-		const double tFrameStart = glfwGetTime();
-
-		render();
-
-		const double tFrameEnd = glfwGetTime();
-		const double dt = tFrameEnd - tFrameStart;
-		m_lastFrametime = dt*1000.0;
-		m_fps = 1/dt;
-
-		static constexpr double dtMin = 4*(1.0 / 60);
-		if (tFrameEnd - tRef > dtMin) {
-			tRef = tFrameEnd;
-			TwRefreshBar(m_tweakBar);
-		}
-	}
-	m_continueRenderLoop = false;
-
-	glfwMakeContextCurrent(previousContext);
-}
-
-void RenderWindow::requestStopRenderLoop()
-{
-	m_continueRenderLoop = false;
 }
 
 bool RenderWindow::initialize()
@@ -169,14 +137,14 @@ bool RenderWindow::initialize()
 		" label='Reset camera'");
 	TwAddButton(m_tweakBar, "IncrementTime", [](void* userPointer)
 	{
-		auto scenes = static_cast<std::vector<std::unique_ptr<Scene>>*>(userPointer);
-		if(!scenes->empty()) {
-			auto demoScene = dynamic_cast<DemoScene*>(scenes->back().get());
+		auto scene = static_cast<std::unique_ptr<Scene>*>(userPointer)->get();
+		if(scene != nullptr) {
+			auto demoScene = dynamic_cast<DemoScene*>(scene);
 			if (demoScene != nullptr) {
 				demoScene->doTimestep(0.1);
 			}
 		}
-	}, static_cast<void*>(&m_scenes),
+	}, static_cast<void*>(&m_scene),
 		" label='Increment time'");
 
 	/*
@@ -187,34 +155,71 @@ bool RenderWindow::initialize()
 	TwAddVarRW(tweakBar, "Export FPS", TW_TYPE_UINT32, &m_exportFps, "label='Export FPS'");
 	*/
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glClearColor(0.95f, 0.95f, 1.0f, 1.0f);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	// Create the triangle shader scene
-	//m_scenes.emplace_back(new TriangleShaderScene());
-	m_scenes.emplace_back(new DemoScene());
-	m_scenes.back()->setCamera(&m_camera);
-	m_scenes.back()->initialize(m_window);
-
 	return true;
+}
+
+void RenderWindow::cleanup()
+{
+	TwTerminate();
+}
+
+void RenderWindow::setScene(std::unique_ptr<Scene>&& scene)
+{
+	const auto previousContext = glfwGetCurrentContext();
+	glfwMakeContextCurrent(m_window);
+
+	if (m_scene != nullptr) m_scene->cleanup();
+	m_scene = std::move(scene);
+	m_scene->setCamera(&m_camera);
+	m_scene->initialize(m_window);
+
+	glfwMakeContextCurrent(previousContext);
+}
+
+void RenderWindow::executeRenderLoop()
+{
+	if (m_continueRenderLoop) return;
+
+	const auto previousContext = glfwGetCurrentContext();
+	glfwMakeContextCurrent(m_window);
+
+	// Run render loop
+	m_continueRenderLoop = true;
+	double tRef = glfwGetTime();
+	while (m_continueRenderLoop && !glfwWindowShouldClose(m_window)) {
+		const double tFrameStart = glfwGetTime();
+
+		render();
+
+		const double tFrameEnd = glfwGetTime();
+		const double dt = tFrameEnd - tFrameStart;
+		m_lastFrametime = dt*1000.0;
+		m_fps = 1 / dt;
+
+		static constexpr double dtMin = 4 * (1.0 / 60);
+		if (tFrameEnd - tRef > dtMin) {
+			tRef = tFrameEnd;
+			TwRefreshBar(m_tweakBar);
+		}
+	}
+	m_continueRenderLoop = false;
+
+	glfwMakeContextCurrent(previousContext);
+}
+
+void RenderWindow::requestStopRenderLoop()
+{
+	m_continueRenderLoop = false;
 }
 
 void RenderWindow::render()
 {
 	glViewport(0, 0, m_camera.viewportSize().x, m_camera.viewportSize().y);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	glPolygonMode(GL_FRONT_AND_BACK, m_drawMode);
 
-	//! Render all scenes
-	for (auto& scene : m_scenes) {
-		if (scene != nullptr) scene->render();
-	}
+	//! Render the current scene
+	if (m_scene != nullptr) m_scene->render();
 
 	TwDraw();
 
@@ -296,9 +301,4 @@ void RenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int h
 	window->m_camera.setViewportSize(width, height);
 
 	TwWindowSize(width, height);
-}
-
-void RenderWindow::cleanup()
-{
-	TwTerminate();
 }
