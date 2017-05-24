@@ -25,7 +25,7 @@ void AnimationSystem::computeTimestep(double dt)
 		} else if (m_ecs.has<RigidBody>(connector.parentEntity)) {
 			auto& rigidBody = m_ecs.get<RigidBody>(connector.parentEntity);
 			rigidBody.externalForce += force;
-			rigidBody.externalTorque += connector.localPosition.cross(force);
+			rigidBody.externalTorque += connector.localPosition.cross(rigidBody.rotationMatrix.transpose()*force);
 		} else {
 			assert(false);
 		}
@@ -126,7 +126,7 @@ void AnimationSystem::prepareNextTimestep()
 		} else if (m_ecs.has<RigidBody>(connector.parentEntity)) {
 			const auto& rigidBody = m_ecs.get<RigidBody>(connector.parentEntity);
 			connector.globalPosition = toGlobalCoordinates(rigidBody, connector.localPosition);
-			connector.globalVelocity = rigidBody.angularState.angularVelocity.cross(connector.localPosition)
+			connector.globalVelocity = rigidBody.rotationMatrix*(rigidBody.angularState.angularVelocity.cross(connector.localPosition))
 				+ rigidBody.linearState.linearVelocity;
 		} else {
 			assert(false);
