@@ -64,16 +64,14 @@ public:
 		m_awaitEventPromise.set_value();
 
 		// Store the event with a promise associated to the request
-		std::promise<promised_type<RequestT>>* promise; {
-			std::lock_guard<std::mutex> lock(this->m_queueMutex);
-			this->emplace(EventT{request});
-			promise = &std::get<EventT>(this->back()).promise;
-		}
+		std::lock_guard<std::mutex> lock(this->m_queueMutex);
+		this->emplace(EventT{request});
+		auto& promise = std::get<EventT>(this->back()).promise;	
 
 		// Create a new promise to allow other threads to wait for events
 		m_awaitEventPromise = std::move(std::promise<void>());
 		// Return the promise of the enqueued event
-		return promise->get_future();
+		return promise.get_future();
 	}
 
 	//! Uses a visitor to process the oldest event in the queue.
@@ -87,11 +85,15 @@ public:
 	template <typename VisitorT>
 	void processOldestEvent(VisitorT visitor)
 	{
-		std::lock_guard<std::mutex> lock(m_queueMutex);
-		// Apply visitor to process the event
-		std::visit(visitor, this->front());
-		// Remove the event from the queue
+		std::unique_lock<std::mutex> lock(m_queueMutex);
+		// Move event out of queue
+		typename container_type::value_type event(std::move(this->front()));
+		// Remove the empty event from the queue
 		this->pop();
+		lock.unlock();
+
+		// Apply visitor to process the event
+		std::visit(visitor, event);
 	}
 
 	//! Blocks the current thread until an event was enqueued.
