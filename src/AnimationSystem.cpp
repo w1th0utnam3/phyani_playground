@@ -127,7 +127,7 @@ void AnimationSystem::prepareNextTimestep()
 		} else if (m_ecs.has<RigidBody>(connector.parentEntity)) {
 			const auto& rigidBody = m_ecs.get<RigidBody>(connector.parentEntity);
 			connector.globalPosition = toGlobalCoordinates(rigidBody, connector.localPosition);
-			connector.globalVelocity = rigidBody.rotationMatrix*(rigidBody.angularState.angularVelocity.cross(connector.localPosition))
+			connector.globalVelocity = rigidBody.angularState.angularVelocity.cross(rigidBody.rotationMatrix*connector.localPosition)
 				+ rigidBody.linearState.linearVelocity;
 		} else {
 			assert(false);
