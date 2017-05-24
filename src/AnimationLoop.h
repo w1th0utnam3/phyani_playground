@@ -11,18 +11,15 @@ class AnimationLoop
 {
 	struct StopEventLoopRequest {};
 	struct ComputeTimestepRequest { double dt; };
-	struct StartAutomaticTimesteppingRequest {};
-	struct StopAutomaticTimesteppingRequest {};
+	struct ToggleAutomaticTimesteppingRequest { double timeStretch; };
 
 	using StopEventLoopEvent = VoidEvent<StopEventLoopRequest>;
 	using ComputeTimestepEvent = VoidEvent<ComputeTimestepRequest>;
-	using StartAutomaticTimesteppingEvent = VoidEvent<StartAutomaticTimesteppingRequest>;
-	using StopAutomaticTimesteppingEvent = VoidEvent<StopAutomaticTimesteppingRequest>;
+	using ToggleAutomaticTimesteppingEvent = Event<ToggleAutomaticTimesteppingRequest, bool>;
 
 	using event_queue_type = EventQueue<StopEventLoopEvent, 
 										ComputeTimestepEvent, 
-										StartAutomaticTimesteppingEvent, 
-										StopAutomaticTimesteppingEvent>;
+										ToggleAutomaticTimesteppingEvent>;
 	event_queue_type m_eventQueue;
 
 public:
@@ -31,8 +28,8 @@ public:
 
 	std::future<void> stopEventLoop();
 	std::future<void> requestTimestep(double dt);
-	std::future<void> startAutomaticTimestepping();
-	std::future<void> stopAutomaticTimestepping();
+	std::future<bool> toggleAutomaticTimestepping();
+	std::future<bool> toggleAutomaticTimestepping(double timeStretch);
 
 	void processEvents();
 
@@ -44,6 +41,7 @@ private:
 
 	std::atomic<bool> m_continueEventLoop;
 	std::atomic<bool> m_automaticTimestepping;
+	std::atomic<double> m_timeStretch;
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> m_lastRender;
 };

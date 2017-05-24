@@ -92,4 +92,6 @@ struct RenderData
 	std::variant<Cube, Joint> properties;
 };
 
-using EntityComponentSystem = entt::StandardRegistry<EntityType, RigidBody, Particle, Joint, RenderData>;
+using EntityComponentSystemBase = entt::StandardRegistry<EntityType, RigidBody, Particle, Joint, RenderData>;
+
+class EntityComponentSystem : public EntityComponentSystemBase {};

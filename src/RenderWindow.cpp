@@ -24,9 +24,11 @@ RenderWindow::RenderWindow()
 RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	: m_continueRenderLoop(false)
 	, m_drawMode(GL_FILL)
+	, m_dt(0.05)
+	, m_timeStretch(0.5)
 	, m_lastFrametime(0)
 	, m_fps(0)
-	, m_camera(1280, 720)
+	, m_camera(1920, 1080)
 {
 	// Specify OpenGL context profile hints
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glVersionMajor);
@@ -137,26 +139,39 @@ bool RenderWindow::initialize()
 		" label='Reset camera'");
 	TwAddButton(m_tweakBar, "IncrementTime", [](void* userPointer)
 	{
-		auto scene = static_cast<std::unique_ptr<Scene>*>(userPointer)->get();
-		if(scene != nullptr) {
-			auto demoScene = dynamic_cast<DemoScene*>(scene);
+		auto window = static_cast<RenderWindow*>(userPointer);
+		if (window->m_scene != nullptr) {
+			auto demoScene = dynamic_cast<DemoScene*>(window->m_scene.get());
 			if (demoScene != nullptr) {
-				demoScene->doTimestep(0.05);
+				demoScene->doTimestep(window->m_dt);
 			}
 		}
-	}, static_cast<void*>(&m_scene),
-		" label='Increment time' key=a help='Increments the time of the physical animation.' ");
+	}, static_cast<void*>(this),
+		" label='Manually increment time' key=a help='Increments the time of the physical animation.' ");
+	TwAddVarRW(m_tweakBar, "IncrementStepSize", TW_TYPE_DOUBLE, &m_dt, " min=0 step=0.01 label='Manual step size' help='The step size for manual time steps.' ");
 	TwAddButton(m_tweakBar, "StartStopTime", [](void* userPointer)
+	{
+		auto window = static_cast<RenderWindow*>(userPointer);
+		if (window->m_scene != nullptr) {
+			auto demoScene = dynamic_cast<DemoScene*>(window->m_scene.get());
+			if (demoScene != nullptr) {
+				demoScene->toggleAnimation(window->m_timeStretch);
+			}
+		}
+	}, static_cast<void*>(this),
+		" label='Toggle automatic timestepping' key=SPACE help='Starts or stops the physical animation.' ");
+	TwAddVarRW(m_tweakBar, "TimeStretch", TW_TYPE_DOUBLE, &m_timeStretch, " min=0 step=0.01 label='Time stretch' help='Set the stretch factor from realtime to physical animation time.' ");
+	TwAddButton(m_tweakBar, "ResetScene", [](void* userPointer)
 	{
 		auto scene = static_cast<std::unique_ptr<Scene>*>(userPointer)->get();
 		if (scene != nullptr) {
 			auto demoScene = dynamic_cast<DemoScene*>(scene);
 			if (demoScene != nullptr) {
-				demoScene->toggleAnimation();
+				demoScene->resetScene();
 			}
 		}
 	}, static_cast<void*>(&m_scene),
-		" label='Start/stop time' key=SPACE help='Starts or stops the physical animation.' ");
+		" label='Reset scene' key=r help='Resets all physical objects.' ");
 
 	/*
 	TwAddVarRO(tweakBar, "Time", TW_TYPE_FLOAT, &m_time, " label='Time' precision=5");

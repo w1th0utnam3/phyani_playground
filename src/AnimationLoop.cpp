@@ -6,6 +6,7 @@ AnimationLoop::AnimationLoop(AnimationSystem& animationSystem)
 	: m_animationSystem(animationSystem)
 	, m_continueEventLoop(false)
 	, m_automaticTimestepping(false)
+	, m_timeStretch(1.0)
 {
 }
 
@@ -19,14 +20,14 @@ std::future<void> AnimationLoop::requestTimestep(double dt)
 	return m_eventQueue.postEvent(ComputeTimestepRequest{ dt });
 }
 
-std::future<void> AnimationLoop::startAutomaticTimestepping()
+std::future<bool> AnimationLoop::toggleAutomaticTimestepping()
 {
-	return m_eventQueue.postEvent(StartAutomaticTimesteppingRequest());
+	return m_eventQueue.postEvent(ToggleAutomaticTimesteppingRequest{ 1.0 });
 }
 
-std::future<void> AnimationLoop::stopAutomaticTimestepping()
+std::future<bool> AnimationLoop::toggleAutomaticTimestepping(double timeStretch)
 {
-	return m_eventQueue.postEvent(StopAutomaticTimesteppingRequest());
+	return m_eventQueue.postEvent(ToggleAutomaticTimesteppingRequest{ timeStretch });
 }
 
 void AnimationLoop::executeTimestepLoop()
@@ -44,7 +45,7 @@ void AnimationLoop::executeTimestepLoop()
 		if (m_automaticTimestepping) {
 			processEvents();
 			auto currentTime = std::chrono::high_resolution_clock::now();
-			m_animationSystem.computeTimestep(static_cast<std::chrono::duration<double>>(currentTime - m_lastRender).count());
+			m_animationSystem.computeTimestep(m_timeStretch*static_cast<std::chrono::duration<double>>(currentTime - m_lastRender).count());
 			m_lastRender = currentTime;
 		}
 	}
@@ -72,20 +73,18 @@ void AnimationLoop::processEvents()
 			event.promise.set_value();
 		}
 
-		void operator()(StartAutomaticTimesteppingEvent& event) const
+		void operator()(ToggleAutomaticTimesteppingEvent& event) const
 		{
-			if(!simulation->m_automaticTimestepping)
-			{
+			if(!simulation->m_automaticTimestepping) {
+				auto& request = event.request;
 				simulation->m_automaticTimestepping = true;
+				simulation->m_timeStretch = request.timeStretch;
 				simulation->m_lastRender = std::chrono::high_resolution_clock::now();
+				event.promise.set_value(true);
+			} else {
+				simulation->m_automaticTimestepping = false;
+				event.promise.set_value(false);
 			}
-			event.promise.set_value();
-		}
-
-		void operator()(StopAutomaticTimesteppingEvent& event) const
-		{
-			simulation->m_automaticTimestepping = false;
-			event.promise.set_value();
 		}
 	} eventVisitor{ this };
 

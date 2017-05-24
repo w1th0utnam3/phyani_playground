@@ -11,11 +11,12 @@
 class DemoScene : public Scene
 {
 public:
-	DemoScene(EntityComponentSystem& ecs);
+	DemoScene();
 	virtual ~DemoScene();
 
-	void toggleAnimation();
+	void toggleAnimation(double timeStretch);
 	void doTimestep(double dt);
+	void resetScene();
 
 protected:
 	virtual void initializeSceneContent() override;
@@ -29,8 +30,8 @@ private:
 
 	EntityComponentSystem& m_ecs;
 
-	AnimationSystem m_animationSystem;
-	RenderSystem m_renderSystem;
+	AnimationSystem& m_animationSystem;
+	RenderSystem& m_renderSystem;
 
 	std::thread m_animationThread;
 	AnimationLoop m_animationLoop;

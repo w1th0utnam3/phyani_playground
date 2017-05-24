@@ -62,6 +62,10 @@ private:
 
 	//! Stores the render mode, i.e. solid or wireframe.
 	int m_drawMode;
+	//! Timestep increment value for single frame animation increments
+	double m_dt;
+	//! Current time stretch factor for the animations
+	double m_timeStretch;
 	//! The time required by the last render loop iteration.
 	double m_lastFrametime;
 	//! The current number of FPS.
