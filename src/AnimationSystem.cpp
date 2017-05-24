@@ -25,7 +25,7 @@ void AnimationSystem::computeTimestep(double dt)
 		} else if (m_ecs.has<RigidBody>(connector.parentEntity)) {
 			auto& rigidBody = m_ecs.get<RigidBody>(connector.parentEntity);
 			rigidBody.externalForce += force;
-			rigidBody.externalTorque += connector.localPosition.cross(rigidBody.rotationMatrix.transpose()*force);
+			rigidBody.externalTorque += (rigidBody.rotationMatrix*connector.localPosition).cross(force);
 		} else {
 			assert(false);
 		}
@@ -56,7 +56,8 @@ void AnimationSystem::computeTimestep(double dt)
 			}
 
 			if (rigidBody.prinicipalInertia.sum() > 0) {
-				const auto angularAcceleration = rigidBody.globalInverseInertiaMatrix*(rigidBody.externalTorque - (rigidBody.angularState.angularVelocity.cross(rigidBody.globalInertiaMatrix*rigidBody.angularState.angularVelocity)));
+				const auto angularAcceleration = rigidBody.globalInverseInertiaMatrix*(rigidBody.externalTorque 
+																					   - (rigidBody.angularState.angularVelocity.cross(rigidBody.globalInertiaMatrix*rigidBody.angularState.angularVelocity)));
 				rigidBody.angularState.angularVelocity += dt*angularAcceleration;
 			}
 
