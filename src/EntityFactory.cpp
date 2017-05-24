@@ -14,7 +14,7 @@ EntityType EntityFactory::createCube(EntityComponentSystem& ecs, double mass, do
 		cube.mass = mass;
 		double inertia = (cube.mass * edgeLength * edgeLength) / 6;
 		cube.prinicipalInertia = Eigen::Vector3d(inertia, inertia, inertia);
-		cube.linearState.position = Eigen::Vector3d(0.25, 0.0, 0.25);
+		cube.linearState.position = center;
 	}
 	
 	{

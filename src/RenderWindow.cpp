@@ -145,7 +145,18 @@ bool RenderWindow::initialize()
 			}
 		}
 	}, static_cast<void*>(&m_scene),
-		" label='Increment time' key=SPACE help='Increments the time of the physical animation.' ");
+		" label='Increment time' key=a help='Increments the time of the physical animation.' ");
+	TwAddButton(m_tweakBar, "StartStopTime", [](void* userPointer)
+	{
+		auto scene = static_cast<std::unique_ptr<Scene>*>(userPointer)->get();
+		if (scene != nullptr) {
+			auto demoScene = dynamic_cast<DemoScene*>(scene);
+			if (demoScene != nullptr) {
+				demoScene->toggleAnimation();
+			}
+		}
+	}, static_cast<void*>(&m_scene),
+		" label='Start/stop time' key=SPACE help='Starts or stops the physical animation.' ");
 
 	/*
 	TwAddVarRO(tweakBar, "Time", TW_TYPE_FLOAT, &m_time, " label='Time' precision=5");

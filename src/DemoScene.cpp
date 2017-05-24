@@ -13,13 +13,15 @@ DemoScene::DemoScene(EntityComponentSystem& ecs)
 	: m_ecs(ecs)
 	, m_animationSystem(ecs)
 	, m_renderSystem(ecs)
+	, m_animationLoop(m_animationSystem)
 {
 }
 
 DemoScene::~DemoScene()
 {
-	//if (m_simulation.isEventLoopRunning()) m_simulation.stopTimestepLoop().wait();
-	//m_simulationThread.join();
+	// Potentially join the animatino thread
+	if (m_animationLoop.isEventLoopRunning()) m_animationLoop.stopEventLoop().wait();
+	m_animationThread.join();
 }
 
 void DemoScene::initializeSceneContent()
@@ -35,19 +37,27 @@ void DemoScene::initializeSceneContent()
 	initializeLight();
 	initializeEntities();
 
-	/*
-	auto simulationPtr = &m_simulation;
-	m_simulationThread = std::move(std::thread([simulationPtr]()
+	// Start the animation event loop
+	auto animationLoopPointer = &m_animationLoop;
+	m_animationThread = std::move(std::thread([animationLoopPointer]()
 	{
-		simulationPtr->executeTimestepLoop();
+		animationLoopPointer->executeTimestepLoop();
 	}));
-	*/
+}
+
+void DemoScene::toggleAnimation()
+{
+	if (m_animationLoop.isAutomaticTimesteppingActive()) {
+		m_animationLoop.stopAutomaticTimestepping();
+	} else {
+		m_animationLoop.startAutomaticTimestepping();
+	}
 }
 
 void DemoScene::doTimestep(double dt)
 {
-	m_animationSystem.computeTimestep(dt);
-	//m_simulation.requestTimestep(dt);
+	// m_animationSystem.computeTimestep(dt);
+	m_animationLoop.requestTimestep(dt);
 }
 
 void DemoScene::renderSceneContent()
@@ -67,14 +77,14 @@ void DemoScene::renderSceneContent()
 void DemoScene::initializeEntities()
 {
 	// Create a rigid body
-	auto cubeEntity = EntityFactory::createCube(m_ecs, 1, 0.5, Eigen::Vector3d(0.25, 0.0, 0.25));
+	auto cubeEntity = EntityFactory::createCube(m_ecs, 1, 0.5, Eigen::Vector3d(2, 0.2, 1));
 	// Create a fixed particle
 	auto particleEntity = EntityFactory::createParticle(m_ecs, 0.0, Eigen::Vector3d(0.25, 1.5, 0.25));
 	// Create a spring as a joint
 	EntityFactory::createSpring(m_ecs,
 								cubeEntity, Eigen::Vector3d(0.25, 0.25, 0.25),
 								particleEntity, Eigen::Vector3d(0.0, 0.0, 0.0),
-								Joint::DampedSpring{ 0.6, 11, 0.8 });
+								Joint::DampedSpring{ 0.6, 8, 0.2 });
 
 	m_animationSystem.initialize();
 }

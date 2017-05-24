@@ -1,9 +1,12 @@
 ﻿#pragma once
 
+#include <thread>
+
 #include "Scene.h"
 #include "EntityComponentSystem.h"
 #include "AnimationSystem.h"
 #include "RenderSystem.h"
+#include "AnimationLoop.h"
 
 class DemoScene : public Scene
 {
@@ -11,6 +14,7 @@ public:
 	DemoScene(EntityComponentSystem& ecs);
 	virtual ~DemoScene();
 
+	void toggleAnimation();
 	void doTimestep(double dt);
 
 protected:
@@ -27,4 +31,7 @@ private:
 
 	AnimationSystem m_animationSystem;
 	RenderSystem m_renderSystem;
+
+	std::thread m_animationThread;
+	AnimationLoop m_animationLoop;
 };

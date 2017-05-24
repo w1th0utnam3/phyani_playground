@@ -78,14 +78,14 @@ void AnimationSystem::computeTimestep(double dt)
 		auto& particle = m_ecs.get<Particle>(particleEntity);
 
 		if (!particle.sleeping) {
-			std::cout << "Doing nothing with particle, mass=" << particle.mass << "\n";
+			//std::cout << "Doing nothing with particle, mass=" << particle.mass << "\n";
 		}
 	}
 
 	prepareNextTimestep();
 
 	m_time += dt;
-	std::cout << m_time << "\n";
+	//std::cout << m_time << "\n";
 }
 
 void AnimationSystem::prepareNextTimestep()

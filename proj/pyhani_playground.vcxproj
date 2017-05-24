@@ -29,7 +29,7 @@
     <ClCompile Include="..\src\Scene.cpp" />
     <ClCompile Include="..\src\RenderWindow.cpp" />
     <ClCompile Include="..\src\Simulation.cpp" />
-    <ClCompile Include="..\src\TimesteppedSimulation.cpp" />
+    <ClCompile Include="..\src\AnimationLoop.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="anttweakbar\TweakBar\AntTweakBar.vcxproj">
@@ -55,7 +55,7 @@
     <ClInclude Include="..\src\Scene.h" />
     <ClInclude Include="..\src\RenderWindow.h" />
     <ClInclude Include="..\src\Simulation.h" />
-    <ClInclude Include="..\src\TimesteppedSimulation.h" />
+    <ClInclude Include="..\src\AnimationLoop.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
