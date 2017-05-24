@@ -37,6 +37,7 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 
 	// Request a new window from GLFW
 	auto futureWindow = GlfwWindowManager::requestWindow(m_camera.viewportSize().x, m_camera.viewportSize().y, "Simulation", nullptr, nullptr);
+	GlfwWindowManager::processEvents();
 	m_window = futureWindow.get();
 	glfwSetWindowUserPointer(m_window, static_cast<void*>(this));
 
@@ -46,9 +47,11 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 		GlfwWindowManager::setCursorPosCallback(m_window, cursor_position_callback),
 		GlfwWindowManager::setScrollCallback(m_window, scroll_callback),
 		GlfwWindowManager::setKeyCallback(m_window, key_callback),
+		GlfwWindowManager::setCharCallback(m_window, character_callback),
 		GlfwWindowManager::setCharModsCallback(m_window, charmods_callback),
 		GlfwWindowManager::setWindowSizeCallback(m_window, window_size_callback)
 	);
+	GlfwWindowManager::processEvents();
 	for (auto& fut : callbackRequests) fut.wait();
 
 	// Load the OpenGL functions
@@ -79,9 +82,11 @@ RenderWindow::~RenderWindow()
 		GlfwWindowManager::setCursorPosCallback(m_window, nullptr),
 		GlfwWindowManager::setScrollCallback(m_window, nullptr),
 		GlfwWindowManager::setKeyCallback(m_window, nullptr),
+		GlfwWindowManager::setCharCallback(m_window, nullptr),
 		GlfwWindowManager::setCharModsCallback(m_window, nullptr),
 		GlfwWindowManager::setWindowSizeCallback(m_window, nullptr)
 	);
+	GlfwWindowManager::processEvents();
 	if (GlfwWindowManager::isInitialized()) for (auto& fut : callbackRequests) fut.wait();
 
 	// Cleanup simulation
@@ -94,6 +99,7 @@ RenderWindow::~RenderWindow()
 
 bool RenderWindow::initialize()
 {
+	/*
 	if (!TwInit(TW_OPENGL, nullptr)) {
 		std::cerr << "AntTweakBar initialization failed: " << TwGetLastError() << "\n";
 	}
@@ -137,11 +143,13 @@ bool RenderWindow::initialize()
 	TwAddButton(m_tweakBar, "ResetCamera", 
 		[](void* userPointer) {static_cast<Camera*>(userPointer)->resetToDefault(); }, static_cast<void*>(&m_camera), 
 		" label='Reset camera'");
+	*/
+	/*
 	TwAddButton(m_tweakBar, "IncrementTime", [](void* userPointer)
 	{
 		auto window = static_cast<RenderWindow*>(userPointer);
-		if (window->m_scene != nullptr) {
-			auto demoScene = dynamic_cast<DemoScene*>(window->m_scene.get());
+		if (window->m_scenes != nullptr) {
+			auto demoScene = dynamic_cast<DemoScene*>(window->m_scenes.get());
 			if (demoScene != nullptr) {
 				demoScene->doTimestep(window->m_dt);
 			}
@@ -152,8 +160,8 @@ bool RenderWindow::initialize()
 	TwAddButton(m_tweakBar, "StartStopTime", [](void* userPointer)
 	{
 		auto window = static_cast<RenderWindow*>(userPointer);
-		if (window->m_scene != nullptr) {
-			auto demoScene = dynamic_cast<DemoScene*>(window->m_scene.get());
+		if (window->m_scenes != nullptr) {
+			auto demoScene = dynamic_cast<DemoScene*>(window->m_scenes.get());
 			if (demoScene != nullptr) {
 				demoScene->toggleAnimation(window->m_timeStretch);
 			}
@@ -170,8 +178,9 @@ bool RenderWindow::initialize()
 				demoScene->resetScene();
 			}
 		}
-	}, static_cast<void*>(&m_scene),
+	}, static_cast<void*>(&m_scenes),
 		" label='Reset scene' key=r help='Resets all physical objects.' ");
+		*/
 
 	/*
 	TwAddVarRO(tweakBar, "Time", TW_TYPE_FLOAT, &m_time, " label='Time' precision=5");
@@ -186,18 +195,28 @@ bool RenderWindow::initialize()
 
 void RenderWindow::cleanup()
 {
-	TwTerminate();
+	//TwTerminate();
 }
 
-void RenderWindow::setScene(std::unique_ptr<Scene>&& scene)
+void RenderWindow::addScene(Scene* scene)
 {
 	const auto previousContext = glfwGetCurrentContext();
 	glfwMakeContextCurrent(m_window);
 
-	if (m_scene != nullptr) m_scene->cleanup();
-	m_scene = std::move(scene);
-	m_scene->setCamera(&m_camera);
-	m_scene->initialize(m_window);
+	m_scenes.push_back(scene);
+	scene->setCamera(&m_camera);
+	scene->initialize(m_window);
+
+	glfwMakeContextCurrent(previousContext);
+}
+
+void RenderWindow::clearScenes()
+{
+	const auto previousContext = glfwGetCurrentContext();
+	glfwMakeContextCurrent(m_window);
+
+	for(auto scene : m_scenes) if (scene->isInitialized()) scene->cleanup();
+	m_scenes.clear();
 
 	glfwMakeContextCurrent(previousContext);
 }
@@ -225,7 +244,7 @@ void RenderWindow::executeRenderLoop()
 		static constexpr double dtMin = 4 * (1.0 / 60);
 		if (tFrameEnd - tRef > dtMin) {
 			tRef = tFrameEnd;
-			TwRefreshBar(m_tweakBar);
+			//TwRefreshBar(m_tweakBar);
 		}
 	}
 	m_continueRenderLoop = false;
@@ -245,16 +264,16 @@ void RenderWindow::render()
 	glPolygonMode(GL_FRONT_AND_BACK, m_drawMode);
 
 	//! Render the current scene
-	if (m_scene != nullptr) m_scene->render();
+	for (auto scene : m_scenes) scene->render();
 
-	TwDraw();
+	//TwDraw();
 
 	glfwSwapBuffers(m_window);
 }
 
 void RenderWindow::mouse_button_callback(GLFWwindow* glfwWindow, int button, int action, int mods)
 {
-	if (TwEventMouseButtonGLFW3(glfwWindow, button, action, mods)) return;
+	//if (TwEventMouseButtonGLFW3(glfwWindow, button, action, mods)) return;
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 
 	window->m_interaction.pressedButton = (action == GLFW_PRESS) ? button : -1;
@@ -263,11 +282,18 @@ void RenderWindow::mouse_button_callback(GLFWwindow* glfwWindow, int button, int
 	glfwGetCursorPos(glfwWindow, &xpos, &ypos);
 	window->m_interaction.lastMousePos.x = xpos;
 	window->m_interaction.lastMousePos.y = ypos;
+
+	for (auto scene : window->m_scenes) {
+		auto sceneGlfwMouseButtonFun = scene->glfwMouseButtonFun();
+		if (sceneGlfwMouseButtonFun != nullptr) {
+			sceneGlfwMouseButtonFun(glfwWindow, button, action, mods);
+		}
+	}
 }
 
 void RenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos, double ypos)
 {
-	if (TwEventCursorPosGLFW3(glfwWindow, xpos, ypos)) return;
+	//if (TwEventCursorPosGLFW3(glfwWindow, xpos, ypos)) return;
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 	const int width = window->m_camera.viewportSize().x;
 	const int height = window->m_camera.viewportSize().y;
@@ -302,10 +328,15 @@ void RenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos,
 
 void RenderWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, double yoffset)
 {
-	if (TwEventScrollGLFW3(glfwWindow, xoffset, yoffset)) return;
+	//if (TwEventScrollGLFW3(glfwWindow, xoffset, yoffset)) return;
 
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 	window->m_camera.zoom((yoffset > 0) ? 1.1 : 0.9);
+
+	for (auto scene : window->m_scenes) {
+		auto sceneGlfwScrollFun = scene->glfwScrollFun();
+		if (sceneGlfwScrollFun != nullptr) sceneGlfwScrollFun(glfwWindow, xoffset, yoffset);
+	}
 }
 
 void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
@@ -313,12 +344,27 @@ void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, i
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
 
-	if (TwEventKeyGLFW3(glfwWindow, key, scancode, action, mods)) return;
+	//if (TwEventKeyGLFW3(glfwWindow, key, scancode, action, mods)) return;
+
+	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+	for (auto scene : window->m_scenes) {
+		auto sceneGlfwKeyFun = scene->glfwKeyFun();
+		if (sceneGlfwKeyFun != nullptr) sceneGlfwKeyFun(glfwWindow, key, scancode, action, mods);
+	}
+}
+
+void RenderWindow::character_callback(GLFWwindow* glfwWindow, unsigned int codepoint)
+{
+	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+	for (auto scene : window->m_scenes) {
+		auto sceneGlfwCharFun = scene->glfwCharFun();
+		if (sceneGlfwCharFun != nullptr) sceneGlfwCharFun(glfwWindow, codepoint);
+	}
 }
 
 void RenderWindow::charmods_callback(GLFWwindow* glfwWindow, unsigned int codepoint, int mods)
 {
-	if (TwEventCharModsGLFW3(glfwWindow, codepoint, mods)) return;
+	//if (TwEventCharModsGLFW3(glfwWindow, codepoint, mods)) return;
 }
 
 void RenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int height)
@@ -326,5 +372,5 @@ void RenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int h
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 	window->m_camera.setViewportSize(width, height);
 
-	TwWindowSize(width, height);
+	//TwWindowSize(width, height);
 }

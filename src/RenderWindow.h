@@ -2,11 +2,10 @@
 
 #include <atomic>
 #include <vector>
-#include <memory>
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <AntTweakBar.h>
+//#include <AntTweakBar.h>
 
 #include "Scene.h"
 
@@ -28,8 +27,10 @@ public:
 	//! Destroys the GLFW render window and calls cleanup methods.
 	~RenderWindow();
 
-	//! Sets the scene that should be rendered in the render window.
-	void setScene(std::unique_ptr<Scene>&& scene);
+	//! Adds a scene that should be rendered in the render window.
+	void addScene(Scene* scene);
+	//! Clears the lits of scenes to render
+	void clearScenes();
 
 	//! Starts the render loop of this window in the current thread.
 	void executeRenderLoop();
@@ -53,6 +54,8 @@ private:
 	//! GLFW callback for key presses.
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	//! GLFW callback for character input.
+	static void character_callback(GLFWwindow* window, unsigned int codepoint);
+	//! GLFW callback for character input.
 	static void charmods_callback(GLFWwindow* window, unsigned int codepoint, int mods);
 	//! GLFW callback for window resizes.
 	static void window_size_callback(GLFWwindow* window, int width, int height);
@@ -74,12 +77,12 @@ private:
 	//! Pointer to the underlying GLFWwindow.
 	GLFWwindow* m_window;
 	//! Pointer to the AntTweakBar context.
-	TwBar* m_tweakBar;
+	//TwBar* m_tweakBar;
 
 	//! Camera settings of the window.
 	Camera m_camera;
 	//! User interaction data.
 	Interaction m_interaction;
 	//! Currently loaded scenes that are rendered in the render loop.
-	std::unique_ptr<Scene> m_scene;
+	std::vector<Scene*> m_scenes;
 };

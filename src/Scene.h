@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
 struct GLFWwindow;
 
 #include "Camera.h"
@@ -14,6 +15,8 @@ public:
 
 	//! Initializes the Scene after initialization of the OpenGL context and before first render.
 	void initialize(GLFWwindow* window);
+	//! Returns whether the scene is initialized.
+	bool isInitialized() const;
 	//! Frees resources of the scene, called after the last render.
 	void cleanup();
 	//! Renders the Scene in the render loop.
@@ -27,20 +30,30 @@ public:
 	//! Sets the camera of the Scene.
 	void setCamera(Camera* camera);
 
+	GLFWmousebuttonfun glfwMouseButtonFun() const;
+	GLFWscrollfun glfwScrollFun() const;
+	GLFWkeyfun glfwKeyFun() const;
+	GLFWcharfun glfwCharFun() const;
+
 protected:
 	//! Method that subclasses should override to initialize buffers, shaders, etc.
-	virtual void initializeSceneContent() {};
+	virtual void initializeSceneContent() {}
 	//! Method that subclasses should override to unload shaders, free memory, etc.
-	virtual void cleanupSceneContent() {};
+	virtual void cleanupSceneContent() {}
 	//! Method that subclasses should override to render the specific scene
-	virtual void renderSceneContent() {};
+	virtual void renderSceneContent() {}
+	//! Method that subclasses should override to update scene data after the camera was changed
+	virtual void cameraUpdated() {}
 
-	//! Camera of the Scene
-	Camera* m_camera;
-
-private:
 	//! Flag indicating whether the Scene was initialized
 	bool m_initialized;
+	//! Camera of the Scene
+	Camera* m_camera;
 	//! Associated window of the Scene
 	GLFWwindow* m_window;
+
+	GLFWmousebuttonfun m_glfwMouseButtonFun;
+	GLFWscrollfun m_glfwScrollFun;
+	GLFWkeyfun m_glfwKeyFun;
+	GLFWcharfun m_glfwCharFun;
 };
