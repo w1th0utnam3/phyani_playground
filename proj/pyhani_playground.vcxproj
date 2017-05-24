@@ -129,6 +129,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>TW_EXPORTS;GLFW_INCLUDE_NONE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,6 +143,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>TW_EXPORTS;GLFW_INCLUDE_NONE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,6 +159,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>TW_EXPORTS;GLFW_INCLUDE_NONE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
