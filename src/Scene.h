@@ -30,19 +30,28 @@ public:
 	//! Sets the camera of the Scene.
 	void setCamera(Camera* camera);
 
-	GLFWmousebuttonfun glfwMouseButtonFun() const;
-	GLFWscrollfun glfwScrollFun() const;
-	GLFWkeyfun glfwKeyFun() const;
-	GLFWcharfun glfwCharFun() const;
+	using GLFWmousebuttonfun_bool = bool(*)(GLFWwindow*, int, int, int);
+	using GLFWcursorposfun_bool = bool(*)(GLFWwindow*, double, double);
+	using GLFWscrollfun_bool = bool(*)(GLFWwindow*, double, double);
+	using GLFWkeyfun_bool = bool(*)(GLFWwindow*, int, int, int, int);
+	using GLFWcharfun_bool = bool(*)(GLFWwindow*, unsigned int);
+	using GLFWcharmodsfun_bool = bool(*)(GLFWwindow*, unsigned int, int);
+
+	GLFWmousebuttonfun_bool glfwMouseButtonFun() const;
+	GLFWcursorposfun_bool glfwCursorPosFun() const;
+	GLFWscrollfun_bool glfwScrollFun() const;
+	GLFWkeyfun_bool glfwKeyFun() const;
+	GLFWcharfun_bool glfwCharFun() const;
+	GLFWcharmodsfun_bool glfwCharModsFun() const;
 
 protected:
 	//! Method that subclasses should override to initialize buffers, shaders, etc.
 	virtual void initializeSceneContent() {}
 	//! Method that subclasses should override to unload shaders, free memory, etc.
 	virtual void cleanupSceneContent() {}
-	//! Method that subclasses should override to render the specific scene
+	//! Method that subclasses should override to render the specific scene.
 	virtual void renderSceneContent() {}
-	//! Method that subclasses should override to update scene data after the camera was changed
+	//! Method that subclasses should override to update scene data after the camera was changed.
 	virtual void cameraUpdated() {}
 
 	//! Flag indicating whether the Scene was initialized
@@ -52,8 +61,10 @@ protected:
 	//! Associated window of the Scene
 	GLFWwindow* m_window;
 
-	GLFWmousebuttonfun m_glfwMouseButtonFun;
-	GLFWscrollfun m_glfwScrollFun;
-	GLFWkeyfun m_glfwKeyFun;
-	GLFWcharfun m_glfwCharFun;
+	GLFWmousebuttonfun_bool m_glfwMouseButtonFun;
+	GLFWcursorposfun_bool m_glfwCursorPosFun;
+	GLFWscrollfun_bool m_glfwScrollFun;
+	GLFWkeyfun_bool m_glfwKeyFun;
+	GLFWcharfun_bool m_glfwCharFun;
+	GLFWcharmodsfun_bool m_glfwCharModsFun;
 };

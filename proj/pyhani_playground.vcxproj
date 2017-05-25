@@ -34,9 +34,6 @@
     <ClCompile Include="..\src\AnimationLoop.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="anttweakbar\TweakBar\AntTweakBar.vcxproj">
-      <Project>{0b532ee6-203e-323b-bf19-08c710804c37}</Project>
-    </ProjectReference>
     <ProjectReference Include="glad\glad.vcxproj">
       <Project>{08f20750-6fcd-4327-845b-0fa3b188dc06}</Project>
     </ProjectReference>

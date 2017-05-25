@@ -98,23 +98,6 @@ RenderWindow::~RenderWindow()
 bool RenderWindow::initialize()
 {
 	/*
-	if (!TwInit(TW_OPENGL, nullptr)) {
-		std::cerr << "AntTweakBar initialization failed: " << TwGetLastError() << "\n";
-	}
-	TwWindowSize(m_camera.viewportSize().x, m_camera.viewportSize().y);
-
-	auto fromTwRotationCallback = [](const void* twData, void* userPointer)
-	{
-		auto window = static_cast<RenderWindow*>(userPointer);
-		window->m_camera.rotate(static_cast<const double*>(twData));
-	};
-
-	auto toTwRotationCallback = [](void* twData, void* userPointer)
-	{
-		auto window = static_cast<RenderWindow*>(userPointer);
-		window->m_camera.rotation(static_cast<double*>(twData));
-	};
-
 	auto fromTwWireframeCallback = [](const void* twData, void* userPointer)
 	{
 		auto window = static_cast<RenderWindow*>(userPointer);
@@ -128,64 +111,8 @@ bool RenderWindow::initialize()
 	};
 
 	// Create a tweak bar
-	m_tweakBar = TwNewBar("TweakBar");
-	TwDefine(" GLOBAL help='MiniGL TweakBar.' ");
-	TwDefine(" TweakBar size='250 400' position='5 5' color='96 200 224' text=dark ");
-	TwAddVarCB(m_tweakBar, "Rotation", 
-		TW_TYPE_QUAT4D, fromTwRotationCallback, toTwRotationCallback, static_cast<void*>(this),
-		" label='Rotation' open help='Change the rotation.' ");
-	TwAddVarRO(m_tweakBar, "FrameTime", TW_TYPE_DOUBLE, &m_lastFrametime, " label='Frame time (ms)' precision=2");
-	TwAddVarRO(m_tweakBar, "FPS", TW_TYPE_DOUBLE, &m_fps, " label='FPS' precision=2");
 	TwAddVarCB(m_tweakBar, "Wireframe", TW_TYPE_BOOLCPP, fromTwWireframeCallback, toTwWireframeCallback, static_cast<void*>(this),
 		" label='Wireframe' key=w help='Toggle wireframe mode.' ");
-	TwAddButton(m_tweakBar, "ResetCamera", 
-		[](void* userPointer) {static_cast<Camera*>(userPointer)->resetToDefault(); }, static_cast<void*>(&m_camera), 
-		" label='Reset camera'");
-	*/
-	/*
-	TwAddButton(m_tweakBar, "IncrementTime", [](void* userPointer)
-	{
-		auto window = static_cast<RenderWindow*>(userPointer);
-		if (window->m_scenes != nullptr) {
-			auto demoScene = dynamic_cast<DemoScene*>(window->m_scenes.get());
-			if (demoScene != nullptr) {
-				demoScene->doTimestep(window->m_dt);
-			}
-		}
-	}, static_cast<void*>(this),
-		" label='Manually increment time' key=a help='Increments the time of the physical animation.' ");
-	TwAddVarRW(m_tweakBar, "IncrementStepSize", TW_TYPE_DOUBLE, &m_dt, " min=0 step=0.01 label='Manual step size' help='The step size for manual time steps.' ");
-	TwAddButton(m_tweakBar, "StartStopTime", [](void* userPointer)
-	{
-		auto window = static_cast<RenderWindow*>(userPointer);
-		if (window->m_scenes != nullptr) {
-			auto demoScene = dynamic_cast<DemoScene*>(window->m_scenes.get());
-			if (demoScene != nullptr) {
-				demoScene->toggleAnimation(window->m_timeStretch);
-			}
-		}
-	}, static_cast<void*>(this),
-		" label='Toggle automatic timestepping' key=SPACE help='Starts or stops the physical animation.' ");
-	TwAddVarRW(m_tweakBar, "TimeStretch", TW_TYPE_DOUBLE, &m_timeStretch, " min=0 step=0.01 label='Time stretch' help='Set the stretch factor from realtime to physical animation time.' ");
-	TwAddButton(m_tweakBar, "ResetScene", [](void* userPointer)
-	{
-		auto scene = static_cast<std::unique_ptr<Scene>*>(userPointer)->get();
-		if (scene != nullptr) {
-			auto demoScene = dynamic_cast<DemoScene*>(scene);
-			if (demoScene != nullptr) {
-				demoScene->resetScene();
-			}
-		}
-	}, static_cast<void*>(&m_scenes),
-		" label='Reset scene' key=r help='Resets all physical objects.' ");
-		*/
-
-	/*
-	TwAddVarRO(tweakBar, "Time", TW_TYPE_FLOAT, &m_time, " label='Time' precision=5");
-	TwAddVarCB(tweakBar, "Simulate", TW_TYPE_BOOL32, setSimulateCB, getSimulateCB, NULL, "label='Simulate' key=SPACE");
-	// Add callback to toggle auto-rotate mode (callback functions are defined above).
-	TwAddVarCB(tweakBar, "Enable export", TW_TYPE_BOOL32, setExportCB, getExportCB, nullptr, "label='Enable export'");
-	TwAddVarRW(tweakBar, "Export FPS", TW_TYPE_UINT32, &m_exportFps, "label='Export FPS'");
 	*/
 
 	return true;

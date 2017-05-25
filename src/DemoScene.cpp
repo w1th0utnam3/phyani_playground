@@ -13,7 +13,7 @@ DemoScene::DemoScene()
 	: m_ecs(Simulation::getEntityComponentSystem())
 	, m_animationSystem(Simulation::getAnimationSystem())
 	, m_renderSystem(Simulation::getRenderSystem())
-	, m_animationLoop(m_animationSystem)
+	, m_animationLoop(Simulation::getAnimationLoop())
 {
 }
 
