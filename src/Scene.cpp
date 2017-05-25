@@ -7,9 +7,11 @@ Scene::Scene()
 	, m_camera(nullptr)
 	, m_window(nullptr)
 	, m_glfwMouseButtonFun(nullptr)
+	, m_glfwCursorPosFun(nullptr)
 	, m_glfwScrollFun(nullptr)
 	, m_glfwKeyFun(nullptr)
 	, m_glfwCharFun(nullptr)
+	, m_glfwCharModsFun(nullptr)
 {
 }
 
@@ -58,22 +60,32 @@ void Scene::setCamera(Camera* camera)
 	cameraUpdated();
 }
 
-GLFWmousebuttonfun Scene::glfwMouseButtonFun() const
+Scene::GLFWmousebuttonfun_bool Scene::glfwMouseButtonFun() const
 {
 	return m_glfwMouseButtonFun;
 }
 
-GLFWscrollfun Scene::glfwScrollFun() const
+Scene::GLFWcursorposfun_bool Scene::glfwCursorPosFun() const
+{
+	return m_glfwCursorPosFun;
+}
+
+Scene::GLFWscrollfun_bool Scene::glfwScrollFun() const
 {
 	return m_glfwScrollFun;
 }
 
-GLFWkeyfun Scene::glfwKeyFun() const
+Scene::GLFWkeyfun_bool Scene::glfwKeyFun() const
 {
 	return m_glfwKeyFun;
 }
 
-GLFWcharfun Scene::glfwCharFun() const
+Scene::GLFWcharfun_bool Scene::glfwCharFun() const
 {
 	return m_glfwCharFun;
+}
+
+Scene::GLFWcharmodsfun_bool Scene::glfwCharModsFun() const
+{
+	return m_glfwCharModsFun;
 }

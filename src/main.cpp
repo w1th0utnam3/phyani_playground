@@ -1,9 +1,11 @@
 #include <iostream>
 
+#include "GlfwWindowManager.h"
 #include "RenderWindow.h"
+#include "Simulation.h"
+
 #include "DemoScene.h"
 #include "ImGuiScene.h"
-#include "GlfwWindowManager.h"
 
 int main()
 {
@@ -17,23 +19,15 @@ int main()
 			RenderWindow window;
 
 			// Create scenes for the window
-			auto demoScene = std::make_unique<DemoScene>();
-			window.addScene(demoScene.get());
+			window.addScene(&Simulation::getAnimationScene());
+			window.addScene(&Simulation::getImGuiScene());
 
-			auto imguiScene = std::make_unique<ImGuiScene>();
-			window.addScene(imguiScene.get());
-
-			// Start rendering of the window and block the thread
+			// Start rendering of the window, blocks the thread
 			window.executeRenderLoop();
 
 			// Cleanup all scenes, free up GL resources
 			window.clearScenes();
 		}
-		// After the window is closed, the event loop will be stopped
-		GlfwWindowManager::stopEventLoop();
-
-		// Start the event loop, this statement blocks the main thread
-		//GlfwWindowManager::executeEventLoop();
 	}
 
 	std::cout << "(main) Bye." << "\n";

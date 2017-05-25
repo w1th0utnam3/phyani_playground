@@ -34,5 +34,5 @@ private:
 	RenderSystem& m_renderSystem;
 
 	std::thread m_animationThread;
-	AnimationLoop m_animationLoop;
+	AnimationLoop& m_animationLoop;
 };

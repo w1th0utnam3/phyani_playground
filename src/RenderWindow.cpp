@@ -8,26 +8,23 @@
 #include <glm/geometric.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "noname_tools\vector_tools.h"
+
 #include "DemoScene.h"
 #include "GlfwWindowManager.h"
-
-#include "noname_tools\vector_tools.h"
+#include "MathHelper.h"
 
 #define DEFAULT_GL_MAJOR 4
 #define DEFAULT_GL_MINOR 3
 
 RenderWindow::RenderWindow()
-	: RenderWindow(DEFAULT_GL_MAJOR, DEFAULT_GL_MINOR)
-{
-}
+	: RenderWindow(DEFAULT_GL_MAJOR, DEFAULT_GL_MINOR) {}
 
 RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	: m_continueRenderLoop(false)
 	, m_drawMode(GL_FILL)
 	, m_dt(0.05)
 	, m_timeStretch(0.5)
-	, m_lastFrametime(0)
-	, m_fps(0)
 	, m_camera(1920, 1080)
 {
 	// Specify OpenGL context profile hints
@@ -91,8 +88,9 @@ RenderWindow::~RenderWindow()
 
 	// Cleanup simulation
 	cleanup();
-	// Request to destroy window but don't wait
+	// Request to destroy window
 	GlfwWindowManager::destroyWindow(m_window);
+	GlfwWindowManager::processEvents();
 
 	std::cout << "(win) Window closed." << "\n";
 }
@@ -195,30 +193,30 @@ bool RenderWindow::initialize()
 
 void RenderWindow::cleanup()
 {
-	//TwTerminate();
+	clearScenes();
 }
 
 void RenderWindow::addScene(Scene* scene)
 {
 	const auto previousContext = glfwGetCurrentContext();
-	glfwMakeContextCurrent(m_window);
+	if (previousContext != m_window) glfwMakeContextCurrent(m_window);
 
 	m_scenes.push_back(scene);
 	scene->setCamera(&m_camera);
 	scene->initialize(m_window);
 
-	glfwMakeContextCurrent(previousContext);
+	if (previousContext != m_window) glfwMakeContextCurrent(previousContext);
 }
 
 void RenderWindow::clearScenes()
 {
 	const auto previousContext = glfwGetCurrentContext();
-	glfwMakeContextCurrent(m_window);
+	if (previousContext != m_window) glfwMakeContextCurrent(m_window);
 
-	for(auto scene : m_scenes) if (scene->isInitialized()) scene->cleanup();
+	for (auto scene : m_scenes) if (scene->isInitialized()) scene->cleanup();
 	m_scenes.clear();
 
-	glfwMakeContextCurrent(previousContext);
+	if (previousContext != m_window) glfwMakeContextCurrent(previousContext);
 }
 
 void RenderWindow::executeRenderLoop()
@@ -226,30 +224,14 @@ void RenderWindow::executeRenderLoop()
 	if (m_continueRenderLoop) return;
 
 	const auto previousContext = glfwGetCurrentContext();
-	glfwMakeContextCurrent(m_window);
+	if (previousContext != m_window) glfwMakeContextCurrent(m_window);
 
 	// Run render loop
 	m_continueRenderLoop = true;
-	double tRef = glfwGetTime();
-	while (m_continueRenderLoop && !glfwWindowShouldClose(m_window)) {
-		const double tFrameStart = glfwGetTime();
-
-		render();
-
-		const double tFrameEnd = glfwGetTime();
-		const double dt = tFrameEnd - tFrameStart;
-		m_lastFrametime = dt*1000.0;
-		m_fps = 1 / dt;
-
-		static constexpr double dtMin = 4 * (1.0 / 60);
-		if (tFrameEnd - tRef > dtMin) {
-			tRef = tFrameEnd;
-			//TwRefreshBar(m_tweakBar);
-		}
-	}
+	while (m_continueRenderLoop && !glfwWindowShouldClose(m_window)) render();
 	m_continueRenderLoop = false;
 
-	glfwMakeContextCurrent(previousContext);
+	if (previousContext != m_window) glfwMakeContextCurrent(previousContext);
 }
 
 void RenderWindow::requestStopRenderLoop()
@@ -263,48 +245,46 @@ void RenderWindow::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPolygonMode(GL_FRONT_AND_BACK, m_drawMode);
 
-	//! Render the current scene
+	//! Render the current scenes
 	for (auto scene : m_scenes) scene->render();
-
-	//TwDraw();
 
 	glfwSwapBuffers(m_window);
 }
 
 void RenderWindow::mouse_button_callback(GLFWwindow* glfwWindow, int button, int action, int mods)
 {
-	//if (TwEventMouseButtonGLFW3(glfwWindow, button, action, mods)) return;
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 
-	window->m_interaction.pressedButton = (action == GLFW_PRESS) ? button : -1;
-
-	static double xpos, ypos;
-	glfwGetCursorPos(glfwWindow, &xpos, &ypos);
-	window->m_interaction.lastMousePos.x = xpos;
-	window->m_interaction.lastMousePos.y = ypos;
-
+	bool eventCaptured = false;
 	for (auto scene : window->m_scenes) {
 		auto sceneGlfwMouseButtonFun = scene->glfwMouseButtonFun();
-		if (sceneGlfwMouseButtonFun != nullptr) {
-			sceneGlfwMouseButtonFun(glfwWindow, button, action, mods);
-		}
+		if (sceneGlfwMouseButtonFun != nullptr) eventCaptured = sceneGlfwMouseButtonFun(glfwWindow, button, action, mods);
+		if (eventCaptured) break;
+	}
+
+	if (!eventCaptured) {
+		window->m_interaction.pressedButton = (action == GLFW_PRESS) ? button : -1;
+
+		static double xpos, ypos;
+		glfwGetCursorPos(glfwWindow, &xpos, &ypos);
+		window->m_interaction.lastMousePos.x = xpos;
+		window->m_interaction.lastMousePos.y = ypos;
 	}
 }
 
 void RenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos, double ypos)
 {
-	//if (TwEventCursorPosGLFW3(glfwWindow, xpos, ypos)) return;
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 	const int width = window->m_camera.viewportSize().x;
 	const int height = window->m_camera.viewportSize().y;
 
 	if (window->m_interaction.pressedButton == GLFW_MOUSE_BUTTON_LEFT) {
-		glm::dvec3 oldMouseVec(  window->m_interaction.lastMousePos.x - 0.5*width,
-								-(window->m_interaction.lastMousePos.y - 0.5*height), 0);
-		glm::dvec3 newMouseVec(   xpos - 0.5*width,
-								-(ypos - 0.5*height), 0);
+		glm::dvec3 oldMouseVec(window->m_interaction.lastMousePos.x - 0.5 * width,
+		                       -(window->m_interaction.lastMousePos.y - 0.5 * height), 0);
+		glm::dvec3 newMouseVec(xpos - 0.5 * width,
+		                       -(ypos - 0.5 * height), 0);
 
-		const double arcballRadius = std::hypot(0.5*width, 0.5*height);
+		const double arcballRadius = std::hypot(0.5 * width, 0.5 * height);
 		oldMouseVec /= arcballRadius;
 		newMouseVec /= arcballRadius;
 
@@ -319,7 +299,7 @@ void RenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos,
 		const double angle = std::acos(std::min(1.0, glm::dot(oldMouseVec, newMouseVec)));
 		const glm::dvec3 axis = glm::cross(oldMouseVec, newMouseVec);
 
-		window->m_camera.rotate(angle, axis);
+		if (glm::length(axis) != 0) window->m_camera.rotate(angle, axis);
 	}
 
 	window->m_interaction.lastMousePos.x = xpos;
@@ -328,49 +308,52 @@ void RenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos,
 
 void RenderWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, double yoffset)
 {
-	//if (TwEventScrollGLFW3(glfwWindow, xoffset, yoffset)) return;
-
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
-	window->m_camera.zoom((yoffset > 0) ? 1.1 : 0.9);
 
+	bool eventCaptured = false;
 	for (auto scene : window->m_scenes) {
 		auto sceneGlfwScrollFun = scene->glfwScrollFun();
-		if (sceneGlfwScrollFun != nullptr) sceneGlfwScrollFun(glfwWindow, xoffset, yoffset);
+		if (sceneGlfwScrollFun != nullptr) eventCaptured = sceneGlfwScrollFun(glfwWindow, xoffset, yoffset);
+		if (eventCaptured) break;
+	}
+
+	if (!eventCaptured) {
+		window->m_camera.zoom((yoffset > 0) ? 1.1 : 0.9);
 	}
 }
 
 void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
-
-	//if (TwEventKeyGLFW3(glfwWindow, key, scancode, action, mods)) return;
-
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+
+	bool eventCaptured = false;
 	for (auto scene : window->m_scenes) {
 		auto sceneGlfwKeyFun = scene->glfwKeyFun();
-		if (sceneGlfwKeyFun != nullptr) sceneGlfwKeyFun(glfwWindow, key, scancode, action, mods);
+		if (sceneGlfwKeyFun != nullptr) eventCaptured = sceneGlfwKeyFun(glfwWindow, key, scancode, action, mods);
+		if (eventCaptured) break;
+	}
+
+	if (!eventCaptured) {
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
 	}
 }
 
 void RenderWindow::character_callback(GLFWwindow* glfwWindow, unsigned int codepoint)
 {
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+
+	bool eventCaptured = false;
 	for (auto scene : window->m_scenes) {
 		auto sceneGlfwCharFun = scene->glfwCharFun();
-		if (sceneGlfwCharFun != nullptr) sceneGlfwCharFun(glfwWindow, codepoint);
+		if (sceneGlfwCharFun != nullptr) eventCaptured = sceneGlfwCharFun(glfwWindow, codepoint);
+		if (eventCaptured) break;
 	}
 }
 
-void RenderWindow::charmods_callback(GLFWwindow* glfwWindow, unsigned int codepoint, int mods)
-{
-	//if (TwEventCharModsGLFW3(glfwWindow, codepoint, mods)) return;
-}
+void RenderWindow::charmods_callback(GLFWwindow* glfwWindow, unsigned int codepoint, int mods) {}
 
 void RenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int height)
 {
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 	window->m_camera.setViewportSize(width, height);
-
-	//TwWindowSize(width, height);
 }

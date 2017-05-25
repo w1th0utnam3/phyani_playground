@@ -6,7 +6,7 @@
 struct CameraState
 {
 	//! The current rotation of the camera.
-	glm::tquat<double> m_rotation;
+	glm::dquat m_rotation;
 	//! The current translation of the camera.
 	glm::dvec3 m_translation;
 	//! The current scaling of the camera.
@@ -54,7 +54,7 @@ public:
 	glm::ivec2 viewportSize() const;
 
 	//! Returns the quaternion representing the current rotation of the camera.
-	glm::tquat<double> rotation() const;
+	glm::dquat rotation() const;
 	//! Writes the quaternion values {x,y,z,w} to the specified memory location.
 	void rotation(double* quat) const;
 	//! Returns the current zoom factor.

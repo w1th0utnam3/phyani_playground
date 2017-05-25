@@ -5,7 +5,6 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-//#include <AntTweakBar.h>
 
 #include "Scene.h"
 
@@ -14,8 +13,6 @@ struct Interaction
 	glm::dvec2 lastMousePos = glm::dvec2(0, 0);
 	int pressedButton = -1;
 };
-
-// TODO: Move AntTweakBar stuff to own class that can handle threads and switches between windows?
 
 class RenderWindow
 {
@@ -69,15 +66,9 @@ private:
 	double m_dt;
 	//! Current time stretch factor for the animations
 	double m_timeStretch;
-	//! The time required by the last render loop iteration.
-	double m_lastFrametime;
-	//! The current number of FPS.
-	double m_fps;
 
 	//! Pointer to the underlying GLFWwindow.
 	GLFWwindow* m_window;
-	//! Pointer to the AntTweakBar context.
-	//TwBar* m_tweakBar;
 
 	//! Camera settings of the window.
 	Camera m_camera;

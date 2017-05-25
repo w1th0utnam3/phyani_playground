@@ -98,5 +98,8 @@
     <ClInclude Include="..\src\ImGuiGlfw3Helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\MathHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

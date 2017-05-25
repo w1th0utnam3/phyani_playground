@@ -4,8 +4,9 @@
 #include <iostream>
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "MathHelper.h"
 
 Camera::Camera(int width, int height)
 {
@@ -16,7 +17,7 @@ Camera::Camera(int width, int height)
 
 void Camera::resetToIdentity()
 {
-	m_state.m_rotation = glm::tquat<double>(1, 0, 0, 0);
+	m_state.m_rotation = glm::dquat(1, 0, 0, 0);
 	m_state.m_translation = glm::dvec3(0, 0, 0);
 	m_state.m_scaling = glm::dvec3(1, 1, 1);
 	m_state.m_zoom = 1.0;
@@ -68,8 +69,15 @@ void Camera::setViewportSize(int width, int height)
 
 void Camera::rotate(double angle, glm::dvec3 axis)
 {
-	glm::dvec3 rotatedAxis = glm::inverse(m_state.m_rotation)*axis;
-	m_state.m_rotation = glm::rotate(m_state.m_rotation, angle, rotatedAxis);
+	if (glm::length(axis) == 0) return;
+
+	glm::dquat rotatedAxisQuat = glm::conjugate(m_state.m_rotation)*glm::dquat(0, axis);
+	glm::dvec3 rotatedAxis(rotatedAxisQuat[0], rotatedAxisQuat[1], rotatedAxisQuat[2]);
+	m_state.m_rotation = glm::rotate(m_state.m_rotation, angle, glm::normalize(rotatedAxis));
+
+	 if (!isfinite(m_state.m_rotation))
+		 throw std::runtime_error("Invalid rotation");
+
 	updateModelViewMatrix();
 }
 
@@ -100,7 +108,7 @@ glm::ivec2 Camera::viewportSize() const
 	return m_viewportSize;
 }
 
-glm::tquat<double> Camera::rotation() const
+glm::dquat Camera::rotation() const
 {
 	return m_state.m_rotation;
 }

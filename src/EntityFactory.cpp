@@ -1,8 +1,22 @@
 ﻿#include "EntityFactory.h"
 
-EntityType EntityFactory::createCube(EntityComponentSystem& ecs, double mass, double edgeLength)
+EntityType EntityFactory::createParticle(EntityComponentSystem& ecs, double mass, Eigen::Vector3d location)
 {
-	return createCube(ecs, mass, edgeLength, Eigen::Vector3d(0, 0, 0));
+	auto particleEntity = ecs.create<Particle, RenderData>();
+
+	{
+		auto& particle = ecs.get<Particle>(particleEntity);
+		particle.mass = mass;
+		particle.linearState.position = location;
+	}
+
+	{
+		auto& renderData = ecs.get<RenderData>(particleEntity);
+		renderData.color = Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f);
+		renderData.properties = RenderData::Cube{ 0.1 };
+	}
+
+	return particleEntity;
 }
 
 EntityType EntityFactory::createCube(EntityComponentSystem& ecs, double mass, double edgeLength, Eigen::Vector3d center)
@@ -24,30 +38,6 @@ EntityType EntityFactory::createCube(EntityComponentSystem& ecs, double mass, do
 	}
 
 	return cubeEntity;
-}
-
-EntityType EntityFactory::createParticle(EntityComponentSystem& ecs, double mass)
-{
-	return createParticle(ecs, mass, Eigen::Vector3d(0, 0, 0));
-}
-
-EntityType EntityFactory::createParticle(EntityComponentSystem& ecs, double mass, Eigen::Vector3d location)
-{
-	auto particleEntity = ecs.create<Particle, RenderData>(); 
-
-	{
-		auto& particle = ecs.get<Particle>(particleEntity);
-		particle.mass = mass;
-		particle.linearState.position = location;
-	} 
-
-	{
-		auto& renderData = ecs.get<RenderData>(particleEntity);
-		renderData.color = Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f);
-		renderData.properties = RenderData::Cube{0.1};
-	}
-
-	return particleEntity;
 }
 
 EntityType EntityFactory::createSpring(EntityComponentSystem& ecs, EntityType fromEntity, EntityType toEntity, Joint::DampedSpring parameters)
