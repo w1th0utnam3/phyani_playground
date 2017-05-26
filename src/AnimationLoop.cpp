@@ -7,6 +7,8 @@ AnimationLoop::AnimationLoop(AnimationSystem& animationSystem)
 	, m_continueEventLoop(false)
 	, m_automaticTimestepping(false)
 	, m_timeStretch(1.0)
+	, m_lastComputationTime(0.0)
+	, m_lastTimestepDt(0.0)
 {
 }
 
@@ -44,8 +46,10 @@ void AnimationLoop::executeTimestepLoop()
 		processEvents();
 		if (m_automaticTimestepping) {
 			processEvents();
-			auto currentTime = std::chrono::high_resolution_clock::now();
-			m_animationSystem.computeTimestep(m_timeStretch*static_cast<std::chrono::duration<double>>(currentTime - m_lastRender).count());
+			const auto currentTime = std::chrono::high_resolution_clock::now();
+			m_lastComputationTime = static_cast<std::chrono::duration<double>>(currentTime - m_lastRender).count();
+			m_lastTimestepDt = m_timeStretch*m_lastComputationTime;
+			m_animationSystem.computeTimestep(m_lastTimestepDt);
 			m_lastRender = currentTime;
 		}
 	}
@@ -69,7 +73,13 @@ void AnimationLoop::processEvents()
 		void operator()(ComputeTimestepEvent& event) const
 		{
 			auto& request = event.request;
-			if (!simulation->m_automaticTimestepping) simulation->m_animationSystem.computeTimestep(request.dt);
+			if (!simulation->m_automaticTimestepping) {
+				simulation->m_lastRender = std::chrono::high_resolution_clock::now();
+				simulation->m_lastTimestepDt = request.dt;
+				simulation->m_animationSystem.computeTimestep(request.dt);
+				const auto currentTime = std::chrono::high_resolution_clock::now();
+				simulation->m_lastComputationTime = static_cast<std::chrono::duration<double>>(currentTime - simulation->m_lastRender).count();
+			}
 			event.promise.set_value();
 		}
 
@@ -104,3 +114,7 @@ bool AnimationLoop::isAutomaticTimesteppingActive() const
 	return m_automaticTimestepping;
 }
 
+std::pair<double, double> AnimationLoop::lastTimestepStats() const
+{
+	return { m_lastComputationTime , m_lastTimestepDt };
+}

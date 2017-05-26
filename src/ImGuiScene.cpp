@@ -65,7 +65,7 @@ void ImGuiScene::renderSceneContent()
 
 	drawMainWindow();
 
-	ImGui::ShowTestWindow();
+	//ImGui::ShowTestWindow();
 	ImGui::Render();
 }
 
@@ -79,7 +79,10 @@ void ImGuiScene::drawMainWindow()
 
 	ImGui::PushItemWidth(-140);
 
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::Text("Render average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	static double timestepTime, dt;
+	std::tie(timestepTime, dt) = Simulation::getAnimationLoop().lastTimestepStats();
+	ImGui::Text("Animation %.3e ms/timestep, dt=%.3e", timestepTime*1000, dt*1000);
 	ImGui::Spacing();
 
 	if (ImGui::CollapsingHeader("Camera")) {
