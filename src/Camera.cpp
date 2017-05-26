@@ -71,12 +71,9 @@ void Camera::rotate(double angle, glm::dvec3 axis)
 {
 	if (glm::length(axis) == 0) return;
 
-	glm::dquat rotatedAxisQuat = glm::conjugate(m_state.m_rotation)*glm::dquat(0, axis);
+	glm::dquat rotatedAxisQuat = glm::conjugate(m_state.m_rotation)*glm::dquat(0, glm::normalize(axis));
 	glm::dvec3 rotatedAxis(rotatedAxisQuat[0], rotatedAxisQuat[1], rotatedAxisQuat[2]);
-	m_state.m_rotation = glm::rotate(m_state.m_rotation, angle, glm::normalize(rotatedAxis));
-
-	 if (!isfinite(m_state.m_rotation))
-		 throw std::runtime_error("Invalid rotation");
+	m_state.m_rotation = glm::normalize(glm::rotate(m_state.m_rotation, angle, rotatedAxis));
 
 	updateModelViewMatrix();
 }

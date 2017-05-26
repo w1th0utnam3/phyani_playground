@@ -54,6 +54,9 @@
     <ClCompile Include="..\src\ImGuiGlfw3Helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\submodules\imguizmo\ImGuizmo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Scene.h">
@@ -99,6 +102,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\MathHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\submodules\imguizmo\ImGuizmo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

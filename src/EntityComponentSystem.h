@@ -78,18 +78,21 @@ struct RenderData
 {
 	Eigen::Vector4f color;
 
-	struct Cube
+	struct Cuboid
 	{
-		double edgeLength;
+		Eigen::Vector3f position = Eigen::Vector3f(0, 0, 0);
+		Eigen::Quaternionf rotation = Eigen::Quaternionf(1, 0, 0, 0);
+		Eigen::Vector3f edges = Eigen::Vector3f(1, 1, 1);
 	};
 
 	struct Joint
 	{
-		double connectorSize;
-		double lineWidth;
+		std::pair<Eigen::Vector3f, Eigen::Vector3f> connectorPositions = { Eigen::Vector3f(0, 0, 0) , Eigen::Vector3f(0, 0, 0) };
+		float connectorSize = 0.05f;
+		float lineWidth = 2.0f;
 	};
 
-	std::variant<Cube, Joint> properties;
+	std::variant<Cuboid, Joint> properties;
 };
 
 using EntityComponentSystemBase = entt::StandardRegistry<EntityType, RigidBody, Particle, Joint, RenderData>;

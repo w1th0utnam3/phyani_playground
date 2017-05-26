@@ -251,6 +251,8 @@ void RenderWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, doubl
 
 void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
 {
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
+
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 
 	bool eventCaptured = false;
@@ -258,10 +260,6 @@ void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, i
 		auto sceneGlfwKeyFun = scene->glfwKeyFun();
 		if (sceneGlfwKeyFun != nullptr) eventCaptured = sceneGlfwKeyFun(glfwWindow, key, scancode, action, mods);
 		if (eventCaptured) break;
-	}
-
-	if (!eventCaptured) {
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
 	}
 }
 

@@ -91,18 +91,24 @@ void DemoScene::initializeEntities()
 								particleEntity, Eigen::Vector3d(0.0, 0.0, 0.0),
 								Joint::DampedSpring{ 0.6, 32, 16 });
 
-	auto cubeEntity2 = EntityFactory::createCube(m_ecs, 0.5, 0.25, Eigen::Vector3d(2.2, -0.8, 1.1));
+	auto cubeEntity2 = EntityFactory::createCuboid(m_ecs, 0.5, Eigen::Vector3d(0.25, 0.25, 4), Eigen::Vector3d(2.2, -0.8, 1.1));
 
 	EntityFactory::createSpring(m_ecs,
 								cubeEntity1, Eigen::Vector3d(-0.25, -0.25, -0.25),
-								cubeEntity2, Eigen::Vector3d(-0.25, 0.25, -0.25),
+								cubeEntity2, Eigen::Vector3d(-0.125, 0.125, -0.125),
 								Joint::DampedSpring{ 0.2, 16, 8 });
 
-	auto cubeEntity3 = EntityFactory::createCube(m_ecs, 0.5, 0.25, Eigen::Vector3d(1.8, -1.8, 0.6));
+	auto cubeEntity3 = EntityFactory::createCube(m_ecs, 0.5, 0.25, Eigen::Vector3d(1.8, -1.8, 1.6));
+	auto cubeEntity4 = EntityFactory::createCube(m_ecs, 0.5, 0.25, Eigen::Vector3d(1.8, -1.8, -1.6));
 
 	EntityFactory::createSpring(m_ecs,
-								cubeEntity2, Eigen::Vector3d(0.25, -0.25, 0.25),
-								cubeEntity3, Eigen::Vector3d(-0.25, 0.25, -0.25),
+								cubeEntity2, Eigen::Vector3d(0.125, -0.125, 2),
+								cubeEntity3, Eigen::Vector3d(-0.125, 0.125, -0.125),
+								Joint::DampedSpring{ 0.2, 16, 8 });
+
+	EntityFactory::createSpring(m_ecs,
+								cubeEntity2, Eigen::Vector3d(0.125, -0.125, -2),
+								cubeEntity4, Eigen::Vector3d(-0.125, 0.125, -0.125),
 								Joint::DampedSpring{ 0.2, 16, 8 });
 
 	m_animationSystem.initialize();

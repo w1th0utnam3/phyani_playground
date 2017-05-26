@@ -19,6 +19,15 @@ std::ostream& operator<<(std::ostream& os, glm::tvec3<T, P> vec)
 	return os;
 }
 
+template <glm::length_t l, typename T, glm::precision P>
+std::ostream& operator<<(std::ostream& os, glm::vec<l, T, P> vec)
+{
+	os << vec[0];
+	if (l > 1) for (glm::length_t i = 1; i < l; i++) os << "," << vec[i];
+	return os;
+}
+
+
 template <typename T, glm::precision P>
 bool isfinite(glm::tquat<T, P> quat)
 {

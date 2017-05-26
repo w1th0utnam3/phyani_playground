@@ -1,7 +1,6 @@
 ﻿#include "RenderSystem.h"
 
 #include <iostream>
-#include <array>
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -16,67 +15,51 @@ RenderSystem::RenderSystem(EntityComponentSystem& ecs)
 
 void RenderSystem::render()
 {
-	static constexpr std::array<float, 4> white = { 1,1,1,1 };
-	static constexpr std::array<float, 4> red = { 1,0,0,1 };
-	static constexpr std::array<float, 4> green{ 0.0f, 1.0f, 0.0f, 1.0f };
-	static constexpr std::array<float, 4> blue{ 0.0f, 0.0f, 1.0f, 1.0f };
-
-	// Loop over rigid bodies and particles: Integrate time
-	for (auto rigidBodyEntity : m_ecs.view<RigidBody>()) {
-		auto& rigidBody = m_ecs.get<RigidBody>(rigidBodyEntity);
-		const auto& position = rigidBody.linearState.position;
-		const auto& rotation = rigidBody.angularState.rotation;
-
-		auto quat = glm::make_quat<double>(rotation.coeffs().data());
-		auto rotationMatrix = glm::rotate(glm::dmat4(), glm::angle(quat), glm::axis(quat));
-
-		glPushMatrix();
-		glTranslated(position.x(), position.y(), position.z());
-		glMultMatrixd(glm::value_ptr(rotationMatrix));
-		drawCube(0.5, green.data());
-		glPopMatrix();
-		
+	for (auto renderEntity : m_ecs.view<RenderData>()) {
+		m_renderer.renderData = &m_ecs.get<RenderData>(renderEntity);
+		std::visit(m_renderer, m_renderer.renderData->properties);
 	}
+}
 
-	for (auto particleEntity : m_ecs.view<Particle>()) {
-		auto& particle = m_ecs.get<Particle>(particleEntity);
-		const auto& position = particle.linearState.position;
+void RenderSystem::Renderer::operator()(const RenderData::Cuboid& cuboidData) const
+{
+	const auto quat = glm::make_quat<float>(cuboidData.rotation.coeffs().data());
+	const auto rotationMatrix = glm::rotate(glm::fmat4(), glm::angle(quat), glm::axis(quat));
 
-		glPushMatrix();
-		glTranslated(position.x(), position.y(), position.z());
-		drawCube(0.1, blue.data());
-		glPopMatrix();
-	}
+	glPushMatrix();
+	glTranslatef(cuboidData.position.x(), cuboidData.position.y(), cuboidData.position.z());
+	glMultMatrixf(glm::value_ptr(rotationMatrix));
+	drawCoordinateSystem(0.75);
+	glScalef(cuboidData.edges.x(), cuboidData.edges.y(), cuboidData.edges.z());
+	drawCube(1, &renderData->color[0]);
+	glPopMatrix();
+}
 
-	for (auto jointEntity : m_ecs.view<Joint>()) {
-		auto& joint = m_ecs.get<Joint>(jointEntity);
-		const auto& positionA = joint.connectors.first.globalPosition;
-		const auto& positionB = joint.connectors.second.globalPosition;
+void RenderSystem::Renderer::operator()(const RenderData::Joint& jointData) const
+{
+	const auto& positionA = jointData.connectorPositions.first;
+	const auto& positionB = jointData.connectorPositions.second;
 
-		glPushMatrix();
-		glTranslated(positionA.x(), positionA.y(), positionA.z());
-		drawCube(0.05, red.data());
-		glPopMatrix();
+	glPushMatrix();
+	glTranslatef(positionA.x(), positionA.y(), positionA.z());
+	drawCube(jointData.connectorSize, &renderData->color[0]);
+	glPopMatrix();
 
-		glPushMatrix();
-		glTranslated(positionB.x(), positionB.y(), positionB.z());
-		drawCube(0.05, red.data());
-		glPopMatrix();
+	glPushMatrix();
+	glTranslatef(positionB.x(), positionB.y(), positionB.z());
+	drawCube(jointData.connectorSize, &renderData->color[0]);
+	glPopMatrix();
 
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, red.data());
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, red.data());
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white.data());
-		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-		glLineWidth(2);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, &renderData->color[0]);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, &renderData->color[0]);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, &renderData->color[0]);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+	glLineWidth(jointData.lineWidth);
 
-		glBegin(GL_LINES);
-		glVertex3dv(&positionA[0]);
-		glVertex3dv(&positionB[0]);
-		glEnd();
-	}
-
-	//drawTetrahedron(Eigen::Vector3d::Zero(), Eigen::Vector3d::UnitX(), Eigen::Vector3d::UnitY(), Eigen::Vector3d::UnitZ(), green.data());
-	//drawCube(1, green.data());
+	glBegin(GL_LINES);
+	glVertex3fv(&positionA[0]);
+	glVertex3fv(&positionB[0]);
+	glEnd();
 }
 
 void RenderSystem::drawTriangle(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &c, const Eigen::Vector3d &norm, const float *color)
@@ -107,7 +90,7 @@ void RenderSystem::drawTetrahedron(const Eigen::Vector3d &a, const Eigen::Vector
 	drawTriangle(b, c, d, normal4, color);
 }
 
-void RenderSystem::drawCube(const double edgeLength, const float *color)
+void RenderSystem::drawCube(float edgeLength, const float *color)
 {
 	const double x = 0.5*edgeLength;
 
@@ -163,4 +146,45 @@ void RenderSystem::drawCube(const double edgeLength, const float *color)
 	glVertex3d(-x, -x, x);
 	glVertex3d(-x, -x, -x);
 	glEnd();
+}
+
+void RenderSystem::drawCoordinateSystem(float axisLength)
+{
+	static const Eigen::Vector3d origin(0, 0, 0);
+	const Eigen::Vector3d xAxis(axisLength, 0, 0);
+	const Eigen::Vector3d yAxis(0, axisLength, 0);
+	const Eigen::Vector3d zAxis(0, 0, axisLength);
+
+	static constexpr float SpecColorWhite[4] = { 1,1,1,1 };
+	static constexpr float diffColorRed[4] = { 1,0,0,1 };
+	static constexpr float diffColorGreen[4] = { 0,1,0,1 };
+	static constexpr float diffColorBlue[4] = { 0,0,1,1 };
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, diffColorRed);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffColorRed);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, SpecColorWhite);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+	glLineWidth(2);
+
+	glBegin(GL_LINES);
+	glVertex3dv(&origin[0]);
+	glVertex3dv(&xAxis[0]);
+	glEnd();
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, diffColorGreen);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffColorGreen);
+
+	glBegin(GL_LINES);
+	glVertex3dv(&origin[0]);
+	glVertex3dv(&yAxis[0]);
+	glEnd();
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, diffColorBlue);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffColorBlue);
+
+	glBegin(GL_LINES);
+	glVertex3dv(&origin[0]);
+	glVertex3dv(&zAxis[0]);
+	glEnd();
+	glLineWidth(1);
 }
