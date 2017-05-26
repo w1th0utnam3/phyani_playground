@@ -1,0 +1,32 @@
+﻿#pragma once
+
+#include <Eigen/Geometry>
+
+#include "EntityComponentSystem.h"
+
+class RenderSystem
+{
+public:
+	RenderSystem(EntityComponentSystem& ecs);
+
+	void render();
+
+private:
+	EntityComponentSystem& m_ecs;
+
+	//! Visitor for the render loop which renders the primitives
+	struct Renderer
+	{
+		RenderData* renderData = nullptr;
+
+		void operator()(const RenderData::Cuboid& cuboidData) const;
+		void operator()(const RenderData::Joint& jointData) const;
+	};
+
+	Renderer m_renderer;
+
+	static void drawTriangle(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &c, const Eigen::Vector3d &norm, const float *color);
+	static void drawTetrahedron(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &c, const Eigen::Vector3d &d, const float *color);
+	static void drawCube(float edgeLength, const float *color);
+	static void drawCoordinateSystem(float axisLength);
+};

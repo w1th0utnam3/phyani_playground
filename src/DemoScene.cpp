@@ -3,32 +3,65 @@
 #include <array>
 
 #include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
 #include <Eigen/Geometry>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "Simulation.h"
+#include "EntityFactory.h"
+
+DemoScene::DemoScene()
+	: m_ecs(Simulation::getEntityComponentSystem())
+	, m_animationSystem(Simulation::getAnimationSystem())
+	, m_renderSystem(Simulation::getRenderSystem())
+	, m_animationLoop(Simulation::getAnimationLoop())
+{
+}
 
 DemoScene::~DemoScene()
 {
-	if (m_simulation.isEventLoopRunning()) m_simulation.stopTimestepLoop().wait();
-	m_simulationThread.join();
+	// Potentially join the animatino thread
+	if (m_animationLoop.isEventLoopRunning()) m_animationLoop.stopEventLoop().wait();
+	m_animationThread.join();
 }
 
 void DemoScene::initializeSceneContent()
 {
-	initializeLight();
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glClearColor(0.95f, 0.95f, 1.0f, 1.0f);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	// Create a window for the simulation
-	auto simulationPtr = &m_simulation;
-	m_simulationThread = std::move(std::thread([simulationPtr]()
+	initializeEntities();
+
+	// Start the animation event loop
+	auto animationLoopPointer = &m_animationLoop;
+	m_animationThread = std::move(std::thread([animationLoopPointer]()
 	{
-		simulationPtr->executeTimestepLoop();
+		animationLoopPointer->executeTimestepLoop();
 	}));
+}
+
+void DemoScene::toggleAnimation(double timeStretch)
+{
+	m_animationLoop.toggleAutomaticTimestepping(timeStretch);
 }
 
 void DemoScene::doTimestep(double dt)
 {
-	m_simulation.requestTimestep(dt);
+	// m_animationSystem.computeTimestep(dt);
+	m_animationLoop.requestTimestep(dt);
+}
+
+void DemoScene::resetScene()
+{
+	if (m_animationLoop.isEventLoopRunning()) m_animationLoop.stopEventLoop().wait();
+	m_animationThread.join();
+
+	m_ecs.reset();
+	initializeSceneContent();
 }
 
 void DemoScene::renderSceneContent()
@@ -40,27 +73,61 @@ void DemoScene::renderSceneContent()
 	const auto transform = m_camera->modelViewMatrix();
 	glLoadMatrixd(glm::value_ptr(transform));
 
+	initializeLight();
 	drawCoordinateSystem(2);
-	static const std::array<float, 4> green{ 0.0f, 1.0f, 0.0f, 1.0f };
-	static const std::array<float, 4> blue{ 0.0f, 0.0f, 1.0f, 1.0f };
 
-	drawTetrahedron(Eigen::Vector3d::Zero(), Eigen::Vector3d::UnitX(), Eigen::Vector3d::UnitY(), Eigen::Vector3d::UnitZ(), green.data());
+	m_renderSystem.render();
+}
+
+void DemoScene::initializeEntities()
+{
+	// Create a rigid body
+	auto cubeEntity1 = EntityFactory::createCube(m_ecs, 1, 0.5, Eigen::Vector3d(2, 0.2, 1));
+	// Create a fixed particle
+	auto particleEntity = EntityFactory::createParticle(m_ecs, 0.0, Eigen::Vector3d(0.25, 1.5, 0.25));
+	// Create a spring as a joint
+	EntityFactory::createSpring(m_ecs,
+								cubeEntity1, Eigen::Vector3d(0.25, 0.25, 0.25),
+								particleEntity, Eigen::Vector3d(0.0, 0.0, 0.0),
+								Joint::DampedSpring{ 0.6, 32, 16 });
+
+	auto cubeEntity2 = EntityFactory::createCuboid(m_ecs, 0.5, Eigen::Vector3d(0.25, 0.25, 4), Eigen::Vector3d(2.2, -0.8, 1.1));
+
+	EntityFactory::createSpring(m_ecs,
+								cubeEntity1, Eigen::Vector3d(-0.25, -0.25, -0.25),
+								cubeEntity2, Eigen::Vector3d(-0.125, 0.125, -0.125),
+								Joint::DampedSpring{ 0.2, 16, 8 });
+
+	auto cubeEntity3 = EntityFactory::createCube(m_ecs, 0.5, 0.25, Eigen::Vector3d(1.8, -1.8, 1.6));
+	auto cubeEntity4 = EntityFactory::createCube(m_ecs, 0.5, 0.25, Eigen::Vector3d(1.8, -1.8, -1.6));
+
+	EntityFactory::createSpring(m_ecs,
+								cubeEntity2, Eigen::Vector3d(0.125, -0.125, 2),
+								cubeEntity3, Eigen::Vector3d(-0.125, 0.125, -0.125),
+								Joint::DampedSpring{ 0.2, 16, 8 });
+
+	EntityFactory::createSpring(m_ecs,
+								cubeEntity2, Eigen::Vector3d(0.125, -0.125, -2),
+								cubeEntity4, Eigen::Vector3d(-0.125, 0.125, -0.125),
+								Joint::DampedSpring{ 0.2, 16, 8 });
+
+	m_animationSystem.initialize();
 }
 
 void DemoScene::initializeLight()
 {
-	float t = 0.4f;
+	float t = 0.8f;
 	float a = 0.1f;
 
 	float amb0[4] = {a,a,a,1};
 	float diff0[4] = {t,t,t,1};
 	float spec0[4] = {1,1,1,1};
-	float pos0[4] = {-10,10,10,1};
+	float pos0[4] = {-1,1,1,1};
 	glLightfv(GL_LIGHT0, GL_AMBIENT, amb0);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diff0);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, spec0);
 	glLightfv(GL_LIGHT0, GL_POSITION, pos0);
-	glEnable(GL_LIGHT0);
+	//glEnable(GL_LIGHT0);
 
 	float amb1[4] = {a,a,a,1};
 	float diff1[4] = {t,t,t,1};
@@ -70,12 +137,12 @@ void DemoScene::initializeLight()
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, diff1);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, spec1);
 	glLightfv(GL_LIGHT1, GL_POSITION, pos1);
-	glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHT1);
 
 	float amb2[4] = {a,a,a,1};
 	float diff2[4] = {t,t,t,1};
 	float spec2[4] = {1,1,1,1};
-	float pos2[4] = {0,10,10,1};
+	float pos2[4] = {0,0,2,1};
 	glLightfv(GL_LIGHT2, GL_AMBIENT, amb2);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, diff2);
 	glLightfv(GL_LIGHT2, GL_SPECULAR, spec2);
@@ -83,9 +150,9 @@ void DemoScene::initializeLight()
 	glEnable(GL_LIGHT2);
 
 	glEnable(GL_LIGHTING);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-	glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+	//glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	//glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+	//glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 }
 
 void DemoScene::drawCoordinateSystem(double axisLength)
@@ -127,32 +194,4 @@ void DemoScene::drawCoordinateSystem(double axisLength)
 	glVertex3dv(&zAxis[0]);
 	glEnd();
 	glLineWidth(1);
-}
-
-void DemoScene::drawTriangle(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &c, const Eigen::Vector3d &norm, const float *color)
-{
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-
-	glBegin(GL_TRIANGLES);
-	glNormal3dv(&norm[0]);
-	glVertex3dv(&a[0]);
-	glVertex3dv(&b[0]);
-	glVertex3dv(&c[0]);
-	glEnd();
-}
-
-void DemoScene::drawTetrahedron(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &c, const Eigen::Vector3d &d, const float *color)
-{
-	Eigen::Vector3d normal1 = (b - a).cross(c - a);
-	Eigen::Vector3d normal2 = (b - a).cross(d - a);
-	Eigen::Vector3d normal3 = (c - a).cross(d - a);
-	Eigen::Vector3d normal4 = (c - b).cross(d - b);
-	drawTriangle(a, b, c, normal1, color);
-	drawTriangle(a, b, d, normal2, color);
-	drawTriangle(a, c, d, normal3, color);
-	drawTriangle(b, c, d, normal4, color);
 }

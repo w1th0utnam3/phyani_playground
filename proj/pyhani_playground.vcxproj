@@ -19,36 +19,49 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\AnimationSystem.cpp" />
     <ClCompile Include="..\src\Camera.cpp" />
     <ClCompile Include="..\src\DemoScene.cpp" />
+    <ClCompile Include="..\src\EntityFactory.cpp" />
     <ClCompile Include="..\src\GlfwWindowManager.cpp" />
+    <ClCompile Include="..\src\ImGuiGlfw3Helper.cpp" />
+    <ClCompile Include="..\src\ImGuiScene.cpp" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\RigidBody.cpp" />
+    <ClCompile Include="..\src\RenderSystem.cpp" />
     <ClCompile Include="..\src\Scene.cpp" />
     <ClCompile Include="..\src\RenderWindow.cpp" />
-    <ClCompile Include="..\src\TimesteppedSimulation.cpp" />
+    <ClCompile Include="..\src\Simulation.cpp" />
+    <ClCompile Include="..\src\AnimationLoop.cpp" />
+    <ClCompile Include="..\submodules\imguizmo\ImGuizmo.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="anttweakbar\TweakBar\AntTweakBar.vcxproj">
-      <Project>{0b532ee6-203e-323b-bf19-08c710804c37}</Project>
-    </ProjectReference>
     <ProjectReference Include="glad\glad.vcxproj">
       <Project>{08f20750-6fcd-4327-845b-0fa3b188dc06}</Project>
     </ProjectReference>
     <ProjectReference Include="glfw\src\glfw.vcxproj">
       <Project>{20f2f75a-c9b2-356f-ba08-3ddda11c00c3}</Project>
     </ProjectReference>
+    <ProjectReference Include="imgui\imgui\imgui.vcxproj">
+      <Project>{3bb22a56-37d3-46bf-b582-1e918fe59146}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\AnimationSystem.h" />
     <ClInclude Include="..\src\Camera.h" />
     <ClInclude Include="..\src\DemoScene.h" />
+    <ClInclude Include="..\src\EntityComponentSystem.h" />
+    <ClInclude Include="..\src\EntityFactory.h" />
     <ClInclude Include="..\src\EventQueue.h" />
     <ClInclude Include="..\src\GlfwWindowManager.h" />
-    <ClInclude Include="..\src\Integrators.h" />
-    <ClInclude Include="..\src\RigidBody.h" />
+    <ClInclude Include="..\src\ImGuiGlfw3Helper.h" />
+    <ClInclude Include="..\src\ImGuiScene.h" />
+    <ClInclude Include="..\src\MathHelper.h" />
+    <ClInclude Include="..\src\RenderSystem.h" />
     <ClInclude Include="..\src\Scene.h" />
     <ClInclude Include="..\src\RenderWindow.h" />
-    <ClInclude Include="..\src\TimesteppedSimulation.h" />
+    <ClInclude Include="..\src\Simulation.h" />
+    <ClInclude Include="..\src\AnimationLoop.h" />
+    <ClInclude Include="..\submodules\imguizmo\ImGuizmo.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -120,11 +133,15 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>TW_EXPORTS;GLFW_INCLUDE_NONE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;TW_EXPORTS;GLFW_INCLUDE_NONE;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/imguizmo;$(SolutionDir)../submodules/imgui;$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -133,11 +150,15 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>TW_EXPORTS;GLFW_INCLUDE_NONE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;TW_EXPORTS;GLFW_INCLUDE_NONE;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/imguizmo;$(SolutionDir)../submodules/imgui;$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -149,7 +170,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>TW_EXPORTS;GLFW_INCLUDE_NONE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/imguizmo;$(SolutionDir)../submodules/imgui;$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,9 +188,11 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>TW_EXPORTS;GLFW_INCLUDE_NONE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../submodules/imguizmo;$(SolutionDir)../submodules/imgui;$(SolutionDir)../submodules/entt/src;$(SolutionDir)../submodules/glm;$(SolutionDir)../submodules/noname_tools/src;$(SolutionDir)../submodules/anttweakbar/TweakBar/include;$(SolutionDir)../lib/glad/include;$(SolutionDir)../submodules/eigen;$(SolutionDir)../submodules/glfw/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

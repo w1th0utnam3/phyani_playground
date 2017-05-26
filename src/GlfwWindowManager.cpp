@@ -107,13 +107,18 @@ void GlfwWindowManager::processEvents()
 		return;
 	}
 
+	std::atomic<bool> processEvents = true;
+
 	// Define the visitor which processes all possible event types
-	static const struct
+	const struct
 	{
+		std::atomic<bool>* processEvents;
+
 		void operator()(StopEventLoopEvent& event) const
 		{
 			// Change the flag to break event loop
 			m_continueEventLoop = false;
+			processEvents->store(false);
 			event.promise.set_value();
 		}
 
@@ -185,9 +190,9 @@ void GlfwWindowManager::processEvents()
 			glfwSetWindowSizeCallback(request.window, request.cbfun);
 			event.promise.set_value();
 		}
-	} eventVisitor;
+	} eventVisitor{ &processEvents };
 
-	while (m_continueEventLoop && !m_eventQueue.empty()) {
+	while (processEvents && !m_eventQueue.empty()) {
 		// The event queue ensures thread safety
 		m_eventQueue.processOldestEvent(eventVisitor);
 	}
