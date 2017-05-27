@@ -30,6 +30,7 @@ int main()
 		}
 	}
 
+	Simulation::getEntityComponentSystem().reset();
 	std::cout << "(main) Bye." << "\n";
 	std::cout << std::flush;
 }
