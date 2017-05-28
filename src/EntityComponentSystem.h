@@ -33,45 +33,42 @@ struct Joint
 	std::variant<DampedSpring> jointProperties;
 };
 
-struct LinearState
+struct TranslationalState
 {
 	Eigen::Vector3d position = Eigen::Vector3d(0, 0, 0);
 	Eigen::Vector3d linearVelocity = Eigen::Vector3d(0, 0, 0);
 };
 
-struct AngularState
+struct RotationalState
 {
 	Eigen::Quaterniond rotation = Eigen::Quaterniond(1, 0, 0, 0);
 	Eigen::Vector3d angularVelocity = Eigen::Vector3d(0, 0, 0);
 };
 
-struct RigidBody
+struct TranslationalAnimatedBody
 {
 	bool sleeping = false;
 
 	double mass = 0.0;
+
+	Eigen::Vector3d externalForce = Eigen::Vector3d(0, 0, 0);
+
+	TranslationalState state;
+};
+
+struct RotationalAnimatedBody
+{
+	bool sleeping = false;
+
 	Eigen::Vector3d prinicipalInertia = Eigen::Vector3d(0, 0, 0);
 
 	Eigen::Matrix3d globalInertiaMatrix;
 	Eigen::Matrix3d globalInverseInertiaMatrix;
 
-	Eigen::Vector3d externalForce = Eigen::Vector3d(0, 0, 0);
 	Eigen::Vector3d externalTorque = Eigen::Vector3d(0, 0, 0);
 
-	LinearState linearState;
-	AngularState angularState;
+	RotationalState state;
 	Eigen::Matrix3d rotationMatrix = Eigen::Matrix3d::Identity();
-};
-
-struct Particle
-{
-	bool sleeping = false;
-
-	double mass = 0.0;
-
-	Eigen::Vector3d externalForce = Eigen::Vector3d(0, 0, 0);
-
-	LinearState linearState;
 };
 
 struct RenderData
@@ -95,6 +92,6 @@ struct RenderData
 	std::variant<Cuboid, Joint> properties;
 };
 
-using EntityComponentSystemBase = entt::StandardRegistry<EntityType, RigidBody, Particle, Joint, RenderData>;
+using EntityComponentSystemBase = entt::StandardRegistry<EntityType, TranslationalAnimatedBody, RotationalAnimatedBody, Joint, RenderData>;
 
 class EntityComponentSystem : public EntityComponentSystemBase {};
