@@ -22,3 +22,6 @@
 [submodule "submodules/imguizmo"]
 	path = submodules/imguizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
+[submodule "submodules/variant"]
+	path = submodules/variant
+	url = https://github.com/mpark/variant.git
