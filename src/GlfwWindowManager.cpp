@@ -107,7 +107,7 @@ void GlfwWindowManager::processEvents()
 		return;
 	}
 
-	std::atomic<bool> processEvents = true;
+	std::atomic<bool> processEvents{true};
 
 	// Define the visitor which processes all possible event types
 	const struct

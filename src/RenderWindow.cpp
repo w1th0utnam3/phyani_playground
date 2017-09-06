@@ -8,7 +8,7 @@
 #include <glm/geometric.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "noname_tools\vector_tools.h"
+#include <noname_tools/vector_tools.h>
 
 #include "DemoScene.h"
 #include "GlfwWindowManager.h"

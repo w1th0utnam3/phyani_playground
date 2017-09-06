@@ -5,7 +5,7 @@
 
 #include <imgui.h>
 
-#include "ImguiGlfw3Helper.h"
+#include "ImGuiGlfw3Helper.h"
 #include "ImGuizmo.h"
 #include "Simulation.h"
 #include "AnimationLoop.h"
