@@ -15,7 +15,7 @@ int main()
 		std::cout << "(main) Initialized Glfw." << "\n";
 
 		// Create a window for the simulation
-		{
+		try {
 			RenderWindow window;
 
 			// Create scenes for the window
@@ -27,6 +27,9 @@ int main()
 
 			// Cleanup all scenes, free up GL resources
 			window.clearScenes();
+		} catch (const std::runtime_error& e) {
+			std::cerr << e.what() << "\n";
+			std::cerr << "(main) Exiting..." << "\n";
 		}
 	}
 

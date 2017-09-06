@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <stdexcept>
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -36,6 +37,7 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	auto futureWindow = GlfwWindowManager::requestWindow(m_camera.viewportSize().x, m_camera.viewportSize().y, "Simulation", nullptr, nullptr);
 	GlfwWindowManager::processEvents();
 	m_window = futureWindow.get();
+	if (!m_window) throw std::runtime_error("RenderWindow could not be initialized.");
 	glfwSetWindowUserPointer(m_window, static_cast<void*>(this));
 
 	// Register all callbacks
@@ -62,11 +64,8 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	m_camera.setScaling(160, 160, 160);
 	m_camera.setAsDefault();
 
-	// Initialize window
-	if (!initialize()) {
-		std::cerr << "Simulation could not be initialized." << "\n";
-		return;
-	}
+	// Initialize window content
+	if (!initialize()) std::cerr << "Simulation could not be initialized." << "\n";
 
 	glfwMakeContextCurrent(previousContext);
 }
