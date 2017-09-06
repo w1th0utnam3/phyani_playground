@@ -16,7 +16,8 @@ int main()
 
 		// Create a window for the simulation
 		try {
-			RenderWindow window;
+			// GLFW tries to get highest context available on the system when requesting 1.0
+			RenderWindow window(1, 0);
 
 			// Create scenes for the window
 			window.addScene(&Simulation::getAnimationScene());
