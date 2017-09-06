@@ -55,23 +55,28 @@ public:
 	 */
 	template <typename RequestT>
 	std::future<promised_type<RequestT>> postEvent(RequestT request)
-	// We can specialize on return type and still never have to explicitely specify it, because the 'RequestT' types have to be unique
+	// We can have a templated return type and still never have to explicitely specify it, because the 'RequestT' types have to be unique
 	{
 		static_assert(noname::tools::count_element_v<RequestT, typename EventTs::request_type...> > 0, "The request type has to be a request type of the compatible events.");
 		using PromisedT = promised_type<RequestT>;
 		using EventT = Event<RequestT, PromisedT>;
 
+		// Lock the queue and access to the "await event" promise (prevent multiple postEvent calls from setting the value)
+		std::lock_guard<std::mutex> lock(this->m_queueMutex);
+
 		// Notify waiting threads that an event occured
 		m_awaitEventPromise.set_value();
 
 		// Store the event with a promise associated to the request
-		std::lock_guard<std::mutex> lock(this->m_queueMutex);
 		this->emplace(EventT{request});
 		auto& promise = common::variant::get<EventT>(this->back()).promise;
 
 		// Create a new promise to allow other threads to wait for events
 		m_awaitEventPromise = std::move(std::promise<void>());
-		// Return the promise of the enqueued event
+		// The future has to be retrieved here because get_future may only be called once
+		m_awaitEventFuture = std::move(m_awaitEventPromise.get_future());
+
+		// Return the future of the enqueued event
 		return promise.get_future();
 	}
 
@@ -100,7 +105,8 @@ public:
 	//! Blocks the current thread until an event was enqueued.
 	void waitForEvent()
 	{
-		m_awaitEventPromise.get_future().wait();
+		if (m_awaitEventFuture.valid())
+			m_awaitEventFuture.wait();
 	}
 
 	//! Returns whether the queue is currently empty
@@ -111,4 +117,5 @@ public:
 protected:
 	std::mutex m_queueMutex;
 	std::promise<void> m_awaitEventPromise;
+	std::future<void> m_awaitEventFuture;
 };
