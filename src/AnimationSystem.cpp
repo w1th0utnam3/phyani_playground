@@ -3,6 +3,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "Common.h"
+
 AnimationSystem::AnimationSystem(EntityComponentSystem& ecs)
 	: m_ecs(ecs)
 	, m_time(0.0) {}
@@ -36,7 +38,7 @@ void AnimationSystem::computeTimestep(double dt)
 	for (auto jointEntity : m_ecs.view<Joint>()) {
 		auto& joint = m_ecs.get<Joint>(jointEntity);
 
-		if (auto dampedSpring = std::get_if<Joint::DampedSpring>(&joint.jointProperties)) {
+		if (auto dampedSpring = common::variant::get_if<Joint::DampedSpring>(&joint.jointProperties)) {
 			Eigen::Vector3d distance = joint.connectors.first.globalPosition - joint.connectors.second.globalPosition;
 			Eigen::Vector3d velocityDifference = joint.connectors.first.globalVelocity - joint.connectors.second.globalVelocity;
 			Eigen::Vector3d firstForce = -(dampedSpring->elasticity*(distance.norm() - dampedSpring->restLength)
@@ -183,21 +185,21 @@ void AnimationSystem::updateRenderData(const EntityComponentSystem& ecs, EntityT
 
 void AnimationSystem::updateRenderData(RenderData& renderData, const TranslationalAnimatedBody& body)
 {
-	if (auto cuboidData = std::get_if<RenderData::Cuboid>(&renderData.properties)) {
+	if (auto cuboidData = common::variant::get_if<RenderData::Cuboid>(&renderData.properties)) {
 		cuboidData->position = body.state.position.cast<float>();
 	}
 }
 
 void AnimationSystem::updateRenderData(RenderData& renderData, const RotationalAnimatedBody& body)
 {
-	if (auto cuboidData = std::get_if<RenderData::Cuboid>(&renderData.properties)) {
+	if (auto cuboidData = common::variant::get_if<RenderData::Cuboid>(&renderData.properties)) {
 		cuboidData->rotation = body.state.rotation.cast<float>();
 	}
 }
 
 void AnimationSystem::updateRenderData(RenderData& renderData, const Joint& joint)
 {
-	if (auto jointData = std::get_if<RenderData::Joint>(&renderData.properties)) {
+	if (auto jointData = common::variant::get_if<RenderData::Joint>(&renderData.properties)) {
 		jointData->connectorPositions.first = joint.connectors.first.globalPosition.cast<float>();
 		jointData->connectorPositions.second = joint.connectors.second.globalPosition.cast<float>();
 	}

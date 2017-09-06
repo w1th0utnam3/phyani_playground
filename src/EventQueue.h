@@ -3,9 +3,10 @@
 #include <mutex>
 #include <future>
 #include <queue>
-#include <variant>
 
 #include <noname_tools/utility_tools.h>
+
+#include "Common.h"
 
 //! Element type for the 'EventQueue'.
 /*
@@ -32,7 +33,7 @@ using VoidEvent = Event<RequestT, void>;
 
 //! An event queue which stores requests of the user and returns future objects to await a result.
 template <typename... EventTs>
-class EventQueue : protected std::queue<std::variant<Event<typename EventTs::request_type, typename EventTs::promised_type>...>>
+class EventQueue : protected std::queue<common::variant::variant<Event<typename EventTs::request_type, typename EventTs::promised_type>...>>
 {
 	// Make sure that we have at least one event type
 	static_assert(sizeof...(EventTs) > 0, "The number of event types has to be larger than zero.");
@@ -43,7 +44,7 @@ class EventQueue : protected std::queue<std::variant<Event<typename EventTs::req
 	template <typename RequestT>
 	using promised_type = noname::tools::nth_element_t<noname::tools::element_index_v<RequestT, typename EventTs::request_type...>, typename EventTs::promised_type...>;
 	//! The underlying container type of the queue.
-	using container_type = std::queue<std::variant<Event<typename EventTs::request_type, typename EventTs::promised_type>...>>;
+	using container_type = std::queue<common::variant::variant<Event<typename EventTs::request_type, typename EventTs::promised_type>...>>;
 
 public:
 	//! Creates an event associated to the specified request and returns a future to wait for a response.
@@ -66,7 +67,7 @@ public:
 		// Store the event with a promise associated to the request
 		std::lock_guard<std::mutex> lock(this->m_queueMutex);
 		this->emplace(EventT{request});
-		auto& promise = std::get<EventT>(this->back()).promise;	
+		auto& promise = common::variant::get<EventT>(this->back()).promise;
 
 		// Create a new promise to allow other threads to wait for events
 		m_awaitEventPromise = std::move(std::promise<void>());
@@ -93,7 +94,7 @@ public:
 		lock.unlock();
 
 		// Apply visitor to process the event
-		std::visit(visitor, event);
+		visit(visitor, event);
 	}
 
 	//! Blocks the current thread until an event was enqueued.

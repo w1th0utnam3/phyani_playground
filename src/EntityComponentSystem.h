@@ -2,11 +2,12 @@
 
 #include <cstdint>
 #include <atomic>
-#include <variant>
 
 #include <registry.hpp>
 
 #include <Eigen/Geometry>
+
+#include "Common.h"
 
 using EntityType = std::uint32_t;
 
@@ -30,7 +31,7 @@ struct Joint
 		double damping;
 	};
 
-	std::variant<DampedSpring> jointProperties;
+	common::variant::variant<DampedSpring> jointProperties;
 };
 
 struct TranslationalState
@@ -89,7 +90,7 @@ struct RenderData
 		float lineWidth = 2.0f;
 	};
 
-	std::variant<Cuboid, Joint> properties;
+	common::variant::variant<Cuboid, Joint> properties;
 };
 
 using EntityComponentSystemBase = entt::StandardRegistry<EntityType, TranslationalAnimatedBody, RotationalAnimatedBody, Joint, RenderData>;

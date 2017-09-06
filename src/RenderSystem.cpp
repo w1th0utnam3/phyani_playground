@@ -8,6 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Common.h"
+
 RenderSystem::RenderSystem(EntityComponentSystem& ecs)
 	: m_ecs(ecs)
 {
@@ -17,7 +19,7 @@ void RenderSystem::render()
 {
 	for (auto renderEntity : m_ecs.view<RenderData>()) {
 		m_renderer.renderData = &m_ecs.get<RenderData>(renderEntity);
-		std::visit(m_renderer, m_renderer.renderData->properties);
+		common::variant::visit(m_renderer, m_renderer.renderData->properties);
 	}
 }
 
