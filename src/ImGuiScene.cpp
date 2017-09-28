@@ -23,27 +23,27 @@ ImGuiScene::~ImGuiScene()
 void ImGuiScene::initializeSceneContent()
 {
 	std::cout << "(gui) Initialize ImGui..." << "\n";
-	ImGuiGlfw3Init(m_window, false);
+	ImGui_ImplGlfwGL3_Init(m_window, false);
 
 	// TODO: Add glfwSetCharModsCallback callback
 
 	m_glfwMouseButtonFun = [](GLFWwindow* window, int button, int action, int mods) -> bool {
-		ImGuiGlfw3MouseButtonCallback(window, button, action, mods);
+		ImGui_ImplGlfwGL3_MouseButtonCallback(window, button, action, mods);
 		return ImGui::IsMouseHoveringAnyWindow();
 	};
 
 	m_glfwScrollFun = [](GLFWwindow* window, double xoffset, double yoffset) -> bool {
-		ImGuiGlfw3ScrollCallback(window, xoffset, yoffset);
+		ImGui_ImplGlfwGL3_ScrollCallback(window, xoffset, yoffset);
 		return ImGui::IsMouseHoveringAnyWindow();
 	};
 
 	m_glfwKeyFun = [](GLFWwindow* window, int key, int scancode, int action, int mods) -> bool {
-		ImGuiGlfw3KeyCallback(window, key, scancode, action, mods);
+		ImGui_ImplGlfwGL3_KeyCallback(window, key, scancode, action, mods);
 		return true;
 	};
 
 	m_glfwCharFun = [](GLFWwindow* window, unsigned int c) -> bool {
-		ImGuiGlfw3CharCallback(window, c);
+		ImGui_ImplGlfwGL3_CharCallback(window, c);
 		return true;
 	};
 }
@@ -51,13 +51,13 @@ void ImGuiScene::initializeSceneContent()
 void ImGuiScene::cleanupSceneContent()
 {
 	std::cout << "(gui) Cleaning up ImGui..." << "\n";
-	ImGuiGlfw3Shutdown();
+	ImGui_ImplGlfwGL3_Shutdown();
 }
 
 void ImGuiScene::renderSceneContent()
 {
 	glfwPollEvents();
-	ImGuiGlfw3NewFrame();
+	ImGui_ImplGlfwGL3_NewFrame();
 
 	ImGuizmo::BeginFrame();
 	ImGuizmo::Enable(true);
