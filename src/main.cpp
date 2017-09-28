@@ -4,6 +4,7 @@
 #include "RenderWindow.h"
 #include "Simulation.h"
 
+#include "ShaderTestScene.h"
 #include "DemoScene.h"
 #include "ImGuiScene.h"
 
@@ -17,10 +18,13 @@ int main()
 		// Create a window for the simulation
 		try {
 			// GLFW tries to get highest context available on the system when requesting 1.0
-			RenderWindow window(1, 0);
+			// RenderWindow window(1, 0);
+			RenderWindow window;
 
 			// Create scenes for the window
-			window.addScene(&Simulation::getAnimationScene());
+			ShaderTestScene scene;
+			window.addScene(&scene);
+			//window.addScene(&Simulation::getAnimationScene());
 			window.addScene(&Simulation::getImGuiScene());
 
 			// Start rendering of the window, blocks the thread
