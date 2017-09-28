@@ -17,7 +17,10 @@ int main()
 
 		// Create a window for the simulation
 		try {
-			RenderWindow window;
+			const int openGlVersionMajor = 4;
+			const int openGlVersionMinor = 2;
+
+			RenderWindow window(openGlVersionMajor, openGlVersionMinor);
 
 			// Create scenes for the window
 			ShaderTestScene scene;
