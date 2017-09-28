@@ -31,7 +31,7 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	// Specify OpenGL context profile hints
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glVersionMajor);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, glVersionMinor);
-	if (glVersionMajor > 3 && glVersionMinor > 2)
+	if (glVersionMajor >= 3 && glVersionMinor >= 2)
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
 	// Request a new window from GLFW
