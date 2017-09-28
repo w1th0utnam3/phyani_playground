@@ -17,8 +17,6 @@ int main()
 
 		// Create a window for the simulation
 		try {
-			// GLFW tries to get highest context available on the system when requesting 1.0
-			// RenderWindow window(1, 0);
 			RenderWindow window;
 
 			// Create scenes for the window

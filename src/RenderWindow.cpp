@@ -16,7 +16,7 @@
 #include "MathHelper.h"
 
 #define DEFAULT_GL_MAJOR 4
-#define DEFAULT_GL_MINOR 3
+#define DEFAULT_GL_MINOR 2
 
 RenderWindow::RenderWindow()
 	: RenderWindow(DEFAULT_GL_MAJOR, DEFAULT_GL_MINOR) {}
