@@ -206,10 +206,10 @@ void RenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos,
 	const int height = window->m_camera.viewportSize().y;
 
 	if (window->m_interaction.pressedButton == GLFW_MOUSE_BUTTON_LEFT) {
-		glm::dvec3 oldMouseVec(window->m_interaction.lastMousePos.x - 0.5 * width,
-		                       -(window->m_interaction.lastMousePos.y - 0.5 * height), 0);
-		glm::dvec3 newMouseVec(xpos - 0.5 * width,
-		                       -(ypos - 0.5 * height), 0);
+		glm::dvec3 oldMouseVec(  window->m_interaction.lastMousePos.x - 0.5 * width,
+							   -(window->m_interaction.lastMousePos.y - 0.5 * height), 0);
+		glm::dvec3 newMouseVec(  xpos - 0.5 * width,
+							   -(ypos - 0.5 * height), 0);
 
 		const double arcballRadius = std::hypot(0.5 * width, 0.5 * height);
 		oldMouseVec /= arcballRadius;

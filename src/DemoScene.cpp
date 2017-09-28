@@ -19,10 +19,10 @@ DemoScene::DemoScene()
 
 DemoScene::~DemoScene()
 {
-        // Potentially join the animation thread
+	// Potentially join the animation thread
 	if (m_animationLoop.isEventLoopRunning()) m_animationLoop.stopEventLoop().wait();
-        // Check if joinable: due to exceptions this code might be run when the thread was only default constructed
-        if (m_animationThread.joinable()) m_animationThread.join();
+	// Check if joinable: due to exceptions this code might be run when the thread was only default constructed
+	if (m_animationThread.joinable()) m_animationThread.join();
 }
 
 void DemoScene::initializeSceneContent()
@@ -59,7 +59,7 @@ void DemoScene::doTimestep(double dt)
 void DemoScene::resetScene()
 {
 	if (m_animationLoop.isEventLoopRunning()) m_animationLoop.stopEventLoop().wait();
-        if (m_animationThread.joinable()) m_animationThread.join();
+	if (m_animationThread.joinable()) m_animationThread.join();
 
 	m_ecs.reset();
 	initializeSceneContent();
