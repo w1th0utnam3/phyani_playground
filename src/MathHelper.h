@@ -32,9 +32,9 @@ template <typename T, glm::qualifier P>
 bool isfinite(glm::tquat<T, P> quat)
 {
 	return (std::isfinite(quat.x)
-	        && std::isfinite(quat.y)
-	        && std::isfinite(quat.z)
-	        && std::isfinite(quat.w));
+			&& std::isfinite(quat.y)
+			&& std::isfinite(quat.z)
+			&& std::isfinite(quat.w));
 }
 
 template <typename T, glm::qualifier P>
