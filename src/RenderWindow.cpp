@@ -115,6 +115,8 @@ bool RenderWindow::initialize()
 		" label='Wireframe' key=w help='Toggle wireframe mode.' ");
 	*/
 
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
 	return true;
 }
 
