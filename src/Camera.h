@@ -34,15 +34,17 @@ public:
 	void setTranslation(double x, double y, double z);
 	//! Sets the scaling of the world coordinates to the specified values.
 	void setScaling(double x, double y, double z);
+	//! Sets the rotation of the world coordinates to the specified values.
+	void setRotation(const glm::dquat& quat);
 	//! Sets the current zoom factor to the specified value, a factor of 1.0 means no zoom.
 	void setZoom(double zoom);
 	//! Sets the current vieport size in pixels.
 	void setViewportSize(int width, int height);
 
 	//! Rotates the camera by the specified angle around the given axis.
-	void rotate(double angle, glm::dvec3 axis);
+	void rotate(double angle, const glm::dvec3& axis);
 	//! Rotates the camera by the specified quaternion, expects a four element double array of {x,y,z,w}.
-	void rotate(const double* quat);
+	void rotate(const glm::dquat& quat);
 	//! Applies the zoom factor incrementally to the current zoom level.
 	void zoom(double zoom);
 
@@ -55,8 +57,6 @@ public:
 
 	//! Returns the quaternion representing the current rotation of the camera.
 	glm::dquat rotation() const;
-	//! Writes the quaternion values {x,y,z,w} to the specified memory location.
-	void rotation(double* quat) const;
 	//! Returns the current zoom factor.
 	double zoom() const;
 

@@ -62,6 +62,12 @@ void Camera::setScaling(double x, double y, double z)
 	updateViewMatrix();
 }
 
+void Camera::setRotation(const glm::dquat& quat)
+{
+	m_state.m_rotation = quat;
+	updateViewMatrix();
+}
+
 void Camera::setZoom(double zoom)
 {
 	m_state.m_zoom = zoom;
@@ -76,7 +82,7 @@ void Camera::setViewportSize(int width, int height)
 	updateProjectionMatrix();
 }
 
-void Camera::rotate(double angle, glm::dvec3 axis)
+void Camera::rotate(double angle, const glm::dvec3& axis)
 {
 	if (glm::length(axis) == 0) return;
 
@@ -87,9 +93,10 @@ void Camera::rotate(double angle, glm::dvec3 axis)
 	updateViewMatrix();
 }
 
-void Camera::rotate(const double* quat)
+void Camera::rotate(const glm::dquat& quat)
 {
-	std::memcpy(glm::value_ptr(m_state.m_rotation), static_cast<const void*>(quat), 4 * sizeof(double));
+	m_state.m_rotation = quat*m_state.m_rotation;
+
 	updateViewMatrix();
 }
 
@@ -118,11 +125,6 @@ glm::ivec2 Camera::viewportSize() const
 glm::dquat Camera::rotation() const
 {
 	return m_state.m_rotation;
-}
-
-void Camera::rotation(double* quat) const
-{
-	std::memcpy(static_cast<void*>(quat), glm::value_ptr(m_state.m_rotation), 4 * sizeof(double));
 }
 
 double Camera::zoom() const
