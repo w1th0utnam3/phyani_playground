@@ -132,6 +132,7 @@ void Camera::updateViewMatrix()
 {
 	m_view = glm::translate(glm::dmat4(1.0), m_state.m_translation);
 	m_view = glm::scale(m_view, m_state.m_scaling);
+	m_view = glm::translate(glm::dmat4(1.0), -m_state.m_translation);
 	m_view = glm::rotate(m_view, glm::angle(m_state.m_rotation), glm::axis(m_state.m_rotation));
 }
 
