@@ -31,6 +31,7 @@ int main()
 
 			// Modify the camera state
 			Camera* camera = window.camera();
+			camera->setTranslation(0.0, 0.0, 1.0);
 			camera->setZoom(0.5);
 			camera->setAsDefault();
 

@@ -65,6 +65,7 @@ void Camera::setScaling(double x, double y, double z)
 void Camera::setZoom(double zoom)
 {
 	m_state.m_zoom = zoom;
+	updateViewMatrix();
 	updateProjectionMatrix();
 }
 
@@ -95,6 +96,7 @@ void Camera::rotate(const double* quat)
 void Camera::zoom(double zoom)
 {
 	m_state.m_zoom *= zoom;
+	updateViewMatrix();
 	updateProjectionMatrix();
 }
 
@@ -130,18 +132,21 @@ double Camera::zoom() const
 
 void Camera::updateViewMatrix()
 {
-	m_view = glm::translate(glm::dmat4(1.0), m_state.m_translation);
-	m_view = glm::scale(m_view, m_state.m_scaling);
 	m_view = glm::translate(glm::dmat4(1.0), -m_state.m_translation);
+	m_view = glm::scale(m_view, m_state.m_zoom*m_state.m_scaling);
 	m_view = glm::rotate(m_view, glm::angle(m_state.m_rotation), glm::axis(m_state.m_rotation));
 }
 
 void Camera::updateProjectionMatrix()
 {	
 	const double ratio = m_viewportSize.x / static_cast<double>(m_viewportSize.y);
-	const double zoomFactor = 1.0 / m_state.m_zoom;
+	// const double zoomFactor = 1.0 / m_state.m_zoom;
 
+	m_projection = glm::perspective<double>(glm::radians(60.0), ratio, 0.1, 100.0);
+
+	/*
 	m_projection = glm::ortho<double>(-ratio * zoomFactor, ratio * zoomFactor,
-									  -1.0f * zoomFactor, 1.0f * zoomFactor,
-									  2.0f, -2.0f);
+									  -1.0 * zoomFactor, 1.0 * zoomFactor,
+									  0.1, 100.0);
+	*/
 }
