@@ -18,7 +18,7 @@ int main()
 		// Create a window for the simulation
 		try {
 			const int openGlVersionMajor = 4;
-			const int openGlVersionMinor = 2;
+			const int openGlVersionMinor = 5;
 
 			RenderWindow window(openGlVersionMajor, openGlVersionMinor);
 

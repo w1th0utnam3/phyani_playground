@@ -33,7 +33,12 @@ static const char* fragment_shader_text =
 
 void ShaderTestScene::initializeSceneContent()
 {
+	glGenVertexArrays(1, &m_vao);
+	glBindVertexArray(m_vao);
+
 	glGenBuffers(1, &m_vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
@@ -51,6 +56,21 @@ void ShaderTestScene::initializeSceneContent()
 	m_mvp_location = glGetUniformLocation(m_program, "MVP");
 	m_vpos_location = glGetAttribLocation(m_program, "vPos");
 	m_vcol_location = glGetAttribLocation(m_program, "vCol");
+
+	glEnableVertexAttribArray(m_vpos_location);
+	glVertexAttribPointer(m_vpos_location, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
+
+	glEnableVertexAttribArray(m_vcol_location);
+	glVertexAttribPointer(m_vcol_location, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 2));
+
+	glBindVertexArray(0);
+}
+
+void ShaderTestScene::cleanupSceneContent()
+{
+	glDeleteVertexArrays(1, &m_vao);
+	glDeleteBuffers(1, &m_vertex_buffer);
+	glDeleteProgram(m_program);
 }
 
 void ShaderTestScene::renderSceneContent()
@@ -68,21 +88,12 @@ void ShaderTestScene::renderSceneContent()
 	mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
 	mat4x4_mul(mvp, p, m);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(m_vpos_location);
-	glVertexAttribPointer(m_vpos_location, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
-
-	glEnableVertexAttribArray(m_vcol_location);
-	glVertexAttribPointer(m_vcol_location, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 2));
+	glBindVertexArray(m_vao);
 
 	glUseProgram(m_program);
 	glUniformMatrix4fv(m_mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	glUseProgram(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glDisableVertexAttribArray(m_vpos_location);
-	glDisableVertexAttribArray(m_vcol_location);
+	glBindVertexArray(0);
 }

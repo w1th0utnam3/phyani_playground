@@ -32,7 +32,7 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glVersionMajor);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, glVersionMinor);
 	if (glVersionMajor >= 3 && glVersionMinor >= 2)
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Request a new window from GLFW
 	auto futureWindow = GlfwWindowManager::requestWindow(m_camera.viewportSize().x, m_camera.viewportSize().y, "Simulation", nullptr, nullptr);
