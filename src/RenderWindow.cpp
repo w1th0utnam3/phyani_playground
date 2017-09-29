@@ -13,6 +13,7 @@
 
 #include "DemoScene.h"
 #include "GlfwWindowManager.h"
+#include "GlfwUtilities.h"
 #include "MathHelper.h"
 
 #define DEFAULT_GL_MAJOR 4
@@ -55,8 +56,7 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	for (auto& fut : callbackRequests) fut.wait();
 
 	// Load the OpenGL functions
-	const auto previousContext = glfwGetCurrentContext();
-	glfwMakeContextCurrent(m_window);
+	auto contextScope = GlfwScopedContextSwitcher(m_window);
 	gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 	glfwSwapInterval(1);
 
@@ -67,8 +67,6 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 
 	// Initialize window content
 	if (!initialize()) std::cerr << "Simulation could not be initialized." << "\n";
-
-	glfwMakeContextCurrent(previousContext);
 }
 
 RenderWindow::~RenderWindow()
@@ -97,24 +95,6 @@ RenderWindow::~RenderWindow()
 
 bool RenderWindow::initialize()
 {
-	/*
-	auto fromTwWireframeCallback = [](const void* twData, void* userPointer)
-	{
-		auto window = static_cast<RenderWindow*>(userPointer);
-		window->m_drawMode = (*static_cast<const bool*>(twData)) ? GL_LINE : GL_FILL;
-	};
-
-	auto toTwWireframeCallback = [](void* twData, void* userPointer)
-	{
-		auto window = static_cast<RenderWindow*>(userPointer);
-		*static_cast<bool*>(twData) = (window->m_drawMode == GL_LINE);
-	};
-
-	// Create a tweak bar
-	TwAddVarCB(m_tweakBar, "Wireframe", TW_TYPE_BOOLCPP, fromTwWireframeCallback, toTwWireframeCallback, static_cast<void*>(this),
-		" label='Wireframe' key=w help='Toggle wireframe mode.' ");
-	*/
-
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
 	return true;
@@ -152,15 +132,12 @@ void RenderWindow::executeRenderLoop()
 {
 	if (m_continueRenderLoop) return;
 
-	const auto previousContext = glfwGetCurrentContext();
-	if (previousContext != m_window) glfwMakeContextCurrent(m_window);
+	auto contextScope = GlfwScopedContextSwitcher(m_window);
 
 	// Run render loop
 	m_continueRenderLoop = true;
 	while (m_continueRenderLoop && !glfwWindowShouldClose(m_window)) render();
 	m_continueRenderLoop = false;
-
-	if (previousContext != m_window) glfwMakeContextCurrent(previousContext);
 }
 
 void RenderWindow::requestStopRenderLoop()
@@ -170,8 +147,7 @@ void RenderWindow::requestStopRenderLoop()
 
 void RenderWindow::setDebuggingEnabled(bool enabled)
 {
-	const auto previousContext = glfwGetCurrentContext();
-	glfwMakeContextCurrent(m_window);
+	auto contextScope = GlfwScopedContextSwitcher(m_window);
 
 	if (enabled) {
 		glEnable(GL_DEBUG_OUTPUT);
@@ -179,8 +155,6 @@ void RenderWindow::setDebuggingEnabled(bool enabled)
 	} else {
 		glDisable(GL_DEBUG_OUTPUT);
 	}
-
-	glfwMakeContextCurrent(previousContext);
 }
 
 void RenderWindow::render()
