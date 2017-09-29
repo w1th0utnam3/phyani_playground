@@ -3,6 +3,7 @@
 #include <atomic>
 #include <vector>
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
@@ -34,6 +35,9 @@ public:
 	//! Sets a flag to stop the render loop at the next iteration.
 	void requestStopRenderLoop();
 
+	//! Enables or disables OpenGL debugging (prints OpenGL debug messsages to stdandard error)
+	void setDebuggingEnabled(bool enabled = true);
+
 private:
 	//! Initializes the content of the render window.
 	bool initialize();
@@ -56,6 +60,8 @@ private:
 	static void charmods_callback(GLFWwindow* window, unsigned int codepoint, int mods);
 	//! GLFW callback for window resizes.
 	static void window_size_callback(GLFWwindow* window, int width, int height);
+	//! OpenGL callback for debug messages.
+	static void debug_callback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​);
 
 	//! Flag used to indicate whether the render loop should continue.
 	std::atomic<bool> m_continueRenderLoop;

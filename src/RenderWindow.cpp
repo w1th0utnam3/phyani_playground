@@ -168,6 +168,21 @@ void RenderWindow::requestStopRenderLoop()
 	m_continueRenderLoop = false;
 }
 
+void RenderWindow::setDebuggingEnabled(bool enabled)
+{
+	const auto previousContext = glfwGetCurrentContext();
+	glfwMakeContextCurrent(m_window);
+
+	if (enabled) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glDebugMessageCallback(&debug_callback, nullptr);
+	} else {
+		glDisable(GL_DEBUG_OUTPUT);
+	}
+
+	glfwMakeContextCurrent(previousContext);
+}
+
 void RenderWindow::render()
 {
 	glViewport(0, 0, m_camera.viewportSize().x, m_camera.viewportSize().y);
@@ -283,4 +298,9 @@ void RenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int h
 {
 	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 	window->m_camera.setViewportSize(width, height);
+}
+
+void RenderWindow::debug_callback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
+{
+	std::cerr << "OpenGL Error: " << message​ << "\n";
 }
