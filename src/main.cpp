@@ -25,6 +25,7 @@ int main()
 			const int openGlVersionMinor = 5;
 
 			RenderWindow window(openGlVersionMajor, openGlVersionMinor);
+			window.setDebuggingEnabled(false);
 
 			// Create scenes for the window
 			ShaderTestScene scene;

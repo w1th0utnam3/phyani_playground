@@ -16,9 +16,9 @@ set (PHYANI_INCLUDES ${PHYANI_INCLUDES} "${CMAKE_CURRENT_LIST_DIR}/lib/glad/incl
 add_subdirectory (lib/glad)
 set (PHYANI_LIBS ${PHYANI_LIBS} glad)
 
-MESSAGE( STATUS ${PHYANI_LIBS} )
+# MESSAGE( STATUS ${PHYANI_LIBS} )
 add_subdirectory (submodules)
-MESSAGE( STATUS ${PHYANI_LIBS} )
+# MESSAGE( STATUS ${PHYANI_LIBS} )
 
 include_directories ("${PROJECT_SOURCE_DIR}/src")
 add_subdirectory (src)
