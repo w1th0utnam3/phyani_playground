@@ -5,6 +5,7 @@
 #include "Simulation.h"
 
 #include "Camera.h"
+#include "CubeShaderTestScene.h"
 #include "ShaderTestScene.h"
 #include "DemoScene.h"
 #include "ImGuiScene.h"
@@ -34,8 +35,11 @@ int main()
 			camera->setAsDefault();
 
 			// Create scenes for the window
-			ShaderTestScene scene;
-			window.addScene(&scene);
+			CubeShaderTestScene cube_scene;
+			window.addScene(&cube_scene);
+			ShaderTestScene shader_scene;
+			window.addScene(&shader_scene);
+
 			//window.addScene(&Simulation::getAnimationScene());
 			window.addScene(&Simulation::getImGuiScene());
 
