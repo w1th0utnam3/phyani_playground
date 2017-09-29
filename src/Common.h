@@ -1,3 +1,5 @@
+#pragma once
+
 // Check compiler versions to enable certain features
 #if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606
 	#define HAS_STD_VARIANT

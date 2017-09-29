@@ -3,10 +3,10 @@
 #include <atomic>
 #include <vector>
 
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include "CommonOpenGL.h"
 #include "Scene.h"
 
 struct Interaction

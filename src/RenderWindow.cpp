@@ -4,13 +4,13 @@
 #include <vector>
 #include <stdexcept>
 
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <noname_tools/vector_tools.h>
 
+#include "CommonOpenGL.h"
 #include "DemoScene.h"
 #include "GlfwWindowManager.h"
 #include "GlfwUtilities.h"
@@ -57,7 +57,7 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 
 	// Load the OpenGL functions
 	auto contextScope = GlfwScopedContextSwitcher(m_window);
-	gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
+	CommonOpenGL::loadOpenGL();
 	glfwSwapInterval(1);
 
 	// Initialize the camera
