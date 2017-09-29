@@ -10,6 +10,10 @@
 
 int main()
 {
+	// Disable buffering for standard streams
+	std::cout.setf(std::ios::unitbuf);
+	std::cerr.setf(std::ios::unitbuf);
+
 	{
 		// Initialize Glfw
 		auto glfwScope = GlfwWindowManager::create();
