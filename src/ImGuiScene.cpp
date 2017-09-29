@@ -166,8 +166,8 @@ void ImGuiScene::editTransform(glm::fmat4& matrix)
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-	static glm::fmat4 view = m_camera->viewMatrix();
-	static glm::fmat4 projection = m_camera->projectionMatrix();
-	ImGuizmo::DrawCube(&view[0][0], &projection[0][0], &matrix[0][0]);
+	glm::fmat4 view = m_camera->viewMatrix();
+	glm::fmat4 projection = m_camera->projectionMatrix();
+	// ImGuizmo::DrawCube(&view[0][0], &projection[0][0], &matrix[0][0]);
 	ImGuizmo::Manipulate(&view[0][0], &projection[0][0], ImGuizmo::ROTATE, ImGuizmo::WORLD, &matrix[0][0]);
 }
