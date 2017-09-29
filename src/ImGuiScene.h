@@ -3,6 +3,7 @@
 #include "Scene.h"
 
 #include <glm/glm.hpp>
+#include <ImGuizmo.h>
 
 class ImGuiScene : public Scene
 {
@@ -24,6 +25,8 @@ private:
 		float timeStretch = 1.0f;
 		bool automaticTimestepping = false;
 
+		bool gizmoPreviouslyInUse = false;
+		ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::ROTATE;
 		glm::fmat4 tempTransform = glm::fmat4(1.0f);
 	};
 
