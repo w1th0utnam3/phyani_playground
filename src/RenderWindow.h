@@ -61,7 +61,7 @@ private:
 	//! GLFW callback for window resizes.
 	static void window_size_callback(GLFWwindow* window, int width, int height);
 	//! OpenGL callback for debug messages.
-	static void debug_callback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​);
+	static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 
 	//! Flag used to indicate whether the render loop should continue.
 	std::atomic<bool> m_continueRenderLoop;

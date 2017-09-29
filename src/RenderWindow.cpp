@@ -300,7 +300,7 @@ void RenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int h
 	window->m_camera.setViewportSize(width, height);
 }
 
-void RenderWindow::debug_callback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
+void RenderWindow::debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
-	std::cerr << "OpenGL Error: " << message​ << "\n";
+	std::cerr << "OpenGL Error: " << message << "\n";
 }
