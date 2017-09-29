@@ -1,6 +1,7 @@
 #include "ShaderTestScene.h"
 
-#include "linmath.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 static const struct
 {
@@ -77,21 +78,19 @@ void ShaderTestScene::renderSceneContent()
 {
 	float ratio;
 	int width, height;
-	mat4x4 m, p, mvp;
 
 	glfwGetFramebufferSize(m_window, &width, &height);
 	ratio = width / (float) height;
 	glViewport(0, 0, width, height);
 
-	mat4x4_identity(m);
-	mat4x4_rotate_Z(m, m, (float) glfwGetTime());
-	mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-	mat4x4_mul(mvp, p, m);
+	glm::fmat4 m = glm::rotate(glm::fmat4(1.0), (float) glfwGetTime(), glm::fvec3(0.0f, 0.0f, 1.0f));
+	glm::fmat4 p = glm::ortho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+	glm::fmat4 mvp = p*m;
 
 	glBindVertexArray(m_vao);
 
 	glUseProgram(m_program);
-	glUniformMatrix4fv(m_mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
+	glUniformMatrix4fv(m_mvp_location, 1, GL_FALSE, (const GLfloat*) &mvp[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	glUseProgram(0);
 
