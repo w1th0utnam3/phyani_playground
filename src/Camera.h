@@ -46,8 +46,8 @@ public:
 	//! Applies the zoom factor incrementally to the current zoom level.
 	void zoom(double zoom);
 
-	//! Returns the current model view matrix.
-	glm::dmat4 modelViewMatrix() const;
+	//! Returns the current view matrix.
+	glm::dmat4 viewMatrix() const;
 	//! Returns the current projection matrix.
 	glm::dmat4 projectionMatrix() const;
 	//! Returns the current viewport size.
@@ -61,17 +61,17 @@ public:
 	double zoom() const;
 
 private:
-	//! Recalculates the model view matrix for the current camera state.
-	void updateModelViewMatrix();
-	//! Recalculates the projection matrix for the current camera state.
+	//! Recalculates the view matrix to represent the current camera state.
+	void updateViewMatrix();
+	//! Recalculates the projection matrix to represent the current camera state.
 	void updateProjectionMatrix();
 
 	//! Camera state, like rotation, translation, etc.
 	CameraState m_state;
 	//! Default camera state that is used to reset the camera.
 	CameraState m_defaultState;
-	//! Current model view matrix.
-	glm::dmat4 m_modelView;
+	//! Current view matrix.
+	glm::dmat4 m_view;
 	//! Current projection matrix.
 	glm::dmat4 m_projection;
 	//! The current viewport dimensions.

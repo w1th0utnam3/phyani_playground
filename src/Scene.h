@@ -22,12 +22,12 @@ public:
 	//! Renders the Scene in the render loop.
 	void render();
 	
-	//! Returns the window of the Scene.
+	//! Returns a pointer to the window context of the Scene.
 	GLFWwindow* window();
 
-	//! Returns the camera of the Scene.
+	//! Returns a pointer to the camera currently associated to the Scene.
 	Camera* camera();
-	//! Sets the camera of the Scene.
+	//! Sets the camera associated to the Scene, does not take ownership.
 	void setCamera(Camera* camera);
 
 	using GLFWmousebuttonfun_bool = bool(*)(GLFWwindow*, int, int, int);

@@ -71,7 +71,7 @@ void DemoScene::renderSceneContent()
 	const auto projection = m_camera->projectionMatrix();
 	glLoadMatrixd(glm::value_ptr(projection));
 	glMatrixMode(GL_MODELVIEW);
-	const auto transform = m_camera->modelViewMatrix();
+	const auto transform = m_camera->viewMatrix();
 	glLoadMatrixd(glm::value_ptr(transform));
 
 	initializeLight();

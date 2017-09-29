@@ -60,11 +60,6 @@ RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	CommonOpenGL::loadOpenGL();
 	glfwSwapInterval(1);
 
-	// Initialize the camera
-	m_camera.setTranslation(0, 0, -1);
-	m_camera.setScaling(160, 160, 160);
-	m_camera.setAsDefault();
-
 	// Initialize window content
 	if (!initialize()) std::cerr << "Simulation could not be initialized." << "\n";
 }
@@ -96,6 +91,8 @@ RenderWindow::~RenderWindow()
 bool RenderWindow::initialize()
 {
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
 	return true;
 }
@@ -155,6 +152,11 @@ void RenderWindow::setDebuggingEnabled(bool enabled)
 	} else {
 		glDisable(GL_DEBUG_OUTPUT);
 	}
+}
+
+Camera* RenderWindow::camera()
+{
+	return &m_camera;
 }
 
 void RenderWindow::render()
@@ -276,5 +278,13 @@ void RenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int h
 
 void RenderWindow::debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
-	std::cerr << "OpenGL Error: " << message << "\n";
+	switch (severity) {
+	case GL_DEBUG_SEVERITY_HIGH:
+	case GL_DEBUG_SEVERITY_MEDIUM:
+		std::cerr << "OpenGL Error: " << message << "\n";
+		break;
+	case GL_DEBUG_SEVERITY_LOW:
+		std::cout << "OpenGL Warning: " << message << "\n";
+		break;
+	}
 }

@@ -4,6 +4,7 @@
 #include "RenderWindow.h"
 #include "Simulation.h"
 
+#include "Camera.h"
 #include "ShaderTestScene.h"
 #include "DemoScene.h"
 #include "ImGuiScene.h"
@@ -26,6 +27,11 @@ int main()
 
 			RenderWindow window(openGlVersionMajor, openGlVersionMinor);
 			window.setDebuggingEnabled(false);
+
+			// Modify the camera state
+			Camera* camera = window.camera();
+			camera->setZoom(0.5);
+			camera->setAsDefault();
 
 			// Create scenes for the window
 			ShaderTestScene scene;

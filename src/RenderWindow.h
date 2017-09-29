@@ -38,6 +38,9 @@ public:
 	//! Enables or disables OpenGL debugging (prints OpenGL debug messsages to stdandard error)
 	void setDebuggingEnabled(bool enabled = true);
 
+	//! Returns a pointer to the camera owned by the window.
+	Camera* camera();
+
 private:
 	//! Initializes the content of the render window.
 	bool initialize();
