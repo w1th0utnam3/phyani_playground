@@ -73,30 +73,35 @@ void CubeShaderTestScene::initializeSceneContent()
 	glGenVertexArrays(1, &m_vao);
 	glBindVertexArray(m_vao);
 
+	// Generate buffer for vertex positions
 	glGenBuffers(1, &m_vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), &cube_vertices[0], GL_STATIC_DRAW);
 
+	// Generate buffer for model matrices
 	glGenBuffers(1, &m_model_mat_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_model_mat_buffer);
 	glBufferData(GL_ARRAY_BUFFER, num_cubes * (4*4) * sizeof(GLfloat), glm::value_ptr(model_mats[0]), GL_STREAM_DRAW);
 
-	auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
-	glCompileShader(vertex_shader);
+	// Compile the shader and get attribute locations
+	{
+		auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
+		glCompileShader(vertex_shader);
 
-	auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
-	glCompileShader(fragment_shader);
+		auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
+		glCompileShader(fragment_shader);
 
-	m_program = glCreateProgram();
-	glAttachShader(m_program, vertex_shader);
-	glAttachShader(m_program, fragment_shader);
-	glLinkProgram(m_program);
+		m_program = glCreateProgram();
+		glAttachShader(m_program, vertex_shader);
+		glAttachShader(m_program, fragment_shader);
+		glLinkProgram(m_program);
 
-	m_view_projection_mat_location = glGetUniformLocation(m_program, "view_projection_mat");
-	m_model_mat_location = glGetAttribLocation(m_program, "model_mat");
-	m_vert_pos_location = glGetAttribLocation(m_program, "vert_pos");
+		m_view_projection_mat_location = glGetUniformLocation(m_program, "view_projection_mat");
+		m_model_mat_location = glGetAttribLocation(m_program, "model_mat");
+		m_vert_pos_location = glGetAttribLocation(m_program, "vert_pos");
+	}
 
 	// Set the vertex attribute pointers for the vertex positions
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
@@ -104,12 +109,13 @@ void CubeShaderTestScene::initializeSceneContent()
 	glVertexAttribPointer(m_vert_pos_location, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
 	glVertexAttribDivisor(m_vert_pos_location, 0);
 
-	// Set the vertex attribute pointers for the model matrices
+	// Set the vertex attribute pointers for the model matrices (matrix is represented by 4 vectors)
 	glBindBuffer(GL_ARRAY_BUFFER, m_model_mat_buffer);
 	for (int i = 0; i < 4; i++) {
 		glEnableVertexAttribArray(m_model_mat_location + i);
 		glVertexAttribPointer(m_model_mat_location + i, 4, GL_FLOAT, GL_FALSE,
 							  sizeof(GLfloat) * 4 * 4, (void*)(sizeof(float) * i * 4));
+		// Set the divisor so that one model matrix is used for every instance instead of every vertex
 		glVertexAttribDivisor(m_model_mat_location + i, 1);
 	}
 
@@ -146,10 +152,12 @@ void CubeShaderTestScene::renderSceneContent()
 	glBufferSubData(GL_ARRAY_BUFFER, 0, num_cubes * (4*4) * sizeof(GLfloat), glm::value_ptr(model_mats[0]));
 
 	glUseProgram(m_program);
+
 	// Update the mvp matrix
 	glUniformMatrix4fv(m_view_projection_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(mvp));
 	// Draw multiple instances of the cube
 	glDrawArraysInstanced(GL_TRIANGLES, 0, num_vertices, num_cubes);
+
 	glUseProgram(0);
 
 	glBindVertexArray(0);
