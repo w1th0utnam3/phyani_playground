@@ -25,8 +25,6 @@ RenderWindow::RenderWindow()
 RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
 	: m_continueRenderLoop(false)
 	, m_drawMode(GL_FILL)
-	, m_dt(0.05)
-	, m_timeStretch(0.5)
 	, m_camera(1920, 1080)
 {
 	// Specify OpenGL context profile hints

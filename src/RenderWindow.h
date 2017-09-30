@@ -71,10 +71,6 @@ private:
 
 	//! Stores the render mode, i.e. solid or wireframe.
 	int m_drawMode;
-	//! Timestep increment value for single frame animation increments
-	double m_dt;
-	//! Current time stretch factor for the animations
-	double m_timeStretch;
 
 	//! Pointer to the underlying GLFWwindow.
 	GLFWwindow* m_window;
