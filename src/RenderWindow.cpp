@@ -16,22 +16,15 @@
 #include "GlfwUtilities.h"
 #include "MathHelper.h"
 
-#define DEFAULT_GL_MAJOR 4
-#define DEFAULT_GL_MINOR 2
-
-RenderWindow::RenderWindow()
-	: RenderWindow(DEFAULT_GL_MAJOR, DEFAULT_GL_MINOR) {}
-
-RenderWindow::RenderWindow(int glVersionMajor, int glVersionMinor)
+RenderWindow::RenderWindow(const ContextSettings& settings)
 	: m_continueRenderLoop(false)
 	, m_drawMode(GL_FILL)
-	, m_camera(1920, 1080)
+	, m_camera(settings.windowWidth, settings.windowHeight)
 {
 	// Specify OpenGL context profile hints
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glVersionMajor);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, glVersionMinor);
-	if (glVersionMajor >= 3 && glVersionMinor >= 2)
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, settings.glVersionMajor);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, settings.glVersionMinor);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, settings.glProfile);
 
 	// Request a new window from GLFW
 	auto futureWindow = GlfwWindowManager::requestWindow(m_camera.viewportSize().x, m_camera.viewportSize().y, "Simulation", nullptr, nullptr);

@@ -21,12 +21,19 @@ int main()
 		auto glfwScope = GlfwWindowManager::create();
 		std::cout << "(main) Initialized Glfw." << "\n";
 
+		// Specify context settings
+		ContextSettings settings;
+		settings.glVersionMajor = 4;
+		settings.glVersionMinor = 5;
+		settings.glProfile = ContextSettings::CoreProfile;
+
+		settings.windowWidth = 1600;
+		settings.windowHeight = 900;
+
 		// Create a window for the simulation
 		try {
-			const int openGlVersionMajor = 4;
-			const int openGlVersionMinor = 5;
-
-			RenderWindow window(openGlVersionMajor, openGlVersionMinor);
+			// Create render window based on the context settings
+			RenderWindow window(settings);
 			window.setDebuggingEnabled(false);
 
 			// Modify the camera state

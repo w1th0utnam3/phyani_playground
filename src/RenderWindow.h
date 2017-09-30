@@ -9,6 +9,22 @@
 #include "CommonOpenGL.h"
 #include "Scene.h"
 
+struct ContextSettings
+{
+	enum GlProfile {
+		AnyProfile = GLFW_OPENGL_ANY_PROFILE,
+		CompatibilityProfile = GLFW_OPENGL_COMPAT_PROFILE,
+		CoreProfile = GLFW_OPENGL_CORE_PROFILE
+	};
+
+	int glVersionMajor = 1;
+	int glVersionMinor = 0;
+	GlProfile glProfile = GlProfile::AnyProfile;
+
+	int windowWidth = 640;
+	int windowHeight = 480;
+};
+
 struct Interaction
 {
 	glm::dvec2 lastMousePos = glm::dvec2(0, 0);
@@ -19,9 +35,7 @@ class RenderWindow
 {
 public:
 	//! Constructs a GLFW based render window and initiailizes it.
-	RenderWindow();
-	//! Constructs a GLFW based render window and initiailizes and requests the specified OpenGL version.
-	RenderWindow(int glVersionMajor, int glVersionMinor);
+	RenderWindow(const ContextSettings& settings);
 	//! Destroys the GLFW render window and calls cleanup methods.
 	~RenderWindow();
 
