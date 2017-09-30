@@ -43,7 +43,7 @@ RenderWindow::RenderWindow(const ContextSettings& settings)
 
 	// Load the OpenGL functions
 	auto contextScope = GlfwScopedContextSwitcher(m_window);
-	CommonOpenGL::loadOpenGL();
+	CommonOpenGl::loadOpenGl();
 	glfwSwapInterval(1);
 
 	// Initialize window content
