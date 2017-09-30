@@ -1,7 +1,7 @@
 #pragma once
 
-#include "CommonOpenGL.h"
 #include "Scene.h"
+#include "CommonOpenGL.h"
 
 class CubeShaderTestScene : public Scene
 {
@@ -15,6 +15,6 @@ protected:
 	virtual void renderSceneContent() override;
 
 private:
-	GLuint m_vertex_buffer, m_vertex_shader, m_fragment_shader, m_program, m_vao;
-	GLint m_mvp_location, m_vpos_location;
+	GLuint m_vertex_buffer, m_model_mat_buffer, m_vertex_shader, m_fragment_shader, m_program, m_vao;
+	GLint m_view_projection_mat_location, m_model_mat_location, m_vert_pos_location;
 };
