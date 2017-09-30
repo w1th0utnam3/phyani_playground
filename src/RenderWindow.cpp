@@ -4,13 +4,8 @@
 #include <vector>
 #include <stdexcept>
 
-#include <glm/glm.hpp>
-#include <glm/geometric.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <noname_tools/vector_tools.h>
 
-#include "CommonOpenGL.h"
 #include "DemoScene.h"
 #include "GlfwWindowManager.h"
 #include "GlfwUtilities.h"

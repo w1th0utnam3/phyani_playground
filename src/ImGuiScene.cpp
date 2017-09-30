@@ -4,13 +4,13 @@
 #include <limits>
 
 #include <imgui.h>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "ImGuiGlfw3Helper.h"
+#include "MathHelper.h"
+
 #include "Simulation.h"
 #include "AnimationLoop.h"
 #include "DemoScene.h"
-#include "MathHelper.h"
 
 ImGuiScene::ImGuiScene()
 {

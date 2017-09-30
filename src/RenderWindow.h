@@ -4,7 +4,6 @@
 #include <vector>
 
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 
 #include "CommonOpenGL.h"
 #include "Scene.h"

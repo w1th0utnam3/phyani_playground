@@ -2,8 +2,9 @@
 
 #include "Scene.h"
 
-#include <glm/glm.hpp>
 #include <ImGuizmo.h>
+
+#include "CommonOpenGL.h"
 
 class ImGuiScene : public Scene
 {

@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include <string>
 
-
 #include "EventQueue.h"
 
 std::atomic<bool> GlfwWindowManager::m_initialized(false);

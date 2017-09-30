@@ -2,7 +2,6 @@
 
 #include <array>
 
-#include <glm/gtc/type_ptr.hpp>
 #include <Eigen/Geometry>
 
 #include "CommonOpenGL.h"

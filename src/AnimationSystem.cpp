@@ -1,7 +1,6 @@
 ﻿#include "AnimationSystem.h"
 
 #include <cassert>
-#include <iostream>
 
 #include "Common.h"
 

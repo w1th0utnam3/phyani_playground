@@ -1,7 +1,7 @@
 #pragma once
 
-#include "CommonOpenGL.h"
 #include "Scene.h"
+#include "CommonOpenGL.h"
 
 class ShaderTestScene : public Scene
 {
