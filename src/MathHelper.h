@@ -21,7 +21,7 @@ std::ostream& operator<<(std::ostream& os, glm::tvec3<T, P> vec)
 }
 
 template <glm::length_t l, typename T, glm::qualifier P>
-std::ostream& operator<<(std::ostream& oss, glm::vec<l, T, P> vec)
+std::ostream& operator<<(std::ostream& os, glm::vec<l, T, P> vec)
 {
 	std::ostringstream oss;
 
