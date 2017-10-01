@@ -89,7 +89,7 @@ void ImGuiScene::drawMainWindow()
 		const auto rotation = m_camera->rotation();
 
 		if (ImGui::Button("Reset camera")) m_camera->resetToDefault();
-		ImGui::Text("Zoom: %.4e", m_camera->zoom());
+		ImGui::Text("Scaling: %.4e", m_camera->scaling().x);
 		ImGui::Text("Rotation: w=%.4e,x=%.4e,y=%.4e,z=%.4e", rotation.w, rotation.x, rotation.y, rotation.z);
 
 		ImGui::Text("Gizmo mode:");
@@ -185,7 +185,13 @@ void ImGuiScene::editTransform(glm::fmat4& matrix)
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-	const glm::fmat4 view = m_camera->viewMatrix();
+	const glm::dquat rotation = m_camera->rotation();
+
+	glm::dmat4 view = glm::fmat4(1.0f);
+	view = glm::translate(view, -m_camera->translation());
+	//view = glm::scale(view, m_camera->scaling());
+	view = glm::rotate(view, glm::angle(rotation), glm::axis(rotation));
+
 	const glm::fmat4 projection = m_camera->projectionMatrix();
 
 	if (!m_options.gizmoPreviouslyInUse) {
@@ -200,7 +206,8 @@ void ImGuiScene::editTransform(glm::fmat4& matrix)
 	const bool gizmoUseEnded = m_options.gizmoPreviouslyInUse && !gizmoInUse;
 	m_options.gizmoPreviouslyInUse = gizmoInUse;
 
-	ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
+	glm::fmat4 fview(view);
+	ImGuizmo::Manipulate(glm::value_ptr(fview), glm::value_ptr(projection),
 			m_options.currentGizmoOperation, ImGuizmo::LOCAL, glm::value_ptr(matrix));
 
 	if (gizmoUseEnded) {

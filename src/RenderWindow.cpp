@@ -224,7 +224,7 @@ void RenderWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, doubl
 	}
 
 	if (!eventCaptured) {
-		window->m_camera.zoom((yoffset > 0) ? 1.1 : 0.9);
+		window->m_camera.scale((yoffset > 0) ? 1.1 : 0.9);
 	}
 }
 

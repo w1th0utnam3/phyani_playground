@@ -5,14 +5,14 @@
 struct CameraState
 {
 	//! The current rotation of the camera.
-	glm::dquat m_rotation;
+	glm::dquat rotation;
 	//! The current translation of the camera.
-	glm::dvec3 m_translation;
+	glm::dvec3 translation;
 	//! The current scaling of the camera.
-	glm::dvec3 m_scaling;
+	glm::dvec3 scaling;
 
 	//! The current projection zoom factor.
-	double m_zoom;
+	double zoom;
 };
 
 class Camera
@@ -31,6 +31,8 @@ public:
 
 	//! Sets the camera translation from the origin in world coordinates to the specified values.
 	void setTranslation(double x, double y, double z);
+	//! Sets the scaling of the world coordinates uniformly in all directions to the specified value.
+	void setScaling(double scaling);
 	//! Sets the scaling of the world coordinates to the specified values.
 	void setScaling(double x, double y, double z);
 	//! Sets the rotation of the world coordinates to the specified values.
@@ -44,6 +46,10 @@ public:
 	void rotate(double angle, const glm::dvec3& axis);
 	//! Rotates the camera by the specified quaternion, expects a four element double array of {x,y,z,w}.
 	void rotate(const glm::dquat& quat);
+	//! Applies the scaling factors incrementally to each of the coordinate axes.
+	void scale(double x, double y, double z);
+	//! Applies the scaling factor incrementally to all coordinate axes.
+	void scale(double scaling);
 	//! Applies the zoom factor incrementally to the current zoom level.
 	void zoom(double zoom);
 
@@ -54,6 +60,10 @@ public:
 	//! Returns the current viewport size.
 	glm::ivec2 viewportSize() const;
 
+	//! Returns the vector containing the translation of the camera from the origin.
+	glm::dvec3 translation() const;
+	//! Returns the vector containing the scaling factors of the world coordinates.
+	glm::dvec3 scaling() const;
 	//! Returns the quaternion representing the current rotation of the camera.
 	glm::dquat rotation() const;
 	//! Returns the current zoom factor.
