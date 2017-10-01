@@ -144,21 +144,22 @@ void CubeShaderTestScene::renderSceneContent()
 	model_mats[1] = glm::rotate(glm::scale(glm::translate(glm::fmat4(1.0f), glm::fvec3(-0.5f, 0.0f, 0.0f)), glm::fvec3(0.5f, 0.5f, 0.5f)),
 								(float) -glfwGetTime(), glm::fvec3(0.0f, 1.0f, 0.0f));
 
-	glBindVertexArray(m_vao);
+	if (CommonOpenGl::getGlValue<GLint>(GL_VERTEX_ARRAY_BINDING) != m_vao)
+		glBindVertexArray(m_vao);
 
 	// Update the model matrix buffer
 	glBindBuffer(GL_ARRAY_BUFFER, m_model_mat_buffer);
 	glBufferData(GL_ARRAY_BUFFER, num_cubes * (4*4) * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, num_cubes * (4*4) * sizeof(GLfloat), glm::value_ptr(model_mats[0]));
 
-	glUseProgram(m_program);
+	if (CommonOpenGl::getGlValue<GLint>(GL_CURRENT_PROGRAM) != m_program)
+		glUseProgram(m_program);
 
 	// Update the mvp matrix
 	glUniformMatrix4fv(m_view_projection_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(mvp));
 	// Draw multiple instances of the cube
 	glDrawArraysInstanced(GL_TRIANGLES, 0, num_vertices, num_cubes);
 
-	glUseProgram(0);
-
-	glBindVertexArray(0);
+	//glUseProgram(0);
+	//glBindVertexArray(0);
 }
