@@ -43,15 +43,7 @@ static const GLfloat cube_vertices[] =
 	 0.5f,-0.5f, 0.5f
 };
 
-// Model matrices for multiple cube instances
-static glm::fmat4 model_mats[] =
-{
-	glm::scale(glm::translate(glm::fmat4(1.0f), glm::fvec3(0.5f, 0.0f, 0.0f)), glm::fvec3(0.5f, 0.5f, 0.5f)),
-	glm::scale(glm::translate(glm::fmat4(1.0f), glm::fvec3(-0.5f, 0.0f, 0.0f)), glm::fvec3(0.5f, 0.5f, 0.5f))
-};
-
-static const int num_vertices = sizeof(cube_vertices)/(sizeof(GLfloat)*3);
-static const int num_cubes = sizeof(model_mats)/sizeof(glm::fmat4);
+static const int vertexCount = sizeof(cube_vertices)/(sizeof(GLfloat)*3);
 
 static const char* vertex_shader_text =
 	"uniform mat4 view_projection_mat;\n"
@@ -70,6 +62,23 @@ static const char* fragment_shader_text =
 
 void CubeShaderTestScene::initializeSceneContent()
 {
+	// The number of cubes per edge of the "cube grid"
+	const int edgeLength = 10;
+	//const int edgeLength = 42;
+	//const int edgeLength = 72;
+
+	// Generate the initial cube grid
+	const glm::fmat4 id(1.0f);
+	m_model_mats.reserve(edgeLength * edgeLength * edgeLength);
+	for (int i = 0; i < edgeLength; i++) {
+		for (int j = 0; j < edgeLength; j++) {
+			for (int k = 0; k < edgeLength; k++) {
+				m_model_mats.push_back(glm::translate(id, glm::fvec3(2*i - edgeLength, 2*j - edgeLength, 2*k - edgeLength)));
+				m_model_mats.back() = glm::scale(m_model_mats.back(), 0.4f*glm::fvec3(1.0f, 1.0f, 1.0f));
+			}
+		}
+	}
+
 	glGenVertexArrays(1, &m_vao);
 	glBindVertexArray(m_vao);
 
@@ -81,7 +90,7 @@ void CubeShaderTestScene::initializeSceneContent()
 	// Generate buffer for model matrices
 	glGenBuffers(1, &m_model_mat_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_model_mat_buffer);
-	glBufferData(GL_ARRAY_BUFFER, num_cubes * (4*4) * sizeof(GLfloat), glm::value_ptr(model_mats[0]), GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, m_model_mats.size() * (4*4) * sizeof(GLfloat), glm::value_ptr(m_model_mats[0]), GL_STREAM_DRAW);
 
 	// Compile the shader and get attribute locations
 	{
@@ -119,6 +128,8 @@ void CubeShaderTestScene::initializeSceneContent()
 		glVertexAttribDivisor(m_model_mat_location + i, 1);
 	}
 
+	m_lastTime = glfwGetTime();
+
 	glBindVertexArray(0);
 }
 
@@ -138,19 +149,23 @@ void CubeShaderTestScene::renderSceneContent()
 	glm::fmat4 p = m_camera->projectionMatrix();
 	glm::fmat4 mvp = p*v*m;
 
-	// Compute new model matrices
-	model_mats[0] = glm::rotate(glm::scale(glm::translate(glm::fmat4(1.0f), glm::fvec3(0.5f, 0.0f, 0.0f)), glm::fvec3(0.5f, 0.5f, 0.5f)),
-								(float) -glfwGetTime(), glm::fvec3(0.0f, 0.0f, 1.0f));
-	model_mats[1] = glm::rotate(glm::scale(glm::translate(glm::fmat4(1.0f), glm::fvec3(-0.5f, 0.0f, 0.0f)), glm::fvec3(0.5f, 0.5f, 0.5f)),
-								(float) -glfwGetTime(), glm::fvec3(0.0f, 1.0f, 0.0f));
+	// Get dt since last render for constant rotation speed
+	const double currentTime = glfwGetTime();
+	const double dt = currentTime - m_lastTime;
+	m_lastTime = currentTime;
+
+	// Rotate all model matrices in random directions
+	for (auto& modelMat : m_model_mats)
+		modelMat = glm::rotate(modelMat, (float)(2*dt), glm::fvec3(m_random(), m_random(), m_random()));
 
 	if (CommonOpenGl::getGlValue<GLint>(GL_VERTEX_ARRAY_BINDING) != m_vao)
 		glBindVertexArray(m_vao);
 
 	// Update the model matrix buffer
+	const int cubeCount = m_model_mats.size();
 	glBindBuffer(GL_ARRAY_BUFFER, m_model_mat_buffer);
-	glBufferData(GL_ARRAY_BUFFER, num_cubes * (4*4) * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, num_cubes * (4*4) * sizeof(GLfloat), glm::value_ptr(model_mats[0]));
+	glBufferData(GL_ARRAY_BUFFER, cubeCount * (4*4) * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, cubeCount * (4*4) * sizeof(GLfloat), glm::value_ptr(m_model_mats[0]));
 
 	if (CommonOpenGl::getGlValue<GLint>(GL_CURRENT_PROGRAM) != m_program)
 		glUseProgram(m_program);
@@ -158,7 +173,7 @@ void CubeShaderTestScene::renderSceneContent()
 	// Update the mvp matrix
 	glUniformMatrix4fv(m_view_projection_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(mvp));
 	// Draw multiple instances of the cube
-	glDrawArraysInstanced(GL_TRIANGLES, 0, num_vertices, num_cubes);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, vertexCount, cubeCount);
 
 	//glUseProgram(0);
 	//glBindVertexArray(0);
