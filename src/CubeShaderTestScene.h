@@ -20,7 +20,7 @@ protected:
 	virtual void renderSceneContent() override;
 
 private:
-	random_data<float> m_random;
+	uniform_real_rng<float> m_random;
 
 	ShaderProgram m_shaderProgram;
 	GLuint m_vertex_buffer, m_model_mat_buffer, m_vertex_shader, m_fragment_shader, m_vao;
