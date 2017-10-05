@@ -1,5 +1,8 @@
 #include "CubeShaderTestScene.h"
 
+#include <string>
+#include <utility>
+
 #include <CommonOpenGL.h>
 
 // Vertices for a cube centered at origin with edge length 1.0
