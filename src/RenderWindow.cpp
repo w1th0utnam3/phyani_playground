@@ -8,7 +8,7 @@
 
 #include "DemoScene.h"
 #include "GlfwWindowManager.h"
-#include "GlfwUtilities.h"
+#include "GlfwHelper.h"
 #include "MathHelper.h"
 
 RenderWindow::RenderWindow(const ContextSettings& settings)
