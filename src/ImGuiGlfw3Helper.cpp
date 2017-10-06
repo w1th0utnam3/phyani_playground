@@ -10,7 +10,7 @@
 #include "ImGuiGlfw3Helper.h"
 
 // GL3W/GLFW
-#include "CommonOpenGL.h"
+#include "CommonOpenGl.h"
 #include <GLFW/glfw3.h>
 #ifdef _WIN32
 #undef APIENTRY

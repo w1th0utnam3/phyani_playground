@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "MathHelper.h"
-#include "CommonOpenGL.h"
+#include "CommonOpenGl.h"
 #include "ShaderProgram.h"
 
 class CubeShaderTestScene : public Scene

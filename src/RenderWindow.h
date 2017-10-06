@@ -5,7 +5,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include "CommonOpenGL.h"
+#include "CommonOpenGl.h"
 #include "Scene.h"
 
 struct ContextSettings

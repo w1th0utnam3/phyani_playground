@@ -4,7 +4,7 @@
 
 #include <Eigen/Geometry>
 
-#include "CommonOpenGL.h"
+#include "CommonOpenGl.h"
 #include "Simulation.h"
 #include "EntityFactory.h"
 

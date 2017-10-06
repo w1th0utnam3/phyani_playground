@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "CommonOpenGL.h"
+#include "CommonOpenGl.h"
 
 struct CameraState
 {

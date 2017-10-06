@@ -3,7 +3,7 @@
 #include <string>
 #include <utility>
 
-#include <CommonOpenGL.h>
+#include "CommonOpenGl.h"
 
 using Triangle = glm::fvec3[3];
 

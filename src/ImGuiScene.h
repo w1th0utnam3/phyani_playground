@@ -4,7 +4,7 @@
 
 #include <ImGuizmo.h>
 
-#include "CommonOpenGL.h"
+#include "CommonOpenGl.h"
 
 class ImGuiScene : public Scene
 {

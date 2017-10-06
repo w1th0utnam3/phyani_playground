@@ -1,7 +1,7 @@
 ﻿#include "RenderSystem.h"
 
 #include "Common.h"
-#include "CommonOpenGL.h"
+#include "CommonOpenGl.h"
 
 RenderSystem::RenderSystem(EntityComponentSystem& ecs)
 	: m_ecs(ecs)
