@@ -5,53 +5,91 @@
 
 #include <CommonOpenGL.h>
 
-// Vertices for a cube centered at origin with edge length 1.0
-static const GLfloat cube_vertices[] =
-{
-	-0.5f,-0.5f,-0.5f,
-	-0.5f,-0.5f, 0.5f,
-	-0.5f, 0.5f, 0.5f,
-	 0.5f, 0.5f,-0.5f,
-	-0.5f,-0.5f,-0.5f,
-	-0.5f, 0.5f,-0.5f,
-	 0.5f,-0.5f, 0.5f,
-	-0.5f,-0.5f,-0.5f,
-	 0.5f,-0.5f,-0.5f,
-	 0.5f, 0.5f,-0.5f,
-	 0.5f,-0.5f,-0.5f,
-	-0.5f,-0.5f,-0.5f,
-	-0.5f,-0.5f,-0.5f,
-	-0.5f, 0.5f, 0.5f,
-	-0.5f, 0.5f,-0.5f,
-	 0.5f,-0.5f, 0.5f,
-	-0.5f,-0.5f, 0.5f,
-	-0.5f,-0.5f,-0.5f,
-	-0.5f, 0.5f, 0.5f,
-	-0.5f,-0.5f, 0.5f,
-	 0.5f,-0.5f, 0.5f,
-	 0.5f, 0.5f, 0.5f,
-	 0.5f,-0.5f,-0.5f,
-	 0.5f, 0.5f,-0.5f,
-	 0.5f,-0.5f,-0.5f,
-	 0.5f, 0.5f, 0.5f,
-	 0.5f,-0.5f, 0.5f,
-	 0.5f, 0.5f, 0.5f,
-	 0.5f, 0.5f,-0.5f,
-	-0.5f, 0.5f,-0.5f,
-	 0.5f, 0.5f, 0.5f,
-	-0.5f, 0.5f,-0.5f,
-	-0.5f, 0.5f, 0.5f,
-	 0.5f, 0.5f, 0.5f,
-	-0.5f, 0.5f, 0.5f,
-	 0.5f,-0.5f, 0.5f
-};
+using Triangle = glm::fvec3[3];
 
-static const int vertexCount = sizeof(cube_vertices)/(sizeof(GLfloat)*3);
+static const Triangle cube_triangles[] = {
+	{{-0.5f,-0.5f,-0.5f},
+	 {-0.5f,-0.5f, 0.5f},
+	 {-0.5f, 0.5f, 0.5f}},
+
+	{{ 0.5f, 0.5f,-0.5f},
+	 {-0.5f,-0.5f,-0.5f},
+	 {-0.5f, 0.5f,-0.5f}},
+
+	{{ 0.5f,-0.5f, 0.5f},
+	 {-0.5f,-0.5f,-0.5f},
+	 { 0.5f,-0.5f,-0.5f}},
+
+	{{ 0.5f, 0.5f,-0.5f},
+	 { 0.5f,-0.5f,-0.5f},
+	 {-0.5f,-0.5f,-0.5f}},
+
+	{{-0.5f,-0.5f,-0.5f},
+	 {-0.5f, 0.5f, 0.5f},
+	 {-0.5f, 0.5f,-0.5f}},
+
+	{{ 0.5f,-0.5f, 0.5f},
+	 {-0.5f,-0.5f, 0.5f},
+	 {-0.5f,-0.5f,-0.5f}},
+
+	{{-0.5f, 0.5f, 0.5f},
+	 {-0.5f,-0.5f, 0.5f},
+	 { 0.5f,-0.5f, 0.5f}},
+
+	{{ 0.5f, 0.5f, 0.5f},
+	 { 0.5f,-0.5f,-0.5f},
+	 { 0.5f, 0.5f,-0.5f}},
+
+	{{ 0.5f,-0.5f,-0.5f},
+	 { 0.5f, 0.5f, 0.5f},
+	 { 0.5f,-0.5f, 0.5f}},
+
+	{{ 0.5f, 0.5f, 0.5f},
+	 { 0.5f, 0.5f,-0.5f},
+	 {-0.5f, 0.5f,-0.5f}},
+
+	{{ 0.5f, 0.5f, 0.5f},
+	 {-0.5f, 0.5f,-0.5f},
+	 {-0.5f, 0.5f, 0.5f}},
+
+	{{ 0.5f, 0.5f, 0.5f},
+	 {-0.5f, 0.5f, 0.5f},
+	 { 0.5f,-0.5f, 0.5f}}
+};
 
 void CubeShaderTestScene::initializeSceneContent()
 {
+	const std::size_t component_count = (sizeof(cube_triangles) / sizeof(Triangle)) * 3 * 3;
+	m_vertices.reserve(component_count);
+	m_normals.reserve(component_count);
+
+	for (const auto& triangleVertices : cube_triangles) {
+		// Store all vertex components of the triangle
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				m_vertices.push_back(triangleVertices[i][j]);
+			}
+		}
+
+		// Compute the triangle normal
+		glm::fvec3 edge1 = triangleVertices[1] - triangleVertices[2];
+		glm::fvec3 edge2 = triangleVertices[2] - triangleVertices[0];
+		glm::fvec3 normal = glm::normalize(glm::cross(edge1, edge2));
+
+		// Store triangle normal for each vertex
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) m_normals.push_back(normal[j]);
+		}
+	}
+
 	// The number of cubes per edge of the "cube grid"
-	const int edgeLength = 10;
+	const int edgeLength = 1;
+	// The distance in cubes between adjacent cubes
+	const int distance = 3;
+	// The displacement of the whole grid in order to center it
+	const float disp = ((edgeLength - 1) * distance) / 2.0;
+
+	//const int edgeLength = 10;
 	//const int edgeLength = 42;
 	//const int edgeLength = 72;
 
@@ -61,8 +99,8 @@ void CubeShaderTestScene::initializeSceneContent()
 	for (int i = 0; i < edgeLength; i++) {
 		for (int j = 0; j < edgeLength; j++) {
 			for (int k = 0; k < edgeLength; k++) {
-				m_model_mats.push_back(glm::translate(id, glm::fvec3(2*i - edgeLength, 2*j - edgeLength, 2*k - edgeLength)));
-				m_model_mats.back() = glm::scale(m_model_mats.back(), 0.4f*glm::fvec3(1.0f, 1.0f, 1.0f));
+				m_model_mats.push_back(glm::translate(id, glm::fvec3(i*distance - disp, j*distance - disp, k*distance - disp)));
+				//m_model_mats.back() = glm::scale(m_model_mats.back(), 0.4f*glm::fvec3(1.0f, 1.0f, 1.0f));
 			}
 		}
 	}
@@ -73,7 +111,12 @@ void CubeShaderTestScene::initializeSceneContent()
 	// Generate buffer for vertex positions
 	glGenBuffers(1, &m_vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), &cube_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(GLfloat), m_vertices.data(), GL_STATIC_DRAW);
+
+	// Generate buffer for vertex normals
+	glGenBuffers(1, &m_normal_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_normal_buffer);
+	glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(GLfloat), m_normals.data(), GL_STATIC_DRAW);
 
 	// Generate buffer for model matrices
 	glGenBuffers(1, &m_model_mat_buffer);
@@ -91,23 +134,30 @@ void CubeShaderTestScene::initializeSceneContent()
 			m_shaderProgram.loadShader(source.first, source.second);
 		m_shaderProgram.createProgram();
 
-		m_view_projection_mat_location = glGetUniformLocation(m_shaderProgram.program(), "view_projection_mat");
+		m_view_mat_location = glGetUniformLocation(m_shaderProgram.program(), "view_mat");
+		m_projection_mat_location = glGetUniformLocation(m_shaderProgram.program(), "projection_mat");
 		m_model_mat_location = glGetAttribLocation(m_shaderProgram.program(), "model_mat");
-		m_vert_pos_location = glGetAttribLocation(m_shaderProgram.program(), "vert_pos");
+		m_vert_pos_location = glGetAttribLocation(m_shaderProgram.program(), "vertexPosition_modelspace");
+		m_vert_norm_location = glGetAttribLocation(m_shaderProgram.program(), "vertexNormal_modelspace");
 	}
 
 	// Set the vertex attribute pointers for the vertex positions
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
 	glEnableVertexAttribArray(m_vert_pos_location);
-	glVertexAttribPointer(m_vert_pos_location, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*) 0);
+	glVertexAttribPointer(m_vert_pos_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, (void*) 0);
 	glVertexAttribDivisor(m_vert_pos_location, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_normal_buffer);
+	glEnableVertexAttribArray(m_vert_norm_location);
+	glVertexAttribPointer(m_vert_norm_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, (void*) 0);
+	glVertexAttribDivisor(m_vert_norm_location, 0);
 
 	// Set the vertex attribute pointers for the model matrices (matrix is represented by 4 vectors)
 	glBindBuffer(GL_ARRAY_BUFFER, m_model_mat_buffer);
 	for (int i = 0; i < 4; i++) {
 		glEnableVertexAttribArray(m_model_mat_location + i);
 		glVertexAttribPointer(m_model_mat_location + i, 4, GL_FLOAT, GL_FALSE,
-							  sizeof(GLfloat) * 4 * 4, (void*)(sizeof(float) * i * 4));
+							  sizeof(GLfloat) * 4 * 4, (void*)(sizeof(GLfloat) * i * 4));
 		// Set the divisor so that one model matrix is used for every instance instead of every vertex
 		glVertexAttribDivisor(m_model_mat_location + i, 1);
 	}
@@ -126,11 +176,8 @@ void CubeShaderTestScene::cleanupSceneContent()
 
 void CubeShaderTestScene::renderSceneContent()
 {
-	// Assesmble the current mvp matrix
-	glm::fmat4 m = glm::fmat4(1.0f);
-	glm::fmat4 v = m_camera->viewMatrix();
-	glm::fmat4 p = m_camera->projectionMatrix();
-	glm::fmat4 mvp = p*v*m;
+	const glm::fmat4 v = m_camera->viewMatrix();
+	const glm::fmat4 p = m_camera->projectionMatrix();
 
 	// Get dt since last render for constant rotation speed
 	const double currentTime = glfwGetTime();
@@ -138,8 +185,10 @@ void CubeShaderTestScene::renderSceneContent()
 	m_lastTime = currentTime;
 
 	// Rotate all model matrices in random directions
+	/*
 	for (auto& modelMat : m_model_mats)
 		modelMat = glm::rotate(modelMat, (float)(2*dt), glm::fvec3(m_random(), m_random(), m_random()));
+	*/
 
 	if (CommonOpenGl::getGlValue<GLint>(GL_VERTEX_ARRAY_BINDING) != m_vao)
 		glBindVertexArray(m_vao);
@@ -152,10 +201,11 @@ void CubeShaderTestScene::renderSceneContent()
 
 	m_shaderProgram.useProgram();
 
-	// Update the mvp matrix
-	glUniformMatrix4fv(m_view_projection_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(mvp));
+	// Update the view and projection matrices
+	glUniformMatrix4fv(m_view_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(v));
+	glUniformMatrix4fv(m_projection_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(p));
 	// Draw multiple instances of the cube
-	glDrawArraysInstanced(GL_TRIANGLES, 0, vertexCount, cubeCount);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, m_vertices.size() / 3, cubeCount);
 
 	//glUseProgram(0);
 	//glBindVertexArray(0);
