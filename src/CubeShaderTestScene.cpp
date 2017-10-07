@@ -83,11 +83,13 @@ void CubeShaderTestScene::initializeSceneContent()
 	}
 
 	// The number of cubes per edge of the "cube grid"
-	const int edgeLength = 1;
+	const int edgeLength = 2;
 	// The distance in cubes between adjacent cubes
 	const int distance = 3;
 	// The displacement of the whole grid in order to center it
 	const float disp = ((edgeLength - 1) * distance) / 2.0;
+	// Total number of cubes in the grid
+	const int instanceCount = edgeLength * edgeLength * edgeLength;
 
 	//const int edgeLength = 10;
 	//const int edgeLength = 42;
@@ -95,12 +97,13 @@ void CubeShaderTestScene::initializeSceneContent()
 
 	// Generate the initial cube grid
 	const glm::fmat4 id(1.0f);
-	m_model_mats.reserve(edgeLength * edgeLength * edgeLength);
+	m_model_mats.reserve(instanceCount);
+	m_model_colors.reserve(instanceCount);
 	for (int i = 0; i < edgeLength; i++) {
 		for (int j = 0; j < edgeLength; j++) {
 			for (int k = 0; k < edgeLength; k++) {
 				m_model_mats.push_back(glm::translate(id, glm::fvec3(i*distance - disp, j*distance - disp, k*distance - disp)));
-				//m_model_mats.back() = glm::scale(m_model_mats.back(), 0.4f*glm::fvec3(1.0f, 1.0f, 1.0f));
+				m_model_colors.emplace_back(1.0f, 0.0f, 0.0f);
 			}
 		}
 	}
@@ -118,6 +121,11 @@ void CubeShaderTestScene::initializeSceneContent()
 	glBindBuffer(GL_ARRAY_BUFFER, m_normal_buffer);
 	glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(GLfloat), m_normals.data(), GL_STATIC_DRAW);
 
+	// Generate buffer for model colors
+	glGenBuffers(1, &m_model_color_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_model_color_buffer);
+	glBufferData(GL_ARRAY_BUFFER, m_model_colors.size() * 3 * sizeof(GLfloat), glm::value_ptr(m_model_colors[0]), GL_STATIC_DRAW);
+
 	// Generate buffer for model matrices
 	glGenBuffers(1, &m_model_mat_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_model_mat_buffer);
@@ -134,9 +142,10 @@ void CubeShaderTestScene::initializeSceneContent()
 			m_shaderProgram.loadShader(source.first, source.second);
 		m_shaderProgram.createProgram();
 
-		m_view_mat_location = glGetUniformLocation(m_shaderProgram.program(), "view_mat");
-		m_projection_mat_location = glGetUniformLocation(m_shaderProgram.program(), "projection_mat");
-		m_model_mat_location = glGetAttribLocation(m_shaderProgram.program(), "model_mat");
+		m_view_mat_location = glGetUniformLocation(m_shaderProgram.program(), "viewMat");
+		m_projection_mat_location = glGetUniformLocation(m_shaderProgram.program(), "projectionMat");
+		m_model_mat_location = glGetAttribLocation(m_shaderProgram.program(), "modelMat");
+		m_model_color_location = glGetAttribLocation(m_shaderProgram.program(), "vertexColor");
 		m_vert_pos_location = glGetAttribLocation(m_shaderProgram.program(), "vertexPosition_modelspace");
 		m_vert_norm_location = glGetAttribLocation(m_shaderProgram.program(), "vertexNormal_modelspace");
 	}
@@ -151,6 +160,11 @@ void CubeShaderTestScene::initializeSceneContent()
 	glEnableVertexAttribArray(m_vert_norm_location);
 	glVertexAttribPointer(m_vert_norm_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, (void*) 0);
 	glVertexAttribDivisor(m_vert_norm_location, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_model_color_buffer);
+	glEnableVertexAttribArray(m_model_color_location);
+	glVertexAttribPointer(m_model_color_location, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, (void*) 0);
+	glVertexAttribDivisor(m_model_color_location, 1);
 
 	// Set the vertex attribute pointers for the model matrices (matrix is represented by 4 vectors)
 	glBindBuffer(GL_ARRAY_BUFFER, m_model_mat_buffer);
