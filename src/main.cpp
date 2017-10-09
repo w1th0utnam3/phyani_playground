@@ -34,7 +34,7 @@ int main()
 		// Create a window for the simulation
 		try {
 			// Create render window based on the context settings
-			RenderWindow window(settings);
+			GlfwRenderWindow window(settings);
 			window.setDebuggingEnabled(false);
 
 			// Modify the camera state
