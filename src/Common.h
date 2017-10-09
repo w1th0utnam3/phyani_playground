@@ -9,7 +9,9 @@
 #elif defined(_MSC_VER) && _MSC_VER >= 1910
 	#define HAS_STD_VARIANT
 #elif defined(__clang_major__) && __clang_major__ >= 4
-	#define HAS_STD_VARIANT
+	#if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606
+		#define HAS_STD_VARIANT
+	#endif
 #endif
 
 // Switch variant implementation depending on std library support
