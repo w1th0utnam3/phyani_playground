@@ -30,13 +30,13 @@ struct Interaction
 	int pressedButton = -1;
 };
 
-class RenderWindow
+class GlfwRenderWindow
 {
 public:
 	//! Constructs a GLFW based render window and initiailizes it.
-	RenderWindow(const ContextSettings& settings);
+	GlfwRenderWindow(const ContextSettings& settings);
 	//! Destroys the GLFW render window and calls cleanup methods.
-	~RenderWindow();
+	~GlfwRenderWindow();
 
 	//! Adds a scene that should be rendered in the render window.
 	void addScene(Scene* scene);

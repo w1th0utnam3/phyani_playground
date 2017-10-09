@@ -1,14 +1,15 @@
 #include <iostream>
 
 #include "GlfwWindowManager.h"
-#include "RenderWindow.h"
+#include "GlfwRenderWindow.h"
+#include "Camera.h"
+
 #include "Simulation.h"
 
-#include "Camera.h"
-#include "CubeShaderTestScene.h"
-#include "ShaderTestScene.h"
 #include "DemoScene.h"
 #include "ImGuiScene.h"
+#include "CubeShaderTestScene.h"
+#include "ShaderTestScene.h"
 
 int main()
 {

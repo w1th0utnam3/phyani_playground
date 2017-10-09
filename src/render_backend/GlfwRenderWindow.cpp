@@ -1,4 +1,4 @@
-#include "RenderWindow.h"
+#include "GlfwRenderWindow.h"
 
 #include <iostream>
 #include <vector>
@@ -11,7 +11,7 @@
 #include "GlfwHelper.h"
 #include "MathHelper.h"
 
-RenderWindow::RenderWindow(const ContextSettings& settings)
+GlfwRenderWindow::GlfwRenderWindow(const ContextSettings& settings)
 	: m_continueRenderLoop(false)
 	, m_drawMode(GL_FILL)
 	, m_camera(settings.windowWidth, settings.windowHeight)
@@ -28,7 +28,7 @@ RenderWindow::RenderWindow(const ContextSettings& settings)
 	if (!m_window) throw std::runtime_error("RenderWindow could not be initialized.");
 	glfwSetWindowUserPointer(m_window, static_cast<void*>(this));
 
-	// Register all callbacks
+	// Register all callbacks of this class to the central GlfwWindowManager
 	auto callbackRequests = noname::tools::move_construct_vector(
 		GlfwWindowManager::setMouseButtonCallback(m_window, mouse_button_callback),
 		GlfwWindowManager::setCursorPosCallback(m_window, cursor_position_callback),
@@ -50,7 +50,7 @@ RenderWindow::RenderWindow(const ContextSettings& settings)
 	if (!initialize()) std::cerr << "Simulation could not be initialized." << "\n";
 }
 
-RenderWindow::~RenderWindow()
+GlfwRenderWindow::~GlfwRenderWindow()
 {
 	// Unregister callbacks
 	auto callbackRequests = noname::tools::move_construct_vector(
@@ -74,7 +74,7 @@ RenderWindow::~RenderWindow()
 	std::cout << "(win) Window closed." << "\n";
 }
 
-bool RenderWindow::initialize()
+bool GlfwRenderWindow::initialize()
 {
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -83,12 +83,12 @@ bool RenderWindow::initialize()
 	return true;
 }
 
-void RenderWindow::cleanup()
+void GlfwRenderWindow::cleanup()
 {
 	clearScenes();
 }
 
-void RenderWindow::addScene(Scene* scene)
+void GlfwRenderWindow::addScene(Scene* scene)
 {
 	const auto previousContext = glfwGetCurrentContext();
 	if (previousContext != m_window) glfwMakeContextCurrent(m_window);
@@ -100,7 +100,7 @@ void RenderWindow::addScene(Scene* scene)
 	if (previousContext != m_window) glfwMakeContextCurrent(previousContext);
 }
 
-void RenderWindow::clearScenes()
+void GlfwRenderWindow::clearScenes()
 {
 	const auto previousContext = glfwGetCurrentContext();
 	if (previousContext != m_window) glfwMakeContextCurrent(m_window);
@@ -111,7 +111,7 @@ void RenderWindow::clearScenes()
 	if (previousContext != m_window) glfwMakeContextCurrent(previousContext);
 }
 
-void RenderWindow::executeRenderLoop()
+void GlfwRenderWindow::executeRenderLoop()
 {
 	if (m_continueRenderLoop) return;
 
@@ -123,12 +123,12 @@ void RenderWindow::executeRenderLoop()
 	m_continueRenderLoop = false;
 }
 
-void RenderWindow::requestStopRenderLoop()
+void GlfwRenderWindow::requestStopRenderLoop()
 {
 	m_continueRenderLoop = false;
 }
 
-void RenderWindow::setDebuggingEnabled(bool enabled)
+void GlfwRenderWindow::setDebuggingEnabled(bool enabled)
 {
 	auto contextScope = GlfwScopedContextSwitcher(m_window);
 
@@ -140,12 +140,12 @@ void RenderWindow::setDebuggingEnabled(bool enabled)
 	}
 }
 
-Camera* RenderWindow::camera()
+Camera* GlfwRenderWindow::camera()
 {
 	return &m_camera;
 }
 
-void RenderWindow::render()
+void GlfwRenderWindow::render()
 {
 	glViewport(0, 0, m_camera.viewportSize().x, m_camera.viewportSize().y);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -157,9 +157,9 @@ void RenderWindow::render()
 	glfwSwapBuffers(m_window);
 }
 
-void RenderWindow::mouse_button_callback(GLFWwindow* glfwWindow, int button, int action, int mods)
+void GlfwRenderWindow::mouse_button_callback(GLFWwindow* glfwWindow, int button, int action, int mods)
 {
-	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+	auto window = static_cast<GlfwRenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 
 	bool eventCaptured = false;
 	for (auto scene : window->m_scenes) {
@@ -178,9 +178,9 @@ void RenderWindow::mouse_button_callback(GLFWwindow* glfwWindow, int button, int
 	}
 }
 
-void RenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos, double ypos)
+void GlfwRenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos, double ypos)
 {
-	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+	auto window = static_cast<GlfwRenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 	const int width = window->m_camera.viewportSize().x;
 	const int height = window->m_camera.viewportSize().y;
 
@@ -212,9 +212,9 @@ void RenderWindow::cursor_position_callback(GLFWwindow* glfwWindow, double xpos,
 	window->m_interaction.lastMousePos.y = ypos;
 }
 
-void RenderWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, double yoffset)
+void GlfwRenderWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, double yoffset)
 {
-	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+	auto window = static_cast<GlfwRenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 
 	bool eventCaptured = false;
 	for (auto scene : window->m_scenes) {
@@ -228,11 +228,11 @@ void RenderWindow::scroll_callback(GLFWwindow* glfwWindow, double xoffset, doubl
 	}
 }
 
-void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
+void GlfwRenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
 
-	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+	auto window = static_cast<GlfwRenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 
 	bool eventCaptured = false;
 	for (auto scene : window->m_scenes) {
@@ -242,9 +242,9 @@ void RenderWindow::key_callback(GLFWwindow* glfwWindow, int key, int scancode, i
 	}
 }
 
-void RenderWindow::character_callback(GLFWwindow* glfwWindow, unsigned int codepoint)
+void GlfwRenderWindow::character_callback(GLFWwindow* glfwWindow, unsigned int codepoint)
 {
-	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+	auto window = static_cast<GlfwRenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 
 	bool eventCaptured = false;
 	for (auto scene : window->m_scenes) {
@@ -254,15 +254,15 @@ void RenderWindow::character_callback(GLFWwindow* glfwWindow, unsigned int codep
 	}
 }
 
-void RenderWindow::charmods_callback(GLFWwindow* glfwWindow, unsigned int codepoint, int mods) {}
+void GlfwRenderWindow::charmods_callback(GLFWwindow* glfwWindow, unsigned int codepoint, int mods) {}
 
-void RenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int height)
+void GlfwRenderWindow::window_size_callback(GLFWwindow* glfwWindow, int width, int height)
 {
-	auto window = static_cast<RenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
+	auto window = static_cast<GlfwRenderWindow*>(glfwGetWindowUserPointer(glfwWindow));
 	window->m_camera.setViewportSize(width, height);
 }
 
-void RenderWindow::debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+void GlfwRenderWindow::debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
 	switch (severity) {
 	case GL_DEBUG_SEVERITY_HIGH:
