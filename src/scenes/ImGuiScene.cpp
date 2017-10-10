@@ -60,12 +60,11 @@ void ImGuiScene::renderSceneContent()
 	ImGui_ImplGlfwGL3_NewFrame();
 
 	ImGuizmo::BeginFrame();
-	ImGuizmo::Enable(true);
+	ImGuizmo::Enable(m_options.gizmoEnabled);
 	editTransform(m_options.tempTransform);
 
 	drawMainWindow();
 
-	//ImGui::ShowTestWindow();
 	ImGui::Render();
 }
 
@@ -79,19 +78,22 @@ void ImGuiScene::drawMainWindow()
 
 	ImGui::PushItemWidth(-140);
 
+	// FPS counting
 	ImGui::Text("Render average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	static double timestepTime, dt;
 	std::tie(timestepTime, dt) = Simulation::getAnimationLoop().lastTimestepStats();
 	ImGui::Text("Animation %.3e ms/timestep, dt=%.3e", timestepTime*1000, dt*1000);
 	ImGui::Spacing();
 
-	if (ImGui::CollapsingHeader("Camera")) {
+	// Camera settings
+	if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
 		const auto rotation = m_camera->rotation();
 
 		if (ImGui::Button("Reset camera")) m_camera->resetToDefault();
-		ImGui::Text("Scaling: %.4e", m_camera->scaling().x);
-		ImGui::Text("Rotation: w=%.4e,x=%.4e,y=%.4e,z=%.4e", rotation.w, rotation.x, rotation.y, rotation.z);
+		ImGui::Text("Scaling:\n %.4e", m_camera->scaling().x);
+		ImGui::Text("Rotation:\n w=% 11.4e\n x=% 11.4e\n y=% 11.4e\n z=% 11.4e", rotation.w, rotation.x, rotation.y, rotation.z);
 
+		ImGui::Checkbox("Gizmo enabled", &m_options.gizmoEnabled);
 		ImGui::Text("Gizmo mode:");
 		ImGui::SameLine();
 		if (ImGui::RadioButton("Translate", m_options.currentGizmoOperation == ImGuizmo::TRANSLATE))
@@ -104,6 +106,7 @@ void ImGuiScene::drawMainWindow()
 			m_options.currentGizmoOperation = ImGuizmo::SCALE;
 	}
 
+	// Simulation, timestepping settings
 	if (ImGui::CollapsingHeader("Animation")) {
 		AnimationLoop& animationLoop = Simulation::getAnimationLoop();
 
