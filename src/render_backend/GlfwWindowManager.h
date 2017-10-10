@@ -18,6 +18,16 @@
  */
 class GlfwWindowManager
 {
+	// In the following, we define requests and events for the event queue of the GLFW manager.
+	// The event queue is required in order to allow communication with the GLFW context in a multi threaded env.
+	// As a reminder:
+	//	-> A `Request` is the parameter data which is stored in the queue in order
+	//	   to call the requested function asynchronously when processing the queue.
+	//	-> An `Event` consist of the request data and a promise of the expected return
+	//	   type which gets ready when the event was processed in the queue.
+
+	// -- Requests --
+
 	struct StopEventLoopRequest {};
 
 	struct CreateWindowRequest
@@ -34,6 +44,7 @@ class GlfwWindowManager
 		GLFWwindow* window;
 	};
 
+	//! Generic request type for Set***Callback GLFW function calls
 	template <typename CallbackT, std::size_t id = 0>
 	struct SetCallbackRequest
 	{
@@ -41,6 +52,7 @@ class GlfwWindowManager
 		CallbackT cbfun;
 	};
 
+	// Aliases for the Set***Callback requests
 	using SetMouseButtonCallbackRequest = SetCallbackRequest<GLFWmousebuttonfun>;
 	using SetCursorPosCallbackRequest = SetCallbackRequest<GLFWcursorposfun>;
 	using SetScrollCallbackRequest = SetCallbackRequest<GLFWscrollfun, 1>;
@@ -49,6 +61,7 @@ class GlfwWindowManager
 	using SetCharModsCallbackRequest = SetCallbackRequest<GLFWcharmodsfun>;
 	using SetWindowSizeCallbackRequest = SetCallbackRequest<GLFWwindowsizefun>;
 
+	// -- Events --
 	using StopEventLoopEvent = VoidEvent<StopEventLoopRequest>;
 	using CreateWindowEvent = Event<CreateWindowRequest, GLFWwindow*>;
 	using DestroyWindowEvent = VoidEvent<DestroyWindowRequest>;
@@ -60,6 +73,7 @@ class GlfwWindowManager
 	using SetCharModsCallbackEvent = VoidEvent<SetCharModsCallbackRequest>;
 	using SetWindowSizeCallbackEvent = VoidEvent<SetWindowSizeCallbackRequest>;
 
+	// -- Event queue type --
 	using event_queue_type = EventQueue<StopEventLoopEvent, 
 										CreateWindowEvent, 
 										DestroyWindowEvent, 

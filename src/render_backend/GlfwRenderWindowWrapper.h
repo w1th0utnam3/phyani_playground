@@ -25,12 +25,19 @@ struct ContextSettings
 	int windowHeight = 480;
 };
 
+//! Helper struct for staring mouse interaction event data
 struct Interaction
 {
 	glm::dvec2 lastMousePos = glm::dvec2(0, 0);
 	int pressedButton = -1;
 };
 
+//! Wrapper around GlfwWindow with many convenience features
+/*
+ * The wrapper class takes care of initializing an OpenGL context with respective
+ * settings, running a render loop, providing basic camera controls, propagating
+ * GLFW events to registered scenes which rendered in turn, etc.
+ */
 class GlfwRenderWindowWrapper
 {
 public:
@@ -46,7 +53,7 @@ public:
 
 	//! Starts the render loop of this window in the current thread.
 	void executeRenderLoop();
-	//! Sets a flag to stop the render loop at the next iteration.
+	//! Sets a flag to stop the render loop at the next iteration. May be called from any thread.
 	void requestStopRenderLoop();
 
 	//! Sets whether OpenGL debugging should be enabled (prints OpenGL debug messsages to stdandard error).
