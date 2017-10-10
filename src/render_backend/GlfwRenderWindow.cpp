@@ -19,6 +19,7 @@ GlfwRenderWindow::GlfwRenderWindow(const ContextSettings& settings)
 	// Specify OpenGL context profile hints
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, settings.glVersionMajor);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, settings.glVersionMinor);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, settings.glProfile);
 
 	// Request a new window from GLFW
