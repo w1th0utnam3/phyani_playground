@@ -19,7 +19,12 @@ GlfwRenderWindow::GlfwRenderWindow(const ContextSettings& settings)
 	// Specify OpenGL context profile hints
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, settings.glVersionMajor);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, settings.glVersionMinor);
+
+#if defined(__APPLE__)
+	// Request forward compatible context if running macOS
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
 	glfwWindowHint(GLFW_OPENGL_PROFILE, settings.glProfile);
 
 	// Request a new window from GLFW
@@ -132,6 +137,13 @@ void GlfwRenderWindow::requestStopRenderLoop()
 void GlfwRenderWindow::setDebuggingEnabled(bool enabled)
 {
 	auto contextScope = GlfwScopedContextSwitcher(m_window);
+
+	// Make sure that debug logging is supported
+	if (!(glfwGetWindowAttrib(m_window, GLFW_CONTEXT_VERSION_MAJOR) >= 4
+		  && glfwGetWindowAttrib(m_window, GLFW_CONTEXT_VERSION_MINOR) >= 3)) {
+		std::cerr << "Debug logging can only be enabled for OpenGL contexts of version >= 4.3!" << "\n";
+		return;
+	}
 
 	if (enabled) {
 		glEnable(GL_DEBUG_OUTPUT);
