@@ -8,6 +8,7 @@
 #include "CommonOpenGl.h"
 #include "Scene.h"
 
+//! Settings struct used to specify GLFW context hints for the requested window
 struct ContextSettings
 {
 	enum GlProfile {
@@ -33,7 +34,7 @@ struct Interaction
 class GlfwRenderWindow
 {
 public:
-	//! Constructs a GLFW based render window and initiailizes it.
+	//! Constructs a GLFW based render window and initializes it. Throws GlfwError if initialization fails.
 	GlfwRenderWindow(const ContextSettings& settings);
 	//! Destroys the GLFW render window and calls cleanup methods.
 	~GlfwRenderWindow();
@@ -48,8 +49,10 @@ public:
 	//! Sets a flag to stop the render loop at the next iteration.
 	void requestStopRenderLoop();
 
-	//! Enables or disables OpenGL debugging (prints OpenGL debug messsages to stdandard error)
+	//! Sets whether OpenGL debugging should be enabled (prints OpenGL debug messsages to stdandard error).
 	void setDebuggingEnabled(bool enabled = true);
+	//! Sets whether wireframe rendering (glPolygonMode GL_LINE) should be enabled.
+	void setWireframeEnabled(bool enabled = true);
 
 	//! Returns a pointer to the camera owned by the window.
 	Camera* camera();
@@ -90,7 +93,7 @@ private:
 
 	//! Camera settings of the window.
 	Camera m_camera;
-	//! User interaction data.
+	//! Temporary data of mouse interaction events.
 	Interaction m_interaction;
 	//! Currently loaded scenes that are rendered in the render loop.
 	std::vector<Scene*> m_scenes;

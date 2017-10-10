@@ -2,12 +2,11 @@
 
 #include <iostream>
 #include <vector>
-#include <stdexcept>
 
 #include <noname_tools/vector_tools.h>
 
-#include "DemoScene.h"
 #include "GlfwWindowManager.h"
+#include "RenderExceptions.h"
 #include "GlfwHelper.h"
 #include "MathHelper.h"
 
@@ -31,7 +30,7 @@ GlfwRenderWindow::GlfwRenderWindow(const ContextSettings& settings)
 	auto futureWindow = GlfwWindowManager::requestWindow(m_camera.viewportSize().x, m_camera.viewportSize().y, "Simulation", nullptr, nullptr);
 	GlfwWindowManager::processEvents();
 	m_window = futureWindow.get();
-	if (!m_window) throw std::runtime_error("RenderWindow could not be initialized.");
+	if (!m_window) throw GlfwError("RenderWindow could not be initialized.");
 	glfwSetWindowUserPointer(m_window, static_cast<void*>(this));
 
 	// Register all callbacks of this class to the central GlfwWindowManager
@@ -53,7 +52,7 @@ GlfwRenderWindow::GlfwRenderWindow(const ContextSettings& settings)
 	glfwSwapInterval(1);
 
 	// Initialize window content
-	if (!initialize()) std::cerr << "Simulation could not be initialized." << "\n";
+	if (!initialize()) std::cerr << "Render window could not be initialized!" << "\n";
 }
 
 GlfwRenderWindow::~GlfwRenderWindow()
@@ -77,7 +76,7 @@ GlfwRenderWindow::~GlfwRenderWindow()
 	GlfwWindowManager::destroyWindow(m_window);
 	GlfwWindowManager::processEvents();
 
-	std::cout << "(win) Window closed." << "\n";
+	std::cout << "Window closed." << "\n";
 }
 
 bool GlfwRenderWindow::initialize()
@@ -151,6 +150,11 @@ void GlfwRenderWindow::setDebuggingEnabled(bool enabled)
 	} else {
 		glDisable(GL_DEBUG_OUTPUT);
 	}
+}
+
+void GlfwRenderWindow::setWireframeEnabled(bool enabled)
+{
+	m_drawMode = (enabled) ? GL_LINE : GL_FILL;
 }
 
 Camera* GlfwRenderWindow::camera()
