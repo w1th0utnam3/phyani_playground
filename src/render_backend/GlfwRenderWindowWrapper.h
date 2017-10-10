@@ -31,13 +31,13 @@ struct Interaction
 	int pressedButton = -1;
 };
 
-class GlfwRenderWindow
+class GlfwRenderWindowWrapper
 {
 public:
 	//! Constructs a GLFW based render window and initializes it. Throws GlfwError if initialization fails.
-	GlfwRenderWindow(const ContextSettings& settings);
+	GlfwRenderWindowWrapper(const ContextSettings& settings);
 	//! Destroys the GLFW render window and calls cleanup methods.
-	~GlfwRenderWindow();
+	~GlfwRenderWindowWrapper();
 
 	//! Adds a scene that should be rendered in the render window.
 	void addScene(Scene* scene);

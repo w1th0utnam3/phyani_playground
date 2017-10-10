@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "GlfwWindowManager.h"
-#include "GlfwRenderWindow.h"
+#include "GlfwRenderWindowWrapper.h"
 #include "RenderExceptions.h"
 #include "Camera.h"
 
@@ -34,7 +34,7 @@ int main()
 		settings.windowHeight = 900;
 	
 		// Create render window based on the context settings
-		GlfwRenderWindow window(settings);
+		GlfwRenderWindowWrapper window(settings);
 		window.setDebuggingEnabled(true);
 		window.setWireframeEnabled(false);
 
