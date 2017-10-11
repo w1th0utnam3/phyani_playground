@@ -1,17 +1,17 @@
 #pragma once
 
-// Check compiler versions to enable certain features
+// Include useless header in order to get std lib version macros
+#include <ciso646>
+
+#if defined(__clang_major__) && __clang_major__ < 5 && defined(__GLIBCXX__)
+	#error Clang/LLVM older than version 5.0.0 is incompatible with libstdc++ in C++17 mode
+#endif
+
+// Conditionally switch on std::variant support
 #if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606
 	#define HAS_STD_VARIANT
-#elif defined(__GNUC__) && __GNUC__ >= 7
-	// Current variant implementation has bugs
-	//#define HAS_STD_VARIANT
 #elif defined(_MSC_VER) && _MSC_VER >= 1910
 	#define HAS_STD_VARIANT
-#elif defined(__clang_major__) && __clang_major__ >= 4
-	#if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606
-		#define HAS_STD_VARIANT
-	#endif
 #endif
 
 // Switch variant implementation depending on std library support
