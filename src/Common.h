@@ -8,7 +8,9 @@
 #endif
 
 // Conditionally switch on std::variant support
-#if defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606
+#if __has_include(<variant>) || (defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606)
+	#define HAS_STD_VARIANT
+#elif defined(__GNUC__) && __GNUC__ >= 7
 	#define HAS_STD_VARIANT
 #elif defined(_MSC_VER) && _MSC_VER >= 1910
 	#define HAS_STD_VARIANT

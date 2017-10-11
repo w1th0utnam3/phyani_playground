@@ -71,7 +71,13 @@ EntityType EntityFactory::createSpring(EntityComponentSystem& ecs, EntityType fr
 	{
 		auto& renderData = ecs.get<RenderData>(springEntity);
 		renderData.color = Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f);
-		renderData.properties = RenderData::Joint();
+
+		RenderData::Joint joint;
+		joint.connectorPositions = { Eigen::Vector3f(0, 0, 0) , Eigen::Vector3f(0, 0, 0) };
+		joint.connectorSize = 0.05f;
+		joint.lineWidth = 2.0f;
+
+		renderData.properties = joint;
 
 	}
 

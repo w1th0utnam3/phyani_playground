@@ -78,16 +78,16 @@ struct RenderData
 
 	struct Cuboid
 	{
-		Eigen::Vector3f position = Eigen::Vector3f(0, 0, 0);
-		Eigen::Quaternionf rotation = Eigen::Quaternionf(1, 0, 0, 0);
-		Eigen::Vector3f edges = Eigen::Vector3f(1, 1, 1);
+		Eigen::Vector3f position;
+		Eigen::Quaternionf rotation;
+		Eigen::Vector3f edges;
 	};
 
 	struct Joint
 	{
-		std::pair<Eigen::Vector3f, Eigen::Vector3f> connectorPositions = { Eigen::Vector3f(0, 0, 0) , Eigen::Vector3f(0, 0, 0) };
-		float connectorSize = 0.05f;
-		float lineWidth = 2.0f;
+		std::pair<Eigen::Vector3f, Eigen::Vector3f> connectorPositions;
+		float connectorSize;
+		float lineWidth;
 	};
 
 	common::variant::variant<Cuboid, Joint> properties;
