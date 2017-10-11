@@ -14,7 +14,7 @@
 
 // Clang 5.0 is incompatible with current libstdc++ std::variant implementation
 #if defined(__clang_major__) && defined(__GLIBCXX__)
-//	#undef HAS_STD_VARIANT
+	#undef HAS_STD_VARIANT
 #endif
 
 // Switch variant implementation depending on std library support
