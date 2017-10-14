@@ -86,7 +86,7 @@ void Camera::rotate(double angle, const glm::dvec3& axis)
 {
 	if (glm::length(axis) == 0) return;
 
-	glm::dquat rotatedAxisQuat = glm::conjugate(m_state.rotation) * glm::dquat(0, glm::normalize(axis));
+	glm::dquat rotatedAxisQuat = glm::conjugate(m_state.rotation) * glm::dquat(0, glm::normalize(axis)) * m_state.rotation;
 	glm::dvec3 rotatedAxis(rotatedAxisQuat[0], rotatedAxisQuat[1], rotatedAxisQuat[2]);
 	m_state.rotation = glm::normalize(glm::rotate(m_state.rotation, angle, rotatedAxis));
 
