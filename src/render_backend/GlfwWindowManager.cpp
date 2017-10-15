@@ -1,10 +1,9 @@
 ﻿#include "GlfwWindowManager.h"
 
 #include <iostream>
-#include <stdexcept>
 #include <string>
 
-
+#include "RenderExceptions.h"
 #include "EventQueue.h"
 
 std::atomic<bool> GlfwWindowManager::m_initialized(false);
@@ -23,7 +22,7 @@ auto GlfwWindowManager::create(bool throwOnFailure) -> GlfwWindowManagerUniquePt
 		const std::string error = "GLFW cannot be initialized twice at the same time!";
 		std::cerr << error << "\n";
 
-		if (throwOnFailure) throw std::runtime_error(error);
+		if (throwOnFailure) throw GlfwError(error);
 
 		return GlfwWindowManagerUniquePtr(nullptr, deleter);
 	}
@@ -33,7 +32,7 @@ auto GlfwWindowManager::create(bool throwOnFailure) -> GlfwWindowManagerUniquePt
 		const std::string error = "GLFW can only be initialized from the main thread!";
 		std::cerr << error << "\n";
 
-		if (throwOnFailure) throw std::runtime_error(error);
+		if (throwOnFailure) throw GlfwError(error);
 
 		return GlfwWindowManagerUniquePtr(nullptr, deleter);
 	}
@@ -56,7 +55,7 @@ GlfwWindowManager::GlfwWindowManager(bool throwOnFailure)
 		std::cerr << error << "\n";
 		m_initialized = false;
 
-		if (throwOnFailure) throw std::runtime_error(error);
+		if (throwOnFailure) throw GlfwError(error);
 	}
 	else {
 		m_initialized = true;
@@ -107,7 +106,7 @@ void GlfwWindowManager::processEvents()
 		return;
 	}
 
-	std::atomic<bool> processEvents = true;
+	std::atomic<bool> processEvents{true};
 
 	// Define the visitor which processes all possible event types
 	const struct

@@ -2,10 +2,9 @@
 
 #include <array>
 
-#include <glad/glad.h>
-#include <glm/gtc/type_ptr.hpp>
 #include <Eigen/Geometry>
 
+#include "CommonOpenGl.h"
 #include "Simulation.h"
 #include "EntityFactory.h"
 
@@ -19,9 +18,10 @@ DemoScene::DemoScene()
 
 DemoScene::~DemoScene()
 {
-	// Potentially join the animatino thread
+	// Potentially join the animation thread
 	if (m_animationLoop.isEventLoopRunning()) m_animationLoop.stopEventLoop().wait();
-	m_animationThread.join();
+	// Check if joinable: due to exceptions this code might be run when the thread was only default constructed
+	if (m_animationThread.joinable()) m_animationThread.join();
 }
 
 void DemoScene::initializeSceneContent()
@@ -58,7 +58,7 @@ void DemoScene::doTimestep(double dt)
 void DemoScene::resetScene()
 {
 	if (m_animationLoop.isEventLoopRunning()) m_animationLoop.stopEventLoop().wait();
-	m_animationThread.join();
+	if (m_animationThread.joinable()) m_animationThread.join();
 
 	m_ecs.reset();
 	initializeSceneContent();
@@ -70,7 +70,7 @@ void DemoScene::renderSceneContent()
 	const auto projection = m_camera->projectionMatrix();
 	glLoadMatrixd(glm::value_ptr(projection));
 	glMatrixMode(GL_MODELVIEW);
-	const auto transform = m_camera->modelViewMatrix();
+	const auto transform = m_camera->viewMatrix();
 	glLoadMatrixd(glm::value_ptr(transform));
 
 	initializeLight();

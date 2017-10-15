@@ -5,12 +5,12 @@
 
 #include <imgui.h>
 
-#include "ImguiGlfw3Helper.h"
-#include "ImGuizmo.h"
+#include "ImGuiGlfw3Helper.h"
+#include "MathHelper.h"
+
 #include "Simulation.h"
 #include "AnimationLoop.h"
 #include "DemoScene.h"
-#include "MathHelper.h"
 
 ImGuiScene::ImGuiScene()
 {
@@ -23,27 +23,27 @@ ImGuiScene::~ImGuiScene()
 void ImGuiScene::initializeSceneContent()
 {
 	std::cout << "(gui) Initialize ImGui..." << "\n";
-	ImGuiGlfw3Init(m_window, false);
+	ImGui_ImplGlfwGL3_Init(m_window, false);
 
 	// TODO: Add glfwSetCharModsCallback callback
 
 	m_glfwMouseButtonFun = [](GLFWwindow* window, int button, int action, int mods) -> bool {
-		ImGuiGlfw3MouseButtonCallback(window, button, action, mods);
-		return ImGui::IsMouseHoveringAnyWindow();
+		ImGui_ImplGlfwGL3_MouseButtonCallback(window, button, action, mods);
+		return (ImGui::IsMouseHoveringAnyWindow() || ImGuizmo::IsOver() || ImGuizmo::IsUsing());
 	};
 
 	m_glfwScrollFun = [](GLFWwindow* window, double xoffset, double yoffset) -> bool {
-		ImGuiGlfw3ScrollCallback(window, xoffset, yoffset);
+		ImGui_ImplGlfwGL3_ScrollCallback(window, xoffset, yoffset);
 		return ImGui::IsMouseHoveringAnyWindow();
 	};
 
 	m_glfwKeyFun = [](GLFWwindow* window, int key, int scancode, int action, int mods) -> bool {
-		ImGuiGlfw3KeyCallback(window, key, scancode, action, mods);
+		ImGui_ImplGlfwGL3_KeyCallback(window, key, scancode, action, mods);
 		return true;
 	};
 
 	m_glfwCharFun = [](GLFWwindow* window, unsigned int c) -> bool {
-		ImGuiGlfw3CharCallback(window, c);
+		ImGui_ImplGlfwGL3_CharCallback(window, c);
 		return true;
 	};
 }
@@ -51,21 +51,20 @@ void ImGuiScene::initializeSceneContent()
 void ImGuiScene::cleanupSceneContent()
 {
 	std::cout << "(gui) Cleaning up ImGui..." << "\n";
-	ImGuiGlfw3Shutdown();
+	ImGui_ImplGlfwGL3_Shutdown();
 }
 
 void ImGuiScene::renderSceneContent()
 {
 	glfwPollEvents();
-	ImGuiGlfw3NewFrame();
+	ImGui_ImplGlfwGL3_NewFrame();
 
 	ImGuizmo::BeginFrame();
-	ImGuizmo::Enable(true);
+	ImGuizmo::Enable(m_options.gizmoEnabled);
 	editTransform(m_options.tempTransform);
 
 	drawMainWindow();
 
-	//ImGui::ShowTestWindow();
 	ImGui::Render();
 }
 
@@ -79,32 +78,51 @@ void ImGuiScene::drawMainWindow()
 
 	ImGui::PushItemWidth(-140);
 
+	// FPS counting
 	ImGui::Text("Render average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	static double timestepTime, dt;
 	std::tie(timestepTime, dt) = Simulation::getAnimationLoop().lastTimestepStats();
 	ImGui::Text("Animation %.3e ms/timestep, dt=%.3e", timestepTime*1000, dt*1000);
 	ImGui::Spacing();
 
-	if (ImGui::CollapsingHeader("Camera")) {
+	// Camera settings
+	if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
 		const auto rotation = m_camera->rotation();
 
 		if (ImGui::Button("Reset camera")) m_camera->resetToDefault();
-		ImGui::Text("Zoom: %.4e", m_camera->zoom());
-		ImGui::Text("Rotation: w=%.4e,x=%.4e,y=%.4e,z=%.4e", rotation.w, rotation.x, rotation.y, rotation.z);
+		ImGui::Text("Scaling:\n %.4e", m_camera->scaling().x);
+		ImGui::Text("Rotation:\n w=% 11.4e\n x=% 11.4e\n y=% 11.4e\n z=% 11.4e", rotation.w, rotation.x, rotation.y, rotation.z);
+
+		ImGui::Checkbox("Gizmo enabled", &m_options.gizmoEnabled);
+		ImGui::Text("Gizmo mode:");
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Translate", m_options.currentGizmoOperation == ImGuizmo::TRANSLATE))
+			m_options.currentGizmoOperation = ImGuizmo::TRANSLATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Rotate", m_options.currentGizmoOperation == ImGuizmo::ROTATE))
+			m_options.currentGizmoOperation = ImGuizmo::ROTATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Scale", m_options.currentGizmoOperation == ImGuizmo::SCALE))
+			m_options.currentGizmoOperation = ImGuizmo::SCALE;
 	}
 
+	// Simulation, timestepping settings
 	if (ImGui::CollapsingHeader("Animation")) {
 		AnimationLoop& animationLoop = Simulation::getAnimationLoop();
 
 		if (ImGui::Button("Reset scene")) Simulation::getAnimationScene().resetScene();
 
 		ImGui::Text("Automatic timestepping");
-		if (ImGui::Checkbox("Start/stop time", &m_options.automaticTimestepping) || ImGui::IsKeyPressed(GLFW_KEY_SPACE) ) animationLoop.toggleAutomaticTimestepping(m_options.timeStretch);
-		ImGui::SliderFloat("Time stretch factor", &m_options.timeStretch, 0.0f + std::numeric_limits<float>::epsilon(), 100, "%.5f", 10);
+		if (ImGui::Checkbox("Start/stop time", &m_options.automaticTimestepping)
+			|| ImGui::IsKeyPressed(GLFW_KEY_SPACE))
+			animationLoop.toggleAutomaticTimestepping(m_options.timeStretch);
+		ImGui::SliderFloat("Time stretch factor",
+						   &m_options.timeStretch, 0.0f + std::numeric_limits<float>::epsilon(), 100, "%.5f", 10);
 
 		ImGui::Text("Manual timestepping");
 		if (ImGui::Button("Increment timestep")) animationLoop.requestTimestep(m_options.timestep);
-		ImGui::SliderFloat("Manual timestep size", &m_options.timestep, 0.0f + std::numeric_limits<float>::epsilon(), 100, "%.5f", 10);
+		ImGui::SliderFloat("Manual timestep size",
+						   &m_options.timestep, 0.0f + std::numeric_limits<float>::epsilon(), 100, "%.5f", 10);
 	}
 
 	ImGui::End();
@@ -112,15 +130,17 @@ void ImGuiScene::drawMainWindow()
 
 void ImGuiScene::editTransform(glm::fmat4& matrix)
 {
+	//static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
+	//static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+
+	if (ImGui::IsKeyPressed(GLFW_KEY_1))
+		m_options.currentGizmoOperation = ImGuizmo::TRANSLATE;
+	if (ImGui::IsKeyPressed(GLFW_KEY_2))
+		m_options.currentGizmoOperation = ImGuizmo::ROTATE;
+	if (ImGui::IsKeyPressed(GLFW_KEY_3))
+		m_options.currentGizmoOperation = ImGuizmo::SCALE;
+
 	/*
-	static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
-	static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
-	if (ImGui::IsKeyPressed(90))
-		mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-	if (ImGui::IsKeyPressed(69))
-		mCurrentGizmoOperation = ImGuizmo::ROTATE;
-	if (ImGui::IsKeyPressed(82)) // r Key
-		mCurrentGizmoOperation = ImGuizmo::SCALE;
 	if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
 		mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
 	ImGui::SameLine();
@@ -162,12 +182,43 @@ void ImGuiScene::editTransform(glm::fmat4& matrix)
 		break;
 	}
 	*/
+
+	//std::cout << std::boolalpha << "over: " << ImGuizmo::IsOver() << ", using: " << ImGuizmo::IsUsing() << std::endl;
 	
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-	static glm::fmat4 view = m_camera->modelViewMatrix();
-	static glm::fmat4 projection = m_camera->projectionMatrix();
-	ImGuizmo::DrawCube(&view[0][0], &projection[0][0], &matrix[0][0]);
-	ImGuizmo::Manipulate(&view[0][0], &projection[0][0], ImGuizmo::ROTATE, ImGuizmo::WORLD, &matrix[0][0]);
+	const glm::dquat rotation = m_camera->rotation();
+
+	glm::dmat4 view = glm::fmat4(1.0f);
+	view = glm::translate(view, -m_camera->translation());
+	//view = glm::scale(view, m_camera->scaling());
+	view = glm::rotate(view, glm::angle(rotation), glm::axis(rotation));
+
+	const glm::fmat4 projection = m_camera->projectionMatrix();
+
+	if (!m_options.gizmoPreviouslyInUse) {
+		switch (m_options.currentGizmoOperation) {
+		case ImGuizmo::ROTATE:
+			matrix = glm::dmat4(m_camera->rotation());
+			break;
+		}
+	}
+
+	const bool gizmoInUse = ImGuizmo::IsUsing();
+	const bool gizmoUseEnded = m_options.gizmoPreviouslyInUse && !gizmoInUse;
+	m_options.gizmoPreviouslyInUse = gizmoInUse;
+
+	glm::fmat4 fview(view);
+	ImGuizmo::Manipulate(glm::value_ptr(fview), glm::value_ptr(projection),
+			m_options.currentGizmoOperation, ImGuizmo::LOCAL, glm::value_ptr(matrix));
+
+	if (gizmoUseEnded) {
+		switch (m_options.currentGizmoOperation) {
+		case ImGuizmo::ROTATE:
+			glm::dquat rot = glm::dquat(matrix);
+			m_camera->setRotation(rot);
+			break;
+		}
+	}
 }

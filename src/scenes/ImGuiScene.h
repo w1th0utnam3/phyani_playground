@@ -2,7 +2,9 @@
 
 #include "Scene.h"
 
-#include <glm/glm.hpp>
+#include <ImGuizmo.h>
+
+#include "CommonOpenGl.h"
 
 class ImGuiScene : public Scene
 {
@@ -24,7 +26,10 @@ private:
 		float timeStretch = 1.0f;
 		bool automaticTimestepping = false;
 
-		glm::fmat4 tempTransform;
+		bool gizmoEnabled = false;
+		bool gizmoPreviouslyInUse = false;
+		ImGuizmo::OPERATION currentGizmoOperation = ImGuizmo::ROTATE;
+		glm::fmat4 tempTransform = glm::fmat4(1.0f);
 	};
 
 	UiOptions m_options;

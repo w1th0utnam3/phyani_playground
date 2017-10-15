@@ -1,4 +1,4 @@
-#include "scene.h"
+#include "Scene.h"
 
 #include <cassert>
 

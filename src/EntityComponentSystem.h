@@ -2,11 +2,12 @@
 
 #include <cstdint>
 #include <atomic>
-#include <variant>
 
 #include <registry.hpp>
 
 #include <Eigen/Geometry>
+
+#include "Common.h"
 
 using EntityType = std::uint32_t;
 
@@ -30,48 +31,45 @@ struct Joint
 		double damping;
 	};
 
-	std::variant<DampedSpring> jointProperties;
+	common::variant::variant<DampedSpring> jointProperties;
 };
 
-struct LinearState
+struct TranslationalState
 {
 	Eigen::Vector3d position = Eigen::Vector3d(0, 0, 0);
 	Eigen::Vector3d linearVelocity = Eigen::Vector3d(0, 0, 0);
 };
 
-struct AngularState
+struct RotationalState
 {
 	Eigen::Quaterniond rotation = Eigen::Quaterniond(1, 0, 0, 0);
 	Eigen::Vector3d angularVelocity = Eigen::Vector3d(0, 0, 0);
 };
 
-struct RigidBody
+struct TranslationalAnimatedBody
 {
 	bool sleeping = false;
 
 	double mass = 0.0;
+
+	Eigen::Vector3d externalForce = Eigen::Vector3d(0, 0, 0);
+
+	TranslationalState state;
+};
+
+struct RotationalAnimatedBody
+{
+	bool sleeping = false;
+
 	Eigen::Vector3d prinicipalInertia = Eigen::Vector3d(0, 0, 0);
 
 	Eigen::Matrix3d globalInertiaMatrix;
 	Eigen::Matrix3d globalInverseInertiaMatrix;
 
-	Eigen::Vector3d externalForce = Eigen::Vector3d(0, 0, 0);
 	Eigen::Vector3d externalTorque = Eigen::Vector3d(0, 0, 0);
 
-	LinearState linearState;
-	AngularState angularState;
+	RotationalState state;
 	Eigen::Matrix3d rotationMatrix = Eigen::Matrix3d::Identity();
-};
-
-struct Particle
-{
-	bool sleeping = false;
-
-	double mass = 0.0;
-
-	Eigen::Vector3d externalForce = Eigen::Vector3d(0, 0, 0);
-
-	LinearState linearState;
 };
 
 struct RenderData
@@ -80,21 +78,21 @@ struct RenderData
 
 	struct Cuboid
 	{
-		Eigen::Vector3f position = Eigen::Vector3f(0, 0, 0);
-		Eigen::Quaternionf rotation = Eigen::Quaternionf(1, 0, 0, 0);
-		Eigen::Vector3f edges = Eigen::Vector3f(1, 1, 1);
+		Eigen::Vector3f position;
+		Eigen::Quaternionf rotation;
+		Eigen::Vector3f edges;
 	};
 
 	struct Joint
 	{
-		std::pair<Eigen::Vector3f, Eigen::Vector3f> connectorPositions = { Eigen::Vector3f(0, 0, 0) , Eigen::Vector3f(0, 0, 0) };
-		float connectorSize = 0.05f;
-		float lineWidth = 2.0f;
+		std::pair<Eigen::Vector3f, Eigen::Vector3f> connectorPositions;
+		float connectorSize;
+		float lineWidth;
 	};
 
-	std::variant<Cuboid, Joint> properties;
+	common::variant::variant<Cuboid, Joint> properties;
 };
 
-using EntityComponentSystemBase = entt::StandardRegistry<EntityType, RigidBody, Particle, Joint, RenderData>;
+using EntityComponentSystemBase = entt::StandardRegistry<EntityType, TranslationalAnimatedBody, RotationalAnimatedBody, Joint, RenderData>;
 
 class EntityComponentSystem : public EntityComponentSystemBase {};

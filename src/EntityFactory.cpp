@@ -2,12 +2,12 @@
 
 EntityType EntityFactory::createParticle(EntityComponentSystem& ecs, double mass, Eigen::Vector3d location)
 {
-	auto particleEntity = ecs.create<Particle, RenderData>();
+	auto particleEntity = ecs.create<TranslationalAnimatedBody, RenderData>();
 
 	{
-		auto& particle = ecs.get<Particle>(particleEntity);
+		auto& particle = ecs.get<TranslationalAnimatedBody>(particleEntity);
 		particle.mass = mass;
-		particle.linearState.position = location;
+		particle.state.position = location;
 	}
 
 	{
@@ -26,15 +26,19 @@ EntityType EntityFactory::createCube(EntityComponentSystem& ecs, double mass, do
 
 EntityType EntityFactory::createCuboid(EntityComponentSystem& ecs, double mass, Eigen::Vector3d edges, Eigen::Vector3d center)
 {
-	auto cubeEntity = ecs.create<RigidBody, RenderData>();
+	auto cubeEntity = ecs.create<TranslationalAnimatedBody, RotationalAnimatedBody, RenderData>();
 
 	{
-		auto& cube = ecs.get<RigidBody>(cubeEntity);
+		auto& cube = ecs.get<TranslationalAnimatedBody>(cubeEntity);
 		cube.mass = mass;
-		cube.prinicipalInertia = (cube.mass/12)*Eigen::Vector3d(edges[1]*edges[1] + edges[2]*edges[2],
+		cube.state.position = center;
+	}
+
+	{
+		auto& cube = ecs.get<RotationalAnimatedBody>(cubeEntity);
+		cube.prinicipalInertia = (mass/12)*Eigen::Vector3d(edges[1]*edges[1] + edges[2]*edges[2],
 																edges[0]*edges[0] + edges[2]*edges[2],
 																edges[0]*edges[0] + edges[1]*edges[1]);
-		cube.linearState.position = center;
 	}
 
 	{
@@ -67,7 +71,13 @@ EntityType EntityFactory::createSpring(EntityComponentSystem& ecs, EntityType fr
 	{
 		auto& renderData = ecs.get<RenderData>(springEntity);
 		renderData.color = Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f);
-		renderData.properties = RenderData::Joint();
+
+		RenderData::Joint joint;
+		joint.connectorPositions = { Eigen::Vector3f(0, 0, 0) , Eigen::Vector3f(0, 0, 0) };
+		joint.connectorSize = 0.05f;
+		joint.lineWidth = 2.0f;
+
+		renderData.properties = joint;
 
 	}
 
