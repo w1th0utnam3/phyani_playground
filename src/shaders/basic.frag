@@ -20,7 +20,7 @@ void main()
 	float materialShininess = 5;
 
 	// Position of the light in world space
-	vec3 lightPosition_worldspace = vec3(1.1, 1.0, 2.0);
+	vec3 lightPosition_worldspace = vec3(0.5, 1.0, 6.0);
 
 	// Vector that goes from the vertex to the light, in camera space. M is omitted because it's identity.
 	vec3 lightPosition_cameraspace = (V * vec4(lightPosition_worldspace, 1.0)).xyz;
