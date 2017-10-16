@@ -3,8 +3,8 @@
 // Include useless header in order to get std lib version macros
 #include <ciso646>
 
-#if defined(__clang_major__) && __clang_major__ < 5 && defined(__GLIBCXX__)
-	#error Clang/LLVM older than version 5.0.0 is incompatible with libstdc++ <functional> in C++17 mode (missing template deduction guides)
+#if defined(__clang_major__) && __clang_major__ < 5 && defined(__GLIBCXX__) && __GLIBCXX__ > 20170516
+	#error Clang/LLVM versions older than 5.0.0 are incompatible with newer libstdc++ implementations of <optional> (implicitely used by <functional>) in C++17 mode (missing template deduction guides)
 #endif
 
 // Conditionally switch on std::variant support
