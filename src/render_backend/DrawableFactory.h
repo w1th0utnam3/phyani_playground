@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "CommonOpenGl.h"
 
 //! Factory for various primitive drawable objects
@@ -26,6 +28,8 @@ public:
 
 	//! Returns a drawable with vertices and normals representing a cube.
 	static DrawableSource createCube();
+	//! Returns a drawable with vertices representing a sphere.
+	static DrawableSource createSphere();
 
 private:
 	//! Calculates the indices for a vertex array, assuming duplicate vertices for adjacent primitives.
