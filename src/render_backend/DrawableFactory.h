@@ -36,7 +36,10 @@ private:
 	static std::vector<DrawableSource::IndexT> calculateIndices(
 			const std::vector<DrawableSource::VertexT>& vertices);
 	//! Calculates triangle normals for a vertex array,assuming duplicate vertices for adjacent primitives.
-	static std::vector<DrawableSource::VertexT> calculateTriangleNormals(
+	static std::vector<DrawableSource::VertexT> calculateTriangleNormalsPerVertex(
+			const std::vector<DrawableSource::VertexT>& vertices,
+			const std::vector<DrawableSource::IndexT>& indices);
+	static std::vector<DrawableSource::VertexT> calculateTriangleNormalsPerTriangle(
 			const std::vector<DrawableSource::VertexT>& vertices,
 			const std::vector<DrawableSource::IndexT>& indices);
 };
