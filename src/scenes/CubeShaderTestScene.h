@@ -34,7 +34,7 @@ private:
 		GLfloat model_mat[4*4];
 	};
 
-	GLuint m_cubeDrawableId;
+	GLuint m_cubeDrawableId, m_sphereDrawableId;
 
 	DrawableManager<InstanceData> m_drawables;
 };

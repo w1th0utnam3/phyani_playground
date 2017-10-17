@@ -9,6 +9,7 @@
 void CubeShaderTestScene::initializeSceneContent()
 {
 	m_cubeDrawableId = m_drawables.registerDrawable(DrawableFactory::createCube());
+	m_sphereDrawableId = m_drawables.registerDrawable(DrawableFactory::createSphere());
 
 	// The number of cubes per edge of the "cube grid"
 	const int edgeLength = 2;
@@ -50,17 +51,19 @@ void CubeShaderTestScene::initializeSceneContent()
 		}
 	}
 
+	// Draw a sphere that visualizes the position of the shader's light source
 	{
-		InstanceData lightCube;
-		lightCube.color[0] = 0;
-		lightCube.color[1] = 0;
-		lightCube.color[2] = 255;
-		lightCube.color[3] = 0;
-		glm::fmat4* model_mat = reinterpret_cast<glm::fmat4*>(lightCube.model_mat);
-		*model_mat = glm::translate(id, glm::fvec3(0.5f, 1.0f, 6.0f));
-		*model_mat = glm::scale(*model_mat, glm::fvec3(0.2f, 0.2f, 0.2f));
+		InstanceData lightSphere;
+		lightSphere.color[0] = 0;
+		lightSphere.color[1] = 0;
+		lightSphere.color[2] = 255;
+		lightSphere.color[3] = 0;
+		glm::fmat4* model_mat = reinterpret_cast<glm::fmat4*>(lightSphere.model_mat);
+		*model_mat = id;
+		//*model_mat = glm::translate(id, glm::fvec3(0.5f, 1.0f, 6.0f));
+		//*model_mat = glm::scale(*model_mat, glm::fvec3(0.2f, 0.2f, 0.2f));
 
-		m_drawables.storeInstance(m_cubeDrawableId, lightCube);
+		m_drawables.storeInstance(m_sphereDrawableId, lightSphere);
 	}
 
 	glGenVertexArrays(1, &m_vao);
@@ -154,25 +157,30 @@ void CubeShaderTestScene::cleanupSceneContent()
 
 void CubeShaderTestScene::renderSceneContent()
 {
+	// Lock the drawable manager against clearing and reallocations
 	auto bufferLock = m_drawables.shared_lock();
 
+	// Get view matrices from the camera
 	const glm::fmat4 v = m_camera->viewMatrix();
 	const glm::fmat4 p = m_camera->projectionMatrix();
 
-	// Get dt since last render for constant rotation speed
+	// Get dt since last render
 	const double currentTime = glfwGetTime();
 	const double dt = currentTime - m_lastTime;
-	m_lastTime = currentTime;	
+	m_lastTime = currentTime;
 
-	for (auto it = m_drawables.drawablesBegin(); it != m_drawables.drawablesEnd(); ++it) {
-		auto drawableData = *it;
+	// Loop over all drawables
+	for (auto drawableData : m_drawables.drawableRange())
+	{
+		// TODO: Move element count to property of drawable
+		const GLuint instanceCount = drawableData.instanceCount();
+		const GLuint elementCount = drawableData.indexCount;
+		const void* indexOffset = (void*)(drawableData.indexBufferOffset * sizeof(GLuint));
 
-		// Rotate all model matrices in random directions
-		/*
-		for (auto& modelMat : m_model_mats)
-			modelMat = glm::rotate(modelMat, (float)(2*dt), glm::fvec3(m_random(), m_random(), m_random()));
-		*/
+		// Skip drawables without instances
+		if (instanceCount == 0) continue;
 
+		// Bind the VAO if necessary
 		if (CommonOpenGl::getGlValue<GLint>(GL_VERTEX_ARRAY_BINDING) != m_vao)
 			glBindVertexArray(m_vao);
 
@@ -181,23 +189,14 @@ void CubeShaderTestScene::renderSceneContent()
 		glBufferData(GL_ARRAY_BUFFER, drawableData.instanceDataSize(), NULL, GL_STREAM_DRAW);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, drawableData.instanceDataSize(), drawableData.instanceData());
 
+		// Activate the shader if necessary
 		m_shaderProgram.useProgram();
 
-		// Update the view and projection matrices
+		// Update the view and projection matrices according to the current camera configuration
 		glUniformMatrix4fv(m_view_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(v));
 		glUniformMatrix4fv(m_projection_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(p));
 
-		// Draw multiple instances of the cube
-		const GLuint instanceCount = drawableData.instanceCount();
-		const GLuint drawableVertexCount = drawableData.vertexCount;
-		const GLuint elementCount = drawableVertexCount / 3;
-
-		// TODO: Move element count to property of drawable
-
-		if (instanceCount > 1) {
-			glDrawElementsInstanced(drawableData.mode, elementCount, GL_UNSIGNED_INT, nullptr, instanceCount);
-		} else {
-			glDrawElements(drawableData.mode, elementCount, GL_UNSIGNALED, nullptr);
-		}
+		// Draw the instances
+		glDrawElementsInstanced(drawableData.mode, elementCount, GL_UNSIGNED_INT, indexOffset, instanceCount);
 	}
 }
