@@ -76,6 +76,10 @@ void CubeShaderTestScene::initializeSceneContent()
 	glBindBuffer(GL_ARRAY_BUFFER, m_normal_buffer);
 	glBufferData(GL_ARRAY_BUFFER, m_drawables.normalBufferSize(), m_drawables.normalBufferData(), GL_STATIC_DRAW);
 
+	glGenBuffers(1, &m_index_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_drawables.indexBufferSize(), m_drawables.indexBufferData(), GL_STATIC_DRAW);
+
 	// Generate buffer for model matrices and colors
 	glGenBuffers(1, &m_instance_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_instance_buffer);
@@ -186,11 +190,14 @@ void CubeShaderTestScene::renderSceneContent()
 		// Draw multiple instances of the cube
 		const GLuint instanceCount = drawableData.instanceCount();
 		const GLuint drawableVertexCount = drawableData.vertexCount;
+		const GLuint elementCount = drawableVertexCount / 3;
+
+		// TODO: Move element count to property of drawable
 
 		if (instanceCount > 1) {
-			glDrawArraysInstanced(drawableData.mode, 0, drawableVertexCount / 3, instanceCount);
+			glDrawElementsInstanced(drawableData.mode, elementCount, GL_UNSIGNED_INT, nullptr, instanceCount);
 		} else {
-			glDrawArrays(drawableData.mode, 0, drawableVertexCount / 3);
+			glDrawElements(drawableData.mode, elementCount, GL_UNSIGNALED, nullptr);
 		}
 	}
 }
