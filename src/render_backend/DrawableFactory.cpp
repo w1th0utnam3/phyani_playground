@@ -108,7 +108,7 @@ std::vector<DrawableFactory::DrawableSource::VertexT> DrawableFactory::calculate
 	// TODO: Check for indexed objects where 'vertices.size() != indices.size()*3'
 
 	std::vector<DrawableSource::VertexT> normals;
-	normals.resize(indices.size() / 3);
+	normals.resize(indices.size());
 
 	for (DrawableSource::IndexT i = 0; i < indices.size(); i+=3) {
 		const auto v1 = reinterpret_cast<const glm::fvec3*>(&vertices[3*indices[i + 0]]);
@@ -292,6 +292,7 @@ public:
 DrawableFactory::DrawableSource DrawableFactory::createSphere()
 {
 	DrawableSource drawable;
+	drawable.mode = GL_TRIANGLES;
 
 	IcoSphereCreator generator;
 	auto mesh = generator.create(2);
