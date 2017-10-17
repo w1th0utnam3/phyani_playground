@@ -33,6 +33,8 @@ public:
 
 		IndexT indexBufferOffset;
 		IndexT indexCount;
+
+		IndexT vertexIndexOffset;
 	};
 
 private:
@@ -151,8 +153,10 @@ public:
 		drawableData.indexCount = static_cast<IndexT>(drawable.indices.size());
 		m_indexBuffer.insert(m_indexBuffer.end(), drawable.indices.begin(), drawable.indices.end());
 
+		// Increment indices in order to point to correct vertices
+		drawableData.vertexIndexOffset = drawableData.vertexBufferOffset/3;
 		for (IndexT i = drawableData.indexBufferOffset; i < drawableData.indexBufferOffset + drawableData.indexCount; i++) {
-			m_indexBuffer[i] += drawableData.vertexBufferOffset;
+			m_indexBuffer[i] += drawableData.vertexIndexOffset;
 		}
 
 		// Return drawable id
@@ -172,7 +176,7 @@ public:
 		drawable.instances.push_back(instanceData);
 
 		// Return instance id
-		return instanceOffset;
+		return static_cast<IndexT>(instanceOffset);
 	}
 
 	IndexT createInstances(IndexT drawableId, IndexT instanceCount)
@@ -198,7 +202,8 @@ public:
 		auto& drawable = m_drawables[drawableId];
 		std::lock_guard<MutexT> lock(drawable.drawableMutex);
 
-		drawable.instances.erase(instanceId);
+		// Erase the specified instance
+		drawable.instances.erase(drawable.instances.begin() + instanceId);
 	}
 
 	std::shared_lock<SharedMutexT> shared_lock() { return std::shared_lock<SharedMutexT>(m_bufferMutex); }
