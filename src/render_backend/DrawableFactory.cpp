@@ -289,20 +289,21 @@ public:
 	}
 };
 
-DrawableFactory::DrawableSource DrawableFactory::createSphere()
+DrawableFactory::DrawableSource DrawableFactory::createSphere(const int recursionLevel)
 {
 	DrawableSource drawable;
 	drawable.mode = GL_TRIANGLES;
 
-	IcoSphereCreator generator;
-	auto mesh = generator.create(2);
+	{
+		auto mesh = IcoSphereCreator().create(recursionLevel);
 
-	drawable.vertices.resize(mesh.positions.size() * 3);
-	std::memcpy(drawable.vertices.data(), mesh.positions.data(), sizeof(GLfloat) * drawable.vertices.size());
+		drawable.vertices.resize(mesh.positions.size() * 3);
+		std::memcpy(drawable.vertices.data(), mesh.positions.data(), sizeof(GLfloat) * drawable.vertices.size());
 
-	drawable.indices.resize(mesh.triangleIndices.size());
-	for (std::size_t i = 0; i < mesh.triangleIndices.size(); i++) {
-		drawable.indices[i] = mesh.triangleIndices[i];
+		drawable.indices.resize(mesh.triangleIndices.size());
+		for (std::size_t i = 0; i < mesh.triangleIndices.size(); i++) {
+			drawable.indices[i] = mesh.triangleIndices[i];
+		}
 	}
 
 	drawable.normals = calculateTriangleNormalsPerTriangle(drawable.vertices, drawable.indices);

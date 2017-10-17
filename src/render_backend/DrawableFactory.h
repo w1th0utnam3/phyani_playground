@@ -29,7 +29,7 @@ public:
 	//! Returns a drawable with vertices and normals representing a cube.
 	static DrawableSource createCube();
 	//! Returns a drawable with vertices representing a sphere.
-	static DrawableSource createSphere();
+	static DrawableSource createSphere(const int recursionLevel = 2);
 
 private:
 	//! Calculates the indices for a vertex array, assuming duplicate vertices for adjacent primitives.
