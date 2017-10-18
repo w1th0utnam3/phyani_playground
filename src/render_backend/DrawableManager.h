@@ -14,14 +14,32 @@
 #include "CommonOpenGl.h"
 #include "DrawableFactory.h"
 
-template <typename InstanceDataT, typename DrawableSourceT = DrawableFactory::DrawableSource>
+template <typename DrawableManagerT>
+class DrawableProxy;
+
+template <typename DrawableManagerT>
+class DrawableIterator;
+
+template <typename InstanceDataT_, typename DrawableSourceT_ = DrawableFactory::DrawableSource>
 class DrawableManager
 {
-private:
+public:
+	using InstanceDataT = InstanceDataT_;
+	using DrawableSourceT = DrawableSourceT_;
+
+	using DrawableManagerT = DrawableManager<InstanceDataT, DrawableSourceT>;
+
+	using DrawableProxyT = DrawableProxy<DrawableManagerT>;
+	using DrawableIteratorT = DrawableIterator<DrawableManagerT>;
+
+	template <typename T>
+	friend class DrawableProxy;
+
+	template <typename T>
+	friend class DrawableIterator;
+
 	using VertexT = typename DrawableSourceT::VertexT;
 	using IndexT = typename DrawableSourceT::IndexT;
-
-public:
 
 	struct DrawableData
 	{
@@ -39,8 +57,16 @@ public:
 		IndexT vertexIndexOffset;
 	};
 
-private:
+// Required for DrawableProxy base class definition in GCC
+//		See: https://stackoverflow.com/questions/46819854/access-private-definitions-in-base-clause-of-friend-class-template
+#ifdef __GNUC__
 	using MutexT = std::mutex;
+#endif
+
+private:
+#ifndef __GNUC__
+	using MutexT = std::mutex;
+#endif
 	using SharedMutexT = std::shared_timed_mutex;
 
 	template<typename T>
@@ -70,57 +96,6 @@ private:
 	};
 
 public:
-	class DrawableProxy : private std::unique_lock<MutexT>, public DrawableData
-	{
-	public:
-		DrawableProxy(Drawable& target)
-			: std::unique_lock<MutexT>(target.drawableMutex)
-			, DrawableData(target.data)
-			, m_target(target)
-		{
-		}
-
-		DrawableProxy(DrawableProxy&& other) = default;
-		DrawableProxy& operator=(DrawableProxy&& other) = default;
-
-		IndexT instanceCount() const { return static_cast<IndexT>(m_target.instances.size()); }
-		std::size_t instanceDataSize() const { return m_target.instances.size() * sizeof(InstanceDataT); }
-		InstanceDataT* instanceData() { return m_target.instances.data(); }
-		const InstanceDataT* instanceData() const { return m_target.instances.data(); }
-
-	private:
-		Drawable& m_target;
-	};
-
-	class DrawableIterator
-	{
-	public:
-		using difference_type = IndexT;
-		using value_type = DrawableProxy;
-		using pointer = DrawableProxy*;
-		using reference = DrawableProxy&;
-		using iterator_category = std::forward_iterator_tag;
-
-		DrawableIterator() = default;
-		DrawableIterator(const typename ContainerT<Drawable>::iterator& it) : it(it) {}
-
-		bool operator==(const DrawableIterator& other) const { return it == other.it; }
-		bool operator!=(const DrawableIterator& other) const { return it != other.it; }
-		bool operator<(const DrawableIterator& other) const { return it < other.it; }
-		bool operator>(const DrawableIterator& other) const { return it > other.it; }
-
-		DrawableIterator& operator++() { ++it; return *this; }
-		DrawableIterator& operator--() { --it; return *this; }
-
-		DrawableIterator& operator++(int) { auto tmp = *this; ++it; return tmp; }
-		DrawableIterator& operator--(int) { auto tmp = *this; --it; return tmp; }
-
-		DrawableProxy operator*() { return DrawableProxy(*it); }
-
-	private:
-		typename ContainerT<Drawable>::iterator it;
-	};
-
 	//! Clears all data buffers and removes all drawables
 	/*
 	 * Before this method can clear the container, an exclusive lock over the manager has to be acquired.
@@ -292,26 +267,26 @@ public:
 	 * instance data of the drawable and indices/offsets in order to acces the vertex/normal/index
 	 * data of the drawable.
 	 */
-	DrawableProxy drawable(IndexT drawableId) { return DrawableProxy(m_drawables[drawableId]); }
+	DrawableProxyT drawable(IndexT drawableId) { return DrawableProxyT(m_drawables[drawableId]); }
 	//! Returns an iterator to the beginning of the drawable container
 	/*
 	 * The iterator can be used to loop over all drawables and dereferencing it yields a DrawableProxy
 	 * corresponding to the current drawable.
 	 */
-	DrawableIterator drawablesBegin() { return DrawableIterator(m_drawables.begin()); }
+	DrawableIteratorT drawablesBegin() { return DrawableIteratorT(m_drawables.begin()); }
 	//! Returns an iterator behind the end of the drawable container
 	/*
 	 * The iterator can be used to loop over all drawables and dereferencing it yields a DrawableProxy
 	 * corresponding to the current drawable.
 	 */
-	DrawableIterator drawablesEnd() { return DrawableIterator(m_drawables.end()); }
+	DrawableIteratorT drawablesEnd() { return DrawableIteratorT(m_drawables.end()); }
 
 	//! Returns a range object to loop over all drawables in a range-based for loop
 	auto drawableRange()
 	{
 		return noname::tools::make_range(
-					DrawableIterator(m_drawables.begin()),
-					DrawableIterator(m_drawables.end()));
+					DrawableIteratorT(m_drawables.begin()),
+					DrawableIteratorT(m_drawables.end()));
 	}
 
 private:
@@ -328,3 +303,68 @@ private:
 	//! Buffer of indices
 	ContainerT<IndexT> m_indexBuffer;
 };
+
+template <typename DrawableManagerT>
+class DrawableProxy : private std::unique_lock<typename DrawableManagerT::MutexT>, public DrawableManagerT::DrawableData
+{
+public:
+	DrawableProxy(typename DrawableManagerT::Drawable& target)
+		: std::unique_lock<typename DrawableManagerT::MutexT>(target.drawableMutex)
+		, DrawableManagerT::DrawableData(target.data)
+		, m_target(target)
+	{
+	}
+
+	DrawableProxy(DrawableProxy&& other) = default;
+	DrawableProxy& operator=(DrawableProxy&& other) = default;
+
+	typename DrawableManagerT::IndexT instanceCount() const { return static_cast<typename DrawableManagerT::IndexT>(m_target.instances.size()); }
+	std::size_t instanceDataSize() const { return m_target.instances.size() * sizeof(typename DrawableManagerT::InstanceDataT); }
+	typename DrawableManagerT::InstanceDataT* instanceData() { return m_target.instances.data(); }
+	const typename DrawableManagerT::InstanceDataT* instanceData() const { return m_target.instances.data(); }
+
+private:
+	typename DrawableManagerT::Drawable& m_target;
+};
+
+template <typename DrawableManagerT>
+class DrawableIterator
+{
+public:
+	using difference_type = typename DrawableManagerT::IndexT;
+	using value_type = typename DrawableManagerT::DrawableProxyT;
+	using pointer = typename DrawableManagerT::DrawableProxyT*;
+	using reference = typename DrawableManagerT::DrawableProxyT&;
+	using iterator_category = std::forward_iterator_tag;
+
+	DrawableIterator() = default;
+	DrawableIterator(const typename DrawableManagerT::template ContainerT<typename DrawableManagerT::Drawable>::iterator& it) : it(it) {}
+
+	bool operator==(const DrawableIterator& other) const { return it == other.it; }
+	bool operator!=(const DrawableIterator& other) const { return it != other.it; }
+	bool operator<(const DrawableIterator& other) const { return it < other.it; }
+	bool operator>(const DrawableIterator& other) const { return it > other.it; }
+
+	DrawableIterator& operator++() { ++it; return *this; }
+	DrawableIterator& operator--() { --it; return *this; }
+
+	DrawableIterator& operator++(int) { auto tmp = *this; ++it; return tmp; }
+	DrawableIterator& operator--(int) { auto tmp = *this; --it; return tmp; }
+
+	typename DrawableManagerT::DrawableProxyT operator*() { return typename DrawableManagerT::DrawableProxyT(*it); }
+
+private:
+	typename DrawableManagerT::template ContainerT<typename DrawableManagerT::Drawable>::iterator it;
+};
+
+namespace std {
+	template <class DrawableManagerT>
+	struct iterator_traits<DrawableIterator<DrawableManagerT>>
+	{
+		using difference_type	= typename DrawableIterator<DrawableManagerT>::difference_type;
+		using value_type		= typename DrawableIterator<DrawableManagerT>::value_type;
+		using pointer			= typename DrawableIterator<DrawableManagerT>::pointer;
+		using reference			= typename DrawableIterator<DrawableManagerT>::reference;
+		using iterator_category	= typename DrawableIterator<DrawableManagerT>::iterator_category;
+	};
+}
