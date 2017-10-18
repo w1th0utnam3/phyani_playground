@@ -16,7 +16,7 @@ ShaderProgram::~ShaderProgram()
 		glDeleteShader(shader);
 }
 
-void ShaderProgram::loadShader(const std::string& shaderFilename, GLenum shaderType)
+bool ShaderProgram::loadShader(const std::string& shaderFilename, GLenum shaderType)
 {
 	std::ifstream shaderFile(shaderFilename);
 
@@ -29,17 +29,37 @@ void ShaderProgram::loadShader(const std::string& shaderFilename, GLenum shaderT
 	glShaderSource(shader, 1, &source, nullptr);
 	glCompileShader(shader);
 
-	m_shaders.push_back(shader);
+	// Handle potential compilation errors
+	bool success = CommonOpenGl::getGlShaderCompileStatus(shader);
+	if (!success) {
+		std::cerr << "Shader compilation error: " << shaderFilename << "\n";
+		std::cerr << CommonOpenGl::getGlShaderInfoLog(shader) << "\n";
+		glDeleteShader(shader);
+	} else {
+		m_shaders.push_back(shader);
+	}
+
+	return success;
 }
 
-void ShaderProgram::createProgram()
+bool ShaderProgram::createProgram()
 {
 	auto program = glCreateProgram();
 	for (auto shader : m_shaders)
 		glAttachShader(program, shader);
 	glLinkProgram(program);
 
-	m_program = program;
+	// Handle potential linking errors
+	bool success = CommonOpenGl::getGlProgramLinkStatus(program);
+	if (!success) {
+		std::cerr << "Program linker error:\n";
+		std::cerr << CommonOpenGl::getGlProgramInfoLog(program) << "\n";
+		glDeleteProgram(program);
+	} else {
+		m_program = program;
+	}
+
+	return success;
 }
 
 void ShaderProgram::useProgram()

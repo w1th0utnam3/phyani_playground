@@ -13,10 +13,10 @@ public:
 	//! Destructor frees the loaded shaders and program
 	~ShaderProgram();
 
-	//! Loads a shader from the specified file and compiles it.
-	void loadShader(const std::string& shaderFilename, GLenum shaderType);
-	//! Attaches and links all loaded shaders.
-	void createProgram();
+	//! Loads a shader from the specified file and compiles it. Returns whether shader compilation was successful.
+	bool loadShader(const std::string& shaderFilename, GLenum shaderType);
+	//! Attaches and links all loaded shaders. Returns whether program linking was successful.
+	bool createProgram();
 	//! Activates this shader program if it isn't already active.
 	void useProgram();
 	//! Returns the OpenGL index of the shader program.
