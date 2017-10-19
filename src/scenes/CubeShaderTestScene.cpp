@@ -100,12 +100,12 @@ void CubeShaderTestScene::initializeSceneContent()
 			m_shaderProgram.loadShader(source.first, source.second);
 		m_shaderProgram.createProgram();
 
-		m_view_mat_location = glGetUniformLocation(m_shaderProgram.program(), "viewMat");
-		m_projection_mat_location = glGetUniformLocation(m_shaderProgram.program(), "projectionMat");
-		m_model_mat_location = glGetAttribLocation(m_shaderProgram.program(), "modelMat");
-		m_model_color_location = glGetAttribLocation(m_shaderProgram.program(), "vertexColor");
-		m_vert_pos_location = glGetAttribLocation(m_shaderProgram.program(), "vertexPosition_modelspace");
-		m_vert_norm_location = glGetAttribLocation(m_shaderProgram.program(), "vertexNormal_modelspace");
+		m_view_mat_location = m_shaderProgram.getUniformLocation("viewMat");
+		m_projection_mat_location = m_shaderProgram.getUniformLocation("projectionMat");
+		m_model_mat_location = m_shaderProgram.getAttribLocation("modelMat");
+		m_model_color_location = m_shaderProgram.getAttribLocation("vertexColor");
+		m_vert_pos_location = m_shaderProgram.getAttribLocation("vertexPosition_modelspace");
+		m_vert_norm_location = m_shaderProgram.getAttribLocation("vertexNormal_modelspace");
 	}
 
 	const std::size_t fvec3_size = sizeof(GLfloat) * 3;
@@ -118,12 +118,12 @@ void CubeShaderTestScene::initializeSceneContent()
 	// Set the vertex attribute pointers for the vertex positions
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
 	glEnableVertexAttribArray(m_vert_pos_location);
-	glVertexAttribPointer(m_vert_pos_location, 3, GL_FLOAT, GL_FALSE, fvec3_size, (void*) 0);
+	glVertexAttribPointer(m_vert_pos_location, 3, GL_FLOAT, GL_FALSE, fvec3_size, nullptr);
 	glVertexAttribDivisor(m_vert_pos_location, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_normal_buffer);
 	glEnableVertexAttribArray(m_vert_norm_location);
-	glVertexAttribPointer(m_vert_norm_location, 3, GL_FLOAT, GL_FALSE, fvec3_size, (void*) 0);
+	glVertexAttribPointer(m_vert_norm_location, 3, GL_FLOAT, GL_FALSE, fvec3_size, nullptr);
 	glVertexAttribDivisor(m_vert_norm_location, 0);
 
 	// Set the vertex attribute pointers for the colors model
@@ -133,7 +133,7 @@ void CubeShaderTestScene::initializeSceneContent()
 	glVertexAttribDivisor(m_model_color_location, 1);
 
 	// Set the vertex attribute pointers for the model matrices (matrix is represented by 4 vectors)
-	for (int i = 0; i < 4; i++) {
+	for (unsigned int i = 0; i < 4; i++) {
 		glEnableVertexAttribArray(m_model_mat_location + i);
 		glVertexAttribPointer(m_model_mat_location + i, 4, GL_FLOAT, GL_FALSE,
 							  sizeof(InstanceData), (void*)(model_mat_offset + fvec4_size * i));
@@ -174,8 +174,8 @@ void CubeShaderTestScene::renderSceneContent()
 	for (auto drawableData : m_drawables.drawableRange())
 	{
 		// TODO: Move element count to property of drawable
-		const GLuint instanceCount = drawableData.instanceCount();
-		const GLuint elementCount = drawableData.indexCount;
+		const GLsizei instanceCount = drawableData.instanceCount();
+		const GLsizei elementCount = drawableData.indexCount;
 		const void* indexOffset = (void*)(drawableData.indexBufferOffset * sizeof(GLuint));
 
 		// Skip drawables without instances
@@ -187,15 +187,15 @@ void CubeShaderTestScene::renderSceneContent()
 
 		// Update the model matrix buffer
 		glBindBuffer(GL_ARRAY_BUFFER, m_instance_buffer);
-		glBufferData(GL_ARRAY_BUFFER, drawableData.instanceDataSize(), NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, drawableData.instanceDataSize(), nullptr, GL_STREAM_DRAW);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, drawableData.instanceDataSize(), drawableData.instanceData());
 
 		// Activate the shader if necessary
 		m_shaderProgram.useProgram();
 
 		// Update the view and projection matrices according to the current camera configuration
-		glUniformMatrix4fv(m_view_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(v));
-		glUniformMatrix4fv(m_projection_mat_location, 1, GL_FALSE, (const GLfloat*) glm::value_ptr(p));
+		glUniformMatrix4fv(m_view_mat_location, 1, GL_FALSE, glm::value_ptr(v));
+		glUniformMatrix4fv(m_projection_mat_location, 1, GL_FALSE, glm::value_ptr(p));
 
 		// Draw the instances
 		glDrawElementsInstanced(drawableData.mode, elementCount, GL_UNSIGNED_INT, indexOffset, instanceCount);
