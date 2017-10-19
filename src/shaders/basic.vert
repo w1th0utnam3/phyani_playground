@@ -32,7 +32,6 @@ void main()
 	normal_cameraspace = (V * M_inv_trans * vec4(vertexNormal_modelspace, 0.0)).xyz;
 
 	// Set the output color
-	vec3 vertexNormal_worldspace = (M * vec4(vertexPosition_modelspace, 1.0)).xyz;
-	materialColor = normalize(vertexNormal_worldspace);
+	materialColor = normalize(normalize(vertexNormal_modelspace) + 1);
 	//materialColor = vertexColor.xyz;
 }
