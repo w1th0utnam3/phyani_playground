@@ -120,7 +120,7 @@ inline std::string getGlShaderInfoLog(GLuint shader)
 	// Potentially get the info log
 	if (infoLogLength > 0) {
 		logString.resize(infoLogLength);
-		glGetShaderInfoLog(shader, infoLogLength, nullptr, logString.data());
+		glGetShaderInfoLog(shader, infoLogLength, nullptr, &logString[0]);
 	}
 
 	return logString;
@@ -147,7 +147,7 @@ inline std::string getGlProgramInfoLog(GLuint program)
 	// Potentially get the info log
 	if (infoLogLength > 0) {
 		logString.resize(infoLogLength);
-		glGetProgramInfoLog(program, infoLogLength, NULL, logString.data());
+		glGetProgramInfoLog(program, infoLogLength, NULL, &logString[0]);
 	}
 
 	return logString;
