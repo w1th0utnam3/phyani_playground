@@ -74,3 +74,23 @@ GLuint ShaderProgram::program() const
 	assert(m_program != 0);
 	return m_program;
 }
+
+GLuint ShaderProgram::getUniformLocation(const std::string& name) const
+{
+	GLint uniform;
+	assert(m_program != 0);
+	uniform = glGetUniformLocation(m_program, name.c_str());
+	if (uniform == -1)
+		std::cerr << "Shader uniform '" << name << "' could not be located (glGetUniformLocation returned -1).\n";
+	return static_cast<GLuint>(uniform);
+}
+
+GLuint ShaderProgram::getAttribLocation(const std::string& name) const
+{
+	GLint uniform;
+	assert(m_program != 0);
+	uniform = glGetAttribLocation(m_program, name.c_str());
+	if (uniform == -1)
+		std::cerr << "Shader attribute '" << name << "' could not be located (glGetAttribLocation returned -1).\n";
+	return static_cast<GLuint>(uniform);
+}

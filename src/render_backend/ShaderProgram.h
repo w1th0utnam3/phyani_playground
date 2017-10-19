@@ -21,6 +21,10 @@ public:
 	void useProgram();
 	//! Returns the OpenGL index of the shader program.
 	GLuint program() const;
+	//! Returns the location index of the uniform with the specified name.
+	GLuint getUniformLocation(const std::string& name) const;
+	//! Returns the location index of the attrib with the specified name.
+	GLuint getAttribLocation(const std::string& name) const;
 
 private:
 	//! The index of the shader program.
