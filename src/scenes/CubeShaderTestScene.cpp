@@ -1,5 +1,6 @@
 #include "CubeShaderTestScene.h"
 
+#include <cstddef>
 #include <string>
 #include <utility>
 
@@ -110,9 +111,9 @@ void CubeShaderTestScene::initializeSceneContent()
 	const std::size_t fvec3_size = sizeof(GLfloat) * 3;
 	const std::size_t fvec4_size = sizeof(GLfloat) * 4;
 
-	InstanceData instanceData;
-	const std::size_t color_offset = 0;
-	const std::size_t model_mat_offset = reinterpret_cast<char*>(&instanceData.model_mat) - reinterpret_cast<char*>(&instanceData.color[0]);
+	static_assert(std::is_standard_layout<InstanceData>::value, "InstanceData must be of standard layout in order to use offsetof");
+	const std::size_t color_offset = offsetof(InstanceData, color);
+	const std::size_t model_mat_offset = offsetof(InstanceData, model_mat);
 
 	// Set the vertex attribute pointers for the vertex positions
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
