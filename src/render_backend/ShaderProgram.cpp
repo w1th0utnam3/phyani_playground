@@ -30,10 +30,10 @@ bool ShaderProgram::loadShader(const std::string& shaderFilename, GLenum shaderT
 	glCompileShader(shader);
 
 	// Handle potential compilation errors
-	bool success = CommonOpenGl::getGlShaderCompileStatus(shader);
+	bool success = common_opengl::getGlShaderCompileStatus(shader);
 	if (!success) {
 		std::cerr << "Shader compilation error: " << shaderFilename << "\n";
-		std::cerr << CommonOpenGl::getGlShaderInfoLog(shader) << "\n";
+		std::cerr << common_opengl::getGlShaderInfoLog(shader) << "\n";
 		glDeleteShader(shader);
 	} else {
 		m_shaders.push_back(shader);
@@ -50,10 +50,10 @@ bool ShaderProgram::createProgram()
 	glLinkProgram(program);
 
 	// Handle potential linking errors
-	bool success = CommonOpenGl::getGlProgramLinkStatus(program);
+	bool success = common_opengl::getGlProgramLinkStatus(program);
 	if (!success) {
 		std::cerr << "Program linker error:\n";
-		std::cerr << CommonOpenGl::getGlProgramInfoLog(program) << "\n";
+		std::cerr << common_opengl::getGlProgramInfoLog(program) << "\n";
 		glDeleteProgram(program);
 	} else {
 		m_program = program;
@@ -65,7 +65,7 @@ bool ShaderProgram::createProgram()
 void ShaderProgram::useProgram()
 {
 	assert(m_program != 0);
-	if (CommonOpenGl::getGlValue<GLint>(GL_CURRENT_PROGRAM) != m_program)
+	if (common_opengl::getGlValue<GLint>(GL_CURRENT_PROGRAM) != m_program)
 		glUseProgram(m_program);
 }
 

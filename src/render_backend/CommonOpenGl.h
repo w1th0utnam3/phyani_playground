@@ -15,7 +15,7 @@
 
 #include "MathHelper.h"
 
-namespace CommonOpenGl {
+namespace common_opengl {
 
 //! Loads the OpenGL functions using GLAD.
 inline void loadOpenGl()
