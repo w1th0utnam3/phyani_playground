@@ -32,11 +32,11 @@ void CubeShaderTestScene::initializeSceneContent()
 		GLuint instanceOffset = m_drawables.createInstances(m_cubeDrawableId, instanceCount);
 
 		// Lock the drawable manager against reallocations
-		auto bufferLock = m_drawables.shared_lock();
+		auto bufferLock = m_drawables.createSharedLock();
 		auto drawableData = m_drawables.drawable(m_cubeDrawableId);
 
 		// Lock the drawable in order to write to the instance data buffer
-		drawableData.lockForWriting();
+		drawableData.lockUnique();
 		InstanceData* data = drawableData.instanceData() + instanceOffset;
 
 		for (int i = 0; i < edgeLength; i++) {
@@ -164,7 +164,7 @@ void CubeShaderTestScene::cleanupSceneContent()
 void CubeShaderTestScene::renderSceneContent()
 {
 	// Lock the drawable manager against clearing and reallocations
-	auto bufferLock = m_drawables.shared_lock();
+	auto bufferLock = m_drawables.createSharedLock();
 
 	// Get view matrices from the camera
 	const glm::fmat4 v = m_camera->viewMatrix();

@@ -13,8 +13,9 @@
 #include "CommonOpenGl.h"
 #include "DrawableFactory.h"
 
-// TODO: Instance data buffer swapping?
+// TODO: Method to swap the whole instance data buffer of a drawable
 // TODO: Iterator distance
+// TODO: Flag to enable/disable drawables
 
 //! Container that stores drawable objects and their data and controls multithreaded acces to it
 template <typename InstanceDataT, typename DrawableSourceT = DrawableFactory::DrawableSource>
@@ -195,7 +196,7 @@ public:
 		return static_cast<GLsizei>(m_drawables.size() - 1);
 	}
 
-	//! Creates a new instance of the specified drawable and stores the supplied instance data
+	//! Creates a new instance of the specified drawable with the supplied instance data
 	GLsizei storeInstance(GLsizei drawableId, const InstanceDataT& instanceData)
 	{
 		// Lock the drawable manager against clearing and reallocation
@@ -205,7 +206,7 @@ public:
 		assert(drawableId < m_drawables.size());
 
 		// Get the corresponding drawable and lock it against simultaneous modification
-		auto& drawable = m_drawables[drawableId];
+		InternalDrawableT& drawable = m_drawables[drawableId];
 		std::lock_guard<DrawableMutexT> lock(drawable.drawableMutex);
 
 		// Calculate index of the new instance
@@ -220,7 +221,36 @@ public:
 		return static_cast<GLsizei>(instanceOffset);
 	}
 
-	//! Creates the specified number of instances of the drawable without assinging any instance data
+	//! Creates new instances from the supplied iterator range of instance data objects
+	template <typename InstanceDataIt>
+	GLsizei storeInstances(GLsizei drawableId, const InstanceDataIt dataBegin, const InstanceDataIt dataEnd)
+	{
+		static_assert(std::is_same<std::iterator_traits<InstanceDataIt>::value_type, InstanceDataT>::value,
+					  "The instance data iterator has to dereference to the DrawableManager's InstanceDataT");
+
+		// Lock the drawable manager against clearing and reallocation
+		std::shared_lock<ManagerMutexT> bufferLock(m_sharedManagerMutex);
+
+		// Make sure that drawable exists
+		assert(drawableId < m_drawables.size());
+
+		// Get the corresponding drawable and lock it against simultaneous modification
+		InternalDrawableT& drawable = m_drawables[drawableId];
+		std::lock_guard<DrawableMutexT> lock(drawable.drawableMutex);
+
+		// Calculate index of the new instance
+		const std::size_t instanceOffset = drawable.instances.size();
+		// Insert the instance data
+		drawable.instances.insert(drawable.instances.end(), dataBegin, dataEnd);
+
+		// Make sure that the new instances are idexable by OpenGL
+		assert(drawable.instances.size() < std::numeric_limits<GLsizei>::max());
+
+		// Return id of first created instance
+		return static_cast<GLsizei>(instanceOffset);
+	}
+
+	//! Creates the specified number of instances of the drawable with default constructed instance data
 	GLsizei createInstances(GLsizei drawableId, GLsizei instanceCount)
 	{
 		// Lock the drawable manager against clearing and reallocation
@@ -230,7 +260,7 @@ public:
 		assert(drawableId < m_drawables.size());
 
 		// Get the corresponding drawable and lock it against simultaneous modification
-		auto& drawable = m_drawables[drawableId];
+		InternalDrawableT& drawable = m_drawables[drawableId];
 		std::lock_guard<DrawableMutexT> lock(drawable.drawableMutex);
 
 		// Calculate index of first new instance
@@ -246,7 +276,13 @@ public:
 	}
 
 	//! Removes the instance with the supplied id of the specified drawable
-	void destroyInstance(GLsizei drawableId, GLsizei instanceId)
+	void eraseInstance(GLsizei drawableId, GLsizei instanceId)
+	{
+		eraseInstances(drawableId, instanceId, 1);
+	}
+
+	//! Destroys the specified number of instances starting from the instanceId of the supplied drawable
+	void eraseInstances(GLsizei drawableId, GLsizei instanceIdStart, GLsizei numberOfInstances)
 	{
 		// Lock the drawable manager against clearing and reallocation
 		std::shared_lock<ManagerMutexT> bufferLock(m_sharedManagerMutex);
@@ -255,14 +291,17 @@ public:
 		assert(drawableId < m_drawables.size());
 
 		// Get the corresponding drawable and lock it against simultaneous modification
-		auto& drawable = m_drawables[drawableId];
+		InternalDrawableT& drawable = m_drawables[drawableId];
 		std::lock_guard<DrawableMutexT> lock(drawable.drawableMutex);
 
+		// Get the index of the last instance to erase
+		const std::size_t instanceIdEnd = static_cast<std::size_t>(instanceIdStart) + static_cast<std::size_t>(numberOfInstances);
+
 		// Make sure that the instance exists
-		assert(instanceId < drawable.instances.size());
+		assert(instanceIdEnd <= drawable.instances.size());
 
 		// Erase the specified instance
-		drawable.instances.erase(drawable.instances.begin() + instanceId);
+		drawable.instances.erase(drawable.instances.begin() + instanceIdStart, drawable.instances.begin() + instanceIdEnd);
 	}
 
 	//! Returns a shared lock for the manager
@@ -271,7 +310,7 @@ public:
 	 * data using the drawable() method or the iterators in order to prevent data races. All other
 	 * methods automatically lock the required mutexes.
 	 */
-	std::shared_lock<ManagerMutexT> shared_lock() { return std::shared_lock<ManagerMutexT>(m_sharedManagerMutex); }
+	std::shared_lock<ManagerMutexT> createSharedLock() { return std::shared_lock<ManagerMutexT>(m_sharedManagerMutex); }
 
 	//! Returns the number of vertices stored in the vertex buffer
 	GLsizei vertexCount() const { return static_cast<GLsizei>(m_vertexBuffer.size()); }
@@ -374,12 +413,12 @@ public:
 	//! Returns a pointer to the const instance data buffer of this drawable
 	const typename DrawableManagerT::InstanceDataT* instanceData() const { return m_target.instances.data(); }
 
-	//! Locks the drawable exclusively for writing
-	void lockForWriting() {
+	//! Locks the drawable exclusively for writing to the instance data buffer
+	void lockUnique() {
 		m_lock.template emplace<std::unique_lock<typename DrawableManagerT::DrawableMutexT>>(m_target.drawableMutex);
 	}
 	//! Switches to a shared lock to allow shared read access to the drawable, only required after explicitely locking for writing
-	void unlockForWriting() {
+	void lockShared() {
 		m_lock.template emplace<std::shared_lock<typename DrawableManagerT::DrawableMutexT>>(m_target.drawableMutex);
 	}
 
