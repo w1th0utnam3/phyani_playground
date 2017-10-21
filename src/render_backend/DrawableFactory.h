@@ -8,7 +8,7 @@
 class DrawableFactory
 {
 public:
-
+	//! Type returned by the factory functions containing the computed values and type information
 	struct DrawableSource
 	{
 		//! Type used to represent vertex components
@@ -17,7 +17,7 @@ public:
 		using IndexT = GLushort;
 
 		//! The number of instances of VertexT to represent one vertex in OpenGL
-		static constexpr GLubyte BufferEntriesPerVertex = 1;
+		static constexpr GLubyte bufferEntriesPerVertex = 1;
 		//! Type of the index values
 		static constexpr GLenum glIndexType = GL_UNSIGNED_SHORT;
 
