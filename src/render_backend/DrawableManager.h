@@ -327,7 +327,7 @@ public:
 	DrawableProxy(DrawableProxy&& other) = default;
 	DrawableProxy& operator=(DrawableProxy&& other) = default;
 
-	typename GLsizei instanceCount() const { return static_cast<typename GLsizei>(m_target.instances.size()); }
+	GLsizei instanceCount() const { return static_cast<GLsizei>(m_target.instances.size()); }
 	std::size_t instanceDataSize() const { return m_target.instances.size() * sizeof(typename DrawableManagerT::InstanceDataT); }
 	typename DrawableManagerT::InstanceDataT* instanceData() { return m_target.instances.data(); }
 	const typename DrawableManagerT::InstanceDataT* instanceData() const { return m_target.instances.data(); }
@@ -340,7 +340,7 @@ template <typename DrawableManagerT>
 class DrawableIterator
 {
 public:
-	using difference_type = typename GLsizei;
+	using difference_type = GLsizei;
 	using value_type = typename DrawableManagerT::DrawableProxyT;
 	using pointer = typename DrawableManagerT::DrawableProxyT*;
 	using reference = typename DrawableManagerT::DrawableProxyT&;
