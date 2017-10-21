@@ -74,8 +74,6 @@ std::vector<DrawableFactory::DrawableSource::VertexT> DrawableFactory::calculate
 		const std::vector<DrawableSource::VertexT>& vertices,
 		const std::vector<DrawableSource::IndexT>& indices)
 {
-	// TODO: Check for indexed objects where 'vertices.size() != indices.size()*3'
-
 	std::vector<DrawableSource::VertexT> normals;
 	normals.resize(vertices.size(), glm::fvec3(0.0f, 0.0f, 0.0f));
 
