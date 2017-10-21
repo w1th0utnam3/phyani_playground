@@ -12,12 +12,12 @@ public:
 	struct DrawableSource
 	{
 		//! Type used to represent vertex components
-		using VertexT = GLfloat;
+		using VertexT = glm::fvec3;
 		//! Type used to represent vertx indices
 		using IndexT = GLushort;
 
 		//! The number of instances of VertexT to represent one vertex in OpenGL
-		static constexpr GLubyte BufferEntriesPerVertex = 3;
+		static constexpr GLubyte BufferEntriesPerVertex = 1;
 		//! Type of the index values
 		static constexpr GLenum glIndexType = GL_UNSIGNED_SHORT;
 

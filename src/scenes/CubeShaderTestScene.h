@@ -31,7 +31,7 @@ private:
 
 	struct InstanceData {
 		GLubyte color[4];
-		GLfloat model_mat[4*4];
+		glm::fmat4 model_mat;
 	};
 
 	GLuint m_cubeDrawableId, m_sphereDrawableId;

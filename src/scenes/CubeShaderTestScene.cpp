@@ -38,8 +38,7 @@ void CubeShaderTestScene::initializeSceneContent()
 		for (int i = 0; i < edgeLength; i++) {
 			for (int j = 0; j < edgeLength; j++) {
 				for (int k = 0; k < edgeLength; k++) {
-					glm::fmat4* model_mat = reinterpret_cast<glm::fmat4*>(&data->model_mat);
-					*model_mat = glm::translate(id, glm::fvec3(i*distance - disp, j*distance - disp, k*distance - disp));
+					data->model_mat = glm::translate(id, glm::fvec3(i*distance - disp, j*distance - disp, k*distance - disp));
 
 					data->color[0] = 255;
 					data->color[1] = 0;
@@ -59,10 +58,9 @@ void CubeShaderTestScene::initializeSceneContent()
 		lightSphere.color[1] = 0;
 		lightSphere.color[2] = 255;
 		lightSphere.color[3] = 0;
-		glm::fmat4* model_mat = reinterpret_cast<glm::fmat4*>(lightSphere.model_mat);
-		*model_mat = id;
-		//*model_mat = glm::translate(id, glm::fvec3(0.5f, 1.0f, 6.0f));
-		//*model_mat = glm::scale(*model_mat, glm::fvec3(0.2f, 0.2f, 0.2f));
+		lightSphere.model_mat = id;
+		//lightSphere.model_mat = glm::translate(id, glm::fvec3(0.5f, 1.0f, 6.0f));
+		//lightSphere.model_mat = glm::scale(lightSphere.model_mat, glm::fvec3(0.2f, 0.2f, 0.2f));
 
 		m_drawables.storeInstance(m_sphereDrawableId, lightSphere);
 	}
