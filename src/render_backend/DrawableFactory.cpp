@@ -1,9 +1,10 @@
 #include "DrawableFactory.h"
 
+#include <numeric>
+
 DrawableFactory::DrawableSource DrawableFactory::createCube()
 {
 	DrawableSource drawable;
-
 	drawable.glMode = GL_TRIANGLES;
 
 	static const GLfloat vertices[] = {
@@ -60,75 +61,63 @@ DrawableFactory::DrawableSource DrawableFactory::createCube()
 	drawable.vertices.resize(sizeof(vertices)/(sizeof(GLfloat)*3));
 	std::memcpy(drawable.vertices.data(), &vertices[0], sizeof(vertices));
 
-	drawable.indices = calculateIndices(drawable.vertices);
-	drawable.normals = calculateTriangleNormalsPerVertex(drawable.vertices, drawable.indices);
+	// Fill index array with incrementing ints
+	drawable.indices.resize(drawable.vertices.size());
+	std::iota(drawable.indices.begin(), drawable.indices.end(), 0);
+
+	drawable.normals = calculateAveragedTriangleNormals(drawable.vertices, drawable.indices);
 
 	return drawable;
 }
 
-std::vector<DrawableFactory::DrawableSource::IndexT> DrawableFactory::calculateIndices(
-		const std::vector<DrawableSource::VertexT>& vertices)
-{
-	std::vector<DrawableSource::IndexT> indices;
-	indices.resize(vertices.size());
-
-	for (DrawableSource::IndexT i = 0; i < indices.size(); i++)
-		indices[i] = i;
-
-	return indices;
-}
-
-std::vector<DrawableFactory::DrawableSource::VertexT> DrawableFactory::calculateTriangleNormalsPerVertex(
+std::vector<DrawableFactory::DrawableSource::VertexT> DrawableFactory::calculateAveragedTriangleNormals(
 		const std::vector<DrawableSource::VertexT>& vertices,
 		const std::vector<DrawableSource::IndexT>& indices)
 {
 	// TODO: Check for indexed objects where 'vertices.size() != indices.size()*3'
 
 	std::vector<DrawableSource::VertexT> normals;
-	normals.resize(vertices.size());
+	normals.resize(vertices.size(), glm::fvec3(0.0f, 0.0f, 0.0f));
 
 	// Make sure that we can index all vertices
 	assert(indices.size() < std::numeric_limits<unsigned int>::max());
+
+	// Keep track of the number of accumulated normals per vertex
+	std::vector<int> normalsPerVertex(vertices.size(), 0);
 
 	for (unsigned int i = 0; i < indices.size(); i+=3) {
-		const glm::fvec3& v1 = vertices[indices[i + 0]];
-		const glm::fvec3& v2 = vertices[indices[i + 1]];
-		const glm::fvec3& v3 = vertices[indices[i + 2]];
+		// Get all vertices of the triangle
+		const glm::fvec3* triVerts[3] = {
+			&vertices[indices[i + 0]],
+			&vertices[indices[i + 1]],
+			&vertices[indices[i + 2]]
+		};
 
-		auto normalsPerVertex = &normals[i];
-
-		glm::fvec3 edge1 = v2 - v3;
-		glm::fvec3 edge2 = v3 - v1;
+		// Calculate the normal of the triangle
+		glm::fvec3 edge1 = *triVerts[1] - *triVerts[2];
+		glm::fvec3 edge2 = *triVerts[2] - *triVerts[0];
 		glm::fvec3 normal = glm::normalize(glm::cross(edge1, edge2));
 
-		normalsPerVertex[0] = normal;
-		normalsPerVertex[1] = normal;
-		normalsPerVertex[2] = normal;
-	}
+		// Get the normals of the triangle's vertices
+		glm::fvec3* triNormals[3] = {
+			&normals[indices[i + 0]],
+			&normals[indices[i + 1]],
+			&normals[indices[i + 2]]
+		};
 
-	return normals;
-}
+		// Add the new normal to the rolling averge of each vertex
+		for (int j = 0; j < 3; j++) {
+			glm::fvec3& n = *triNormals[j];
 
-std::vector<DrawableFactory::DrawableSource::VertexT> DrawableFactory::calculateTriangleNormalsPerTriangle(
-		const std::vector<DrawableSource::VertexT>& vertices,
-		const std::vector<DrawableSource::IndexT>& indices)
-{
-	// TODO: Check for indexed objects where 'vertices.size() != indices.size()*3'
-
-	std::vector<DrawableSource::VertexT> normals;
-	normals.resize(indices.size()/3);
-
-	// Make sure that we can index all vertices
-	assert(indices.size() < std::numeric_limits<unsigned int>::max());
-
-	for (unsigned int i = 0; i < normals.size(); i++) {
-		const glm::fvec3& v1 = vertices[indices[3*i + 0]];
-		const glm::fvec3& v2 = vertices[indices[3*i + 1]];
-		const glm::fvec3& v3 = vertices[indices[3*i + 2]];
-
-		glm::fvec3 edge1 = v2 - v3;
-		glm::fvec3 edge2 = v3 - v1;
-		normals[i] = glm::normalize(glm::cross(edge1, edge2));
+			// Remove previous averaging factor
+			n *= normalsPerVertex[indices[i + j]];
+			// Add newly calculated normal
+			n += normal;
+			// Average again with new normal count
+			n /= ++normalsPerVertex[indices[i + j]];
+			// Normalize
+			n = glm::normalize(n);
+		}
 	}
 
 	return normals;
@@ -317,7 +306,7 @@ DrawableFactory::DrawableSource DrawableFactory::createSphere(const int recursio
 		}
 	}
 
-	drawable.normals = calculateTriangleNormalsPerTriangle(drawable.vertices, drawable.indices);
+	drawable.normals = calculateAveragedTriangleNormals(drawable.vertices, drawable.indices);
 
 	return drawable;
 }

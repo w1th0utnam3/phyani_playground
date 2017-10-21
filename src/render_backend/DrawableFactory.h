@@ -37,14 +37,8 @@ public:
 	static DrawableSource createSphere(const int recursionLevel = 2);
 
 private:
-	//! Calculates the indices for a vertex array, assuming duplicate vertices for adjacent primitives.
-	static std::vector<DrawableSource::IndexT> calculateIndices(
-			const std::vector<DrawableSource::VertexT>& vertices);
-	//! Calculates triangle normals for a vertex array,assuming duplicate vertices for adjacent primitives.
-	static std::vector<DrawableSource::VertexT> calculateTriangleNormalsPerVertex(
-			const std::vector<DrawableSource::VertexT>& vertices,
-			const std::vector<DrawableSource::IndexT>& indices);
-	static std::vector<DrawableSource::VertexT> calculateTriangleNormalsPerTriangle(
+	//! Calculates normals of a triangle mesh by using normals averaged over adjacent triangles
+	static std::vector<DrawableSource::VertexT> calculateAveragedTriangleNormals(
 			const std::vector<DrawableSource::VertexT>& vertices,
 			const std::vector<DrawableSource::IndexT>& indices);
 };

@@ -14,9 +14,9 @@ void main()
 	vec3 LightColor = vec3(1.0, 1.0, 1.0);
 
 	// Define material colors based on the vertex color supplied by the vertex shader
-	vec3 materialDiffuseColor = 0.0 * materialColor;
-	vec3 materialAmbientColor = 1.0 * materialColor;
-	vec3 materialSpecularColor = 0.0 * materialDiffuseColor;
+	vec3 materialDiffuseColor = materialColor;
+	vec3 materialAmbientColor = 0.3 * materialColor;
+	vec3 materialSpecularColor = materialDiffuseColor;
 	float materialShininess = 5;
 
 	// Position of the light in world space
