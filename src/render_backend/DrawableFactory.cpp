@@ -4,7 +4,7 @@ DrawableFactory::DrawableSource DrawableFactory::createCube()
 {
 	DrawableSource drawable;
 
-	drawable.mode = GL_TRIANGLES;
+	drawable.glMode = GL_TRIANGLES;
 	drawable.vertices = {
 		-0.5f,-0.5f,-0.5f,
 		-0.5f,-0.5f, 0.5f,
@@ -82,7 +82,10 @@ std::vector<DrawableFactory::DrawableSource::VertexT> DrawableFactory::calculate
 	std::vector<DrawableSource::VertexT> normals;
 	normals.resize(vertices.size());
 
-	for (DrawableSource::IndexT i = 0; i < indices.size(); i+=3) {
+	// Make sure that we can index all vertices
+	assert(indices.size() < std::numeric_limits<unsigned int>::max());
+
+	for (unsigned int i = 0; i < indices.size(); i+=3) {
 		const auto v1 = reinterpret_cast<const glm::fvec3*>(&vertices[3*indices[i + 0]]);
 		const auto v2 = reinterpret_cast<const glm::fvec3*>(&vertices[3*indices[i + 1]]);
 		const auto v3 = reinterpret_cast<const glm::fvec3*>(&vertices[3*indices[i + 2]]);
@@ -110,7 +113,10 @@ std::vector<DrawableFactory::DrawableSource::VertexT> DrawableFactory::calculate
 	std::vector<DrawableSource::VertexT> normals;
 	normals.resize(indices.size());
 
-	for (DrawableSource::IndexT i = 0; i < indices.size(); i+=3) {
+	// Make sure that we can index all vertices
+	assert(indices.size() < std::numeric_limits<unsigned int>::max());
+
+	for (unsigned int i = 0; i < indices.size(); i+=3) {
 		const auto v1 = reinterpret_cast<const glm::fvec3*>(&vertices[3*indices[i + 0]]);
 		const auto v2 = reinterpret_cast<const glm::fvec3*>(&vertices[3*indices[i + 1]]);
 		const auto v3 = reinterpret_cast<const glm::fvec3*>(&vertices[3*indices[i + 2]]);
@@ -292,10 +298,13 @@ public:
 DrawableFactory::DrawableSource DrawableFactory::createSphere(const int recursionLevel)
 {
 	DrawableSource drawable;
-	drawable.mode = GL_TRIANGLES;
+	drawable.glMode = GL_TRIANGLES;
 
 	{
 		auto mesh = IcoSphereCreator().create(recursionLevel);
+
+		// Make sure that all vertices can be indexed with the specified index type
+		assert(mesh.positions.size() < std::numeric_limits<DrawableSource::IndexT>::max());
 
 		drawable.vertices.resize(mesh.positions.size() * 3);
 		std::memcpy(drawable.vertices.data(), mesh.positions.data(), sizeof(GLfloat) * drawable.vertices.size());

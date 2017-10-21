@@ -43,18 +43,21 @@ public:
 
 	struct DrawableData
 	{
-		GLenum mode;
+		static constexpr GLenum glIndexType = DrawableSourceT::glIndexType;
 
-		IndexT vertexBufferOffset;
-		IndexT vertexCount;
+		GLenum glMode;
 
-		IndexT normalBufferOffset;
-		IndexT normalCount;
+		GLint vertexBufferOffset;
+		GLsizei vertexCount;
 
-		IndexT indexBufferOffset;
-		IndexT indexCount;
+		GLint normalBufferOffset;
+		GLsizei normalCount;
 
-		IndexT vertexIndexOffset;
+		GLint indexBufferOffset;
+		GLsizei indexCount;
+
+		GLint baseVertex;
+		GLvoid* indexPtrOffset;
 	};
 
 // Required for DrawableProxy base class definition in GCC
@@ -64,11 +67,16 @@ public:
 #endif
 
 private:
+
 #ifndef __GNUC__
 	using MutexT = std::mutex;
 #endif
 	using SharedMutexT = std::shared_timed_mutex;
 
+	//! Number of VertexT instances in the buffer that represent a single vertex
+	static constexpr std::size_t BufferEntriesPerVertex = DrawableSourceT::BufferEntriesPerVertex;
+
+	//! Container type used for the buffers
 	template<typename T>
 	using ContainerT = std::vector<T>;
 
@@ -120,49 +128,50 @@ public:
 	 * Before this method can add a drawable to the container, an exclusive lock over the manager has to
 	 * be acquired (because of potential reallocations). Therefore, it may block until this was successful.
 	 */
-	IndexT registerDrawable(const DrawableSourceT& drawable)
+	GLsizei registerDrawable(const DrawableSourceT& drawable)
 	{
 		// Require exclusive access to the central lock (registration might cause reallocations)
 		std::lock_guard<SharedMutexT> lock(m_sharedManagerMutex);
 
 		// Create a new drawable object
 		m_drawables.emplace_back();
-		auto& drawableData = m_drawables.back().data;
+		DrawableData& drawableData = m_drawables.back().data;
 
 		// Set drawing mode and check whether it is valid
-		drawableData.mode = drawable.mode;
-		assert(CommonOpenGl::isValidGlMode(drawable.mode));
+		drawableData.glMode = drawable.glMode;
+		assert(CommonOpenGl::isValidGlMode(drawable.glMode));
+
+		// Make sure that all vertices of the new drawable are indexable using the index type
+		assert(drawable.vertices.size()/BufferEntriesPerVertex < std::numeric_limits<IndexT>::max());
 
 		// Copy vertices to normal buffer
-		drawableData.vertexBufferOffset = static_cast<IndexT>(m_vertexBuffer.size());
-		drawableData.vertexCount = static_cast<IndexT>(drawable.vertices.size());
+		drawableData.vertexBufferOffset = static_cast<GLint>(m_vertexBuffer.size());
+		drawableData.vertexCount = static_cast<GLsizei>(drawable.vertices.size()/BufferEntriesPerVertex);
 		m_vertexBuffer.insert(m_vertexBuffer.end(), drawable.vertices.begin(), drawable.vertices.end());
 
-		// Make sure that all vertices are indexable by the index type
-		assert((m_vertexBuffer.size()/3) < std::numeric_limits<IndexT>::max());
+		// Make sure that all vertices are indexable by OpenGL
+		assert((m_vertexBuffer.size()/BufferEntriesPerVertex) < std::numeric_limits<GLint>::max());
 
 		// Copy normals to normal buffer
-		drawableData.normalBufferOffset = static_cast<IndexT>(m_normalBuffer.size());
-		drawableData.normalCount = static_cast<IndexT>(drawable.normals.size());
+		drawableData.normalBufferOffset = static_cast<GLint>(m_normalBuffer.size());
+		drawableData.normalCount = static_cast<GLsizei>(drawable.normals.size()/BufferEntriesPerVertex);
 		m_normalBuffer.insert(m_normalBuffer.end(), drawable.normals.begin(), drawable.normals.end());
 
 		// Copy indices to index buffer
-		drawableData.indexBufferOffset = static_cast<IndexT>(m_indexBuffer.size());
-		drawableData.indexCount = static_cast<IndexT>(drawable.indices.size());
+		drawableData.indexBufferOffset = static_cast<GLint>(m_indexBuffer.size());
+		drawableData.indexCount = static_cast<GLsizei>(drawable.indices.size());
 		m_indexBuffer.insert(m_indexBuffer.end(), drawable.indices.begin(), drawable.indices.end());
 
-		// Increment indices in order to point to correct vertices
-		drawableData.vertexIndexOffset = drawableData.vertexBufferOffset/3;
-		for (IndexT i = drawableData.indexBufferOffset; i < drawableData.indexBufferOffset + drawableData.indexCount; i++) {
-			m_indexBuffer[i] += drawableData.vertexIndexOffset;
-		}
+		// Store the index of the drawable's base vertex
+		drawableData.baseVertex = drawableData.vertexBufferOffset/BufferEntriesPerVertex;
+		drawableData.indexPtrOffset = (GLvoid*)(drawableData.indexBufferOffset * sizeof(typename DrawableSourceT::IndexT));
 
 		// Return drawable id
-		return static_cast<IndexT>(m_drawables.size() - 1);
+		return static_cast<GLsizei>(m_drawables.size() - 1);
 	}
 
 	//! Creates a new instance of the specified drawable and stores the supplied instance data
-	IndexT storeInstance(IndexT drawableId, const InstanceDataT& instanceData)
+	GLsizei storeInstance(GLsizei drawableId, const InstanceDataT& instanceData)
 	{
 		// Lock the drawable manager against clearing and reallocation
 		std::shared_lock<SharedMutexT> bufferLock(m_sharedManagerMutex);
@@ -176,18 +185,18 @@ public:
 
 		// Calculate index of the new instance
 		const std::size_t instanceOffset = drawable.instances.size();
-		// Make sure that the new instance is idexable using the index type
-		assert(instanceOffset + 1 < std::numeric_limits<IndexT>::max());
+		// Make sure that the new instance is idexable by OpenGL
+		assert(instanceOffset + 1 < std::numeric_limits<GLsizei>::max());
 
 		// Create the instance
 		drawable.instances.push_back(instanceData);
 
 		// Return instance id
-		return static_cast<IndexT>(instanceOffset);
+		return static_cast<GLsizei>(instanceOffset);
 	}
 
 	//! Creates the specified number of instances of the drawable without assinging any instance data
-	IndexT createInstances(IndexT drawableId, IndexT instanceCount)
+	GLsizei createInstances(GLsizei drawableId, GLsizei instanceCount)
 	{
 		// Lock the drawable manager against clearing and reallocation
 		std::shared_lock<SharedMutexT> bufferLock(m_sharedManagerMutex);
@@ -201,18 +210,18 @@ public:
 
 		// Calculate index of first new instance
 		const std::size_t instanceOffset = drawable.instances.size();
-		// Make sure that all instances are idexable using the index type
-		assert(instanceOffset + static_cast<std::size_t>(instanceCount) < std::numeric_limits<IndexT>::max());
+		// Make sure that all instances are idexable by OpenGL
+		assert(instanceOffset + static_cast<std::size_t>(instanceCount) < std::numeric_limits<GLsizei>::max());
 
 		// Create the specified number of instances
 		drawable.instances.resize(instanceOffset + instanceCount);
 
 		// Return id of first created instance
-		return static_cast<IndexT>(instanceOffset);
+		return static_cast<GLsizei>(instanceOffset);
 	}
 
 	//! Removes the instance with the supplied id of the specified drawable
-	void destroyInstance(IndexT drawableId, IndexT instanceId)
+	void destroyInstance(GLsizei drawableId, GLsizei instanceId)
 	{
 		// Lock the drawable manager against clearing and reallocation
 		std::shared_lock<SharedMutexT> bufferLock(m_sharedManagerMutex);
@@ -240,11 +249,11 @@ public:
 	std::shared_lock<SharedMutexT> shared_lock() { return std::shared_lock<SharedMutexT>(m_sharedManagerMutex); }
 
 	//! Returns the number of vertices stored in the vertex buffer
-	IndexT vertexCount() const { return static_cast<IndexT>(m_vertexBuffer.size()); }
+	GLsizei vertexCount() const { return static_cast<GLsizei>(m_vertexBuffer.size()); }
 	//! Returns the number of normals stored in the normal buffer
-	IndexT normalCount() const { return static_cast<IndexT>(m_normalBuffer.size()); }
+	GLsizei normalCount() const { return static_cast<GLsizei>(m_normalBuffer.size()); }
 	//! Returns the number of indices stored in the index buffer
-	IndexT indexCount() const { return static_cast<IndexT>(m_indexBuffer.size()); }
+	GLsizei indexCount() const { return static_cast<GLsizei>(m_indexBuffer.size()); }
 
 	//! Returns the size in bytes of the vertex buffer
 	std::size_t vertexBufferSize() const { return m_vertexBuffer.size() * sizeof(VertexT); }
@@ -267,7 +276,7 @@ public:
 	 * instance data of the drawable and indices/offsets in order to acces the vertex/normal/index
 	 * data of the drawable.
 	 */
-	DrawableProxyT drawable(IndexT drawableId) { return DrawableProxyT(m_drawables[drawableId]); }
+	DrawableProxyT drawable(GLsizei drawableId) { return DrawableProxyT(m_drawables[drawableId]); }
 	//! Returns an iterator to the beginning of the drawable container
 	/*
 	 * The iterator can be used to loop over all drawables and dereferencing it yields a DrawableProxy
@@ -318,7 +327,7 @@ public:
 	DrawableProxy(DrawableProxy&& other) = default;
 	DrawableProxy& operator=(DrawableProxy&& other) = default;
 
-	typename DrawableManagerT::IndexT instanceCount() const { return static_cast<typename DrawableManagerT::IndexT>(m_target.instances.size()); }
+	typename GLsizei instanceCount() const { return static_cast<typename GLsizei>(m_target.instances.size()); }
 	std::size_t instanceDataSize() const { return m_target.instances.size() * sizeof(typename DrawableManagerT::InstanceDataT); }
 	typename DrawableManagerT::InstanceDataT* instanceData() { return m_target.instances.data(); }
 	const typename DrawableManagerT::InstanceDataT* instanceData() const { return m_target.instances.data(); }
@@ -331,7 +340,7 @@ template <typename DrawableManagerT>
 class DrawableIterator
 {
 public:
-	using difference_type = typename DrawableManagerT::IndexT;
+	using difference_type = typename GLsizei;
 	using value_type = typename DrawableManagerT::DrawableProxyT;
 	using pointer = typename DrawableManagerT::DrawableProxyT*;
 	using reference = typename DrawableManagerT::DrawableProxyT&;

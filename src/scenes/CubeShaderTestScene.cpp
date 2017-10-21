@@ -10,7 +10,7 @@
 void CubeShaderTestScene::initializeSceneContent()
 {
 	m_cubeDrawableId = m_drawables.registerDrawable(DrawableFactory::createCube());
-	m_sphereDrawableId = m_drawables.registerDrawable(DrawableFactory::createSphere());
+	m_sphereDrawableId = m_drawables.registerDrawable(DrawableFactory::createSphere(4));
 
 	// The number of cubes per edge of the "cube grid"
 	const int edgeLength = 2;
@@ -173,10 +173,9 @@ void CubeShaderTestScene::renderSceneContent()
 	// Loop over all drawables
 	for (auto drawableData : m_drawables.drawableRange())
 	{
-		// TODO: Move element count to property of drawable
 		const GLsizei instanceCount = drawableData.instanceCount();
 		const GLsizei elementCount = drawableData.indexCount;
-		const void* indexOffset = (void*)(drawableData.indexBufferOffset * sizeof(GLuint));
+		const GLvoid* indexPtrOffset = drawableData.indexPtrOffset;
 
 		// Skip drawables without instances
 		if (instanceCount == 0) continue;
@@ -198,6 +197,10 @@ void CubeShaderTestScene::renderSceneContent()
 		glUniformMatrix4fv(m_projection_mat_location, 1, GL_FALSE, glm::value_ptr(p));
 
 		// Draw the instances
-		glDrawElementsInstanced(drawableData.mode, elementCount, GL_UNSIGNED_INT, indexOffset, instanceCount);
+		glDrawElementsInstancedBaseVertex(drawableData.glMode,
+										  elementCount,
+										  drawableData.glIndexType, indexPtrOffset,
+										  instanceCount,
+										  drawableData.baseVertex);
 	}
 }

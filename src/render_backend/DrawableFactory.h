@@ -14,10 +14,15 @@ public:
 		//! Type used to represent vertex components
 		using VertexT = GLfloat;
 		//! Type used to represent vertx indices
-		using IndexT = GLuint;
+		using IndexT = GLushort;
 
-		//! The OpenGL drawing mode for the drawable
-		GLenum mode;
+		//! The number of instances of VertexT to represent one vertex in OpenGL
+		static constexpr GLubyte BufferEntriesPerVertex = 3;
+		//! Type of the index values
+		static constexpr GLenum glIndexType = GL_UNSIGNED_SHORT;
+
+		//! OpenGL drawing mode for the drawable
+		GLenum glMode;
 		//! Vertices representing the drawable
 		std::vector<VertexT> vertices;
 		//! Normals for the drawable
