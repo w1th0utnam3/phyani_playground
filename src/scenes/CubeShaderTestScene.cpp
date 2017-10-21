@@ -31,8 +31,12 @@ void CubeShaderTestScene::initializeSceneContent()
 	{
 		GLuint instanceOffset = m_drawables.createInstances(m_cubeDrawableId, instanceCount);
 
+		// Lock the drawable manager against reallocations
 		auto bufferLock = m_drawables.shared_lock();
 		auto drawableData = m_drawables.drawable(m_cubeDrawableId);
+
+		// Lock the drawable in order to write to the instance data buffer
+		drawableData.lockForWriting();
 		InstanceData* data = drawableData.instanceData() + instanceOffset;
 
 		for (int i = 0; i < edgeLength; i++) {
@@ -172,7 +176,7 @@ void CubeShaderTestScene::renderSceneContent()
 	m_lastTime = currentTime;
 
 	// Loop over all drawables
-	for (auto drawableData : m_drawables)
+	for (const auto drawableData : m_drawables)
 	{
 		const GLsizei instanceCount = drawableData.instanceCount();
 		const GLsizei elementCount = drawableData.indexCount;

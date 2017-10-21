@@ -9,10 +9,10 @@
 #include <type_traits>
 #include <iterator>
 
+#include "Common.h"
 #include "CommonOpenGl.h"
 #include "DrawableFactory.h"
 
-// TODO: Shared access to drawable?
 // TODO: Instance data buffer swapping?
 // TODO: Iterator distance
 
@@ -79,21 +79,13 @@ public:
 		GLvoid* indexPtrOffset;
 	};
 
-// Required for DrawableProxy base class definition in GCC
-//		See: https://stackoverflow.com/questions/46819854/access-private-definitions-in-base-clause-of-friend-class-template
-#ifdef __GNUC__
-	using DrawableMutexT = std::mutex;
-#endif
-
 private:
 	// Friend the associated proxy and iterator types
 	friend DrawableProxyT;
 	friend DrawableIteratorT;
 
-#ifndef __GNUC__
 	//! Mutex type used for drawable access control
-	using DrawableMutexT = std::mutex;
-#endif
+	using DrawableMutexT = std::shared_timed_mutex;
 	//! Mutex type used for shared access to the whole DrawableManager
 	using ManagerMutexT = std::shared_timed_mutex;
 
@@ -349,7 +341,6 @@ private:
  */
 template <typename DrawableManagerT>
 class DrawableProxy :
-		private std::unique_lock<typename DrawableManagerT::DrawableMutexT>,
 		public DrawableManagerT::DrawableInformation
 {
 	// Friend associated classes in order to allow access to private constructor
@@ -357,6 +348,8 @@ class DrawableProxy :
 	friend DrawableIterator<DrawableManagerT>;
 
 public:
+	//! Destroys the proxy and releases any locks
+	~DrawableProxy() = default;
 	//! Default move constructor
 	DrawableProxy(DrawableProxy&& other) = default;
 	//! Default move assignment
@@ -366,19 +359,43 @@ public:
 	GLsizei instanceCount() const { return static_cast<GLsizei>(m_target.instances.size()); }
 	//! Returns the total size in bytes of the instance data buffer of this drawable
 	std::size_t instanceDataSize() const { return m_target.instances.size() * sizeof(typename DrawableManagerT::InstanceDataT); }
+
 	//! Returns a pointer to the instance data buffer of this drawable
-	typename DrawableManagerT::InstanceDataT* instanceData() { return m_target.instances.data(); }
+	typename DrawableManagerT::InstanceDataT* instanceData() {
+		// Check if drawable was locked exclusively for writing
+		if (!common::variant::holds_alternative<std::unique_lock<typename DrawableManagerT::DrawableMutexT>>(m_lock)) {
+			assert(false);
+			std::cerr << "Warning: Non-const drawable instance data pointer was requested without locking the drawable for write mode!\n";
+		}
+
+		return m_target.instances.data();
+	}
+
 	//! Returns a pointer to the const instance data buffer of this drawable
 	const typename DrawableManagerT::InstanceDataT* instanceData() const { return m_target.instances.data(); }
+
+	//! Locks the drawable exclusively for writing
+	void lockForWriting() {
+		m_lock.template emplace<std::unique_lock<typename DrawableManagerT::DrawableMutexT>>(m_target.drawableMutex);
+	}
+	//! Switches to a shared lock to allow shared read access to the drawable, only required after explicitely locking for writing
+	void unlockForWriting() {
+		m_lock.template emplace<std::shared_lock<typename DrawableManagerT::DrawableMutexT>>(m_target.drawableMutex);
+	}
 
 private:
 	//! Private constructor, automatically locks the drawable's mutex
 	DrawableProxy(typename DrawableManagerT::InternalDrawableT& target)
-		: std::unique_lock<typename DrawableManagerT::DrawableMutexT>(target.drawableMutex)
-		, DrawableManagerT::DrawableInformation(target.data)
+		: DrawableManagerT::DrawableInformation(target.data)
+		, m_lock(common::variant::in_place_type_t<std::shared_lock<typename DrawableManagerT::DrawableMutexT>>(), target.drawableMutex)
 		, m_target(target)
 	{
 	}
+
+	//! Variant for the locks for exclusive write or shared read mode on the drawable instance data
+	common::variant::variant<
+		std::unique_lock<typename DrawableManagerT::DrawableMutexT>,
+		std::shared_lock<typename DrawableManagerT::DrawableMutexT>> m_lock;
 
 	//! Reference of the internal drawable associated to this proxy
 	typename DrawableManagerT::InternalDrawableT& m_target;
