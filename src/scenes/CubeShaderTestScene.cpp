@@ -59,8 +59,11 @@ void CubeShaderTestScene::initializeSceneContent()
 		lightSphere.color[2] = 255;
 		lightSphere.color[3] = 0;
 		lightSphere.model_mat = id;
-		//lightSphere.model_mat = glm::translate(id, glm::fvec3(0.5f, 1.0f, 6.0f));
-		//lightSphere.model_mat = glm::scale(lightSphere.model_mat, glm::fvec3(0.2f, 0.2f, 0.2f));
+
+		m_drawables.storeInstance(m_sphereDrawableId, lightSphere);
+
+		lightSphere.model_mat = glm::translate(id, glm::fvec3(0.5f, 1.0f, 6.0f));
+		lightSphere.model_mat = glm::scale(lightSphere.model_mat, glm::fvec3(0.2f, 0.2f, 0.2f));
 
 		m_drawables.storeInstance(m_sphereDrawableId, lightSphere);
 	}
@@ -169,7 +172,7 @@ void CubeShaderTestScene::renderSceneContent()
 	m_lastTime = currentTime;
 
 	// Loop over all drawables
-	for (auto drawableData : m_drawables.drawableRange())
+	for (auto drawableData : m_drawables)
 	{
 		const GLsizei instanceCount = drawableData.instanceCount();
 		const GLsizei elementCount = drawableData.indexCount;

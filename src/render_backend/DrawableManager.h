@@ -9,8 +9,6 @@
 #include <type_traits>
 #include <iterator>
 
-#include <noname_tools/range_tools.h>
-
 #include "CommonOpenGl.h"
 #include "DrawableFactory.h"
 
@@ -317,20 +315,12 @@ public:
 	 * The iterator can be used to loop over all drawables and dereferencing it yields a DrawableProxy
 	 * corresponding to the drawable the iterator points to.
 	 */
-	DrawableIteratorT drawablesBegin() { return DrawableIteratorT(m_drawables.begin()); }
+	DrawableIteratorT begin() { return DrawableIteratorT(m_drawables.begin()); }
 	//! Returns an iterator behind the end of the drawable container
 	/*
 	 * The iterator can be used to loop over all drawables. Marks the end of the container
 	 */
-	DrawableIteratorT drawablesEnd() { return DrawableIteratorT(m_drawables.end()); }
-
-	//! Returns a range object to loop over all drawables in a range-based for loop
-	auto drawableRange()
-	{
-		return noname::tools::make_range(
-					DrawableIteratorT(m_drawables.begin()),
-					DrawableIteratorT(m_drawables.end()));
-	}
+	DrawableIteratorT end() { return DrawableIteratorT(m_drawables.end()); }
 
 private:
 	//! Mutex to protect against data races caused by drawable access and reallocation/clear calls
@@ -419,6 +409,7 @@ public:
 	DrawableIterator& operator++(int) { auto tmp = *this; ++it; return tmp; }
 	DrawableIterator& operator--(int) { auto tmp = *this; --it; return tmp; }
 
+	//! Returns a new DrawableProxy instance which provides acces to the pointed to drawable
 	typename DrawableManagerT::DrawableProxyT operator*() { return typename DrawableManagerT::DrawableProxyT(*it); }
 
 private:
