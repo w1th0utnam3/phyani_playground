@@ -186,7 +186,7 @@ void CubeShaderTestScene::renderSceneContent()
 		if (instanceCount == 0) continue;
 
 		// Bind the VAO if necessary
-		if (CommonOpenGl::getGlValue<GLint>(GL_VERTEX_ARRAY_BINDING) != m_vao)
+		if (common_opengl::getGlValue<GLint>(GL_VERTEX_ARRAY_BINDING) != m_vao)
 			glBindVertexArray(m_vao);
 
 		// Update the model matrix buffer
