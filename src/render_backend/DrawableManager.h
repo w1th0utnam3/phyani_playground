@@ -225,7 +225,7 @@ public:
 	template <typename InstanceDataIt>
 	GLsizei storeInstances(GLsizei drawableId, const InstanceDataIt dataBegin, const InstanceDataIt dataEnd)
 	{
-		static_assert(std::is_same<std::iterator_traits<InstanceDataIt>::value_type, InstanceDataT>::value,
+		static_assert(std::is_same<typename std::iterator_traits<InstanceDataIt>::value_type, InstanceDataT>::value,
 					  "The instance data iterator has to dereference to the DrawableManager's InstanceDataT");
 
 		// Lock the drawable manager against clearing and reallocation
