@@ -35,6 +35,8 @@ public:
 	static DrawableSource createCube();
 	//! Returns a drawable with vertices representing a sphere.
 	static DrawableSource createSphere(const int recursionLevel = 2);
+	//! Returns a drawable created from an obj file
+	static DrawableSource createFromObj(const std::string& objFilename);
 
 private:
 	//! Calculates normals of a triangle mesh by using normals averaged over adjacent triangles

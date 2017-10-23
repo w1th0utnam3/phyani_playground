@@ -2,6 +2,9 @@
 
 #include <numeric>
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+
 DrawableFactory::DrawableSource DrawableFactory::createCube()
 {
 	DrawableSource drawable;
@@ -305,6 +308,23 @@ DrawableFactory::DrawableSource DrawableFactory::createSphere(const int recursio
 	}
 
 	drawable.normals = calculateAveragedTriangleNormals(drawable.vertices, drawable.indices);
+
+	return drawable;
+}
+
+DrawableFactory::DrawableSource DrawableFactory::createFromObj(const std::string& objFilename)
+{
+	DrawableSource drawable;
+
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string err;
+	std::string base_dir = "";
+
+	bool result = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, objFilename.c_str(), base_dir.c_str(), false);
+
+	if (!result) std::cerr << err;
 
 	return drawable;
 }

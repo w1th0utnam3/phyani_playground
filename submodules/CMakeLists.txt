@@ -7,6 +7,12 @@ set (SUBMODULE_INCLUDES ${SUBMODULE_INCLUDES} "${CMAKE_CURRENT_LIST_DIR}/variant
 # OpenGL Math library
 set (SUBMODULE_INCLUDES ${SUBMODULE_INCLUDES} "${CMAKE_CURRENT_LIST_DIR}/glm")
 
+# tinyobjloader
+file(GLOB TINYOBJLOADER_SOURCES "tinyobjloader/tiny_obj_loader.cc")
+file(GLOB TINYOBJLOADER_HEADERS "tinyobjloader/tiny_obj_loader.h")
+set (SUBMODULE_INCLUDES ${SUBMODULE_INCLUDES} "${CMAKE_CURRENT_LIST_DIR}/tinyobjloader")
+add_library(tinyobjloader ${TINYOBJLOADER_SOURCES} ${TINYOBJLOADER_HEADERS})
+
 # dear imgui
 file(GLOB IMGUI_SOURCES "imgui/*.cpp")
 file(GLOB IMGUI_HEADERS "imgui/*.h")

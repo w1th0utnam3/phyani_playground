@@ -11,6 +11,7 @@ void CubeShaderTestScene::initializeSceneContent()
 {
 	m_cubeDrawableId = m_drawables.registerDrawable(DrawableFactory::createCube());
 	m_sphereDrawableId = m_drawables.registerDrawable(DrawableFactory::createSphere(4));
+	DrawableFactory::createFromObj("models/bunny.obj");
 
 	// The number of cubes per edge of the "cube grid"
 	const int edgeLength = 2;
