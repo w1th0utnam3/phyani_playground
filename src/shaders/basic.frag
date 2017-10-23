@@ -15,12 +15,12 @@ void main()
 
 	// Define material colors based on the vertex color supplied by the vertex shader
 	vec3 materialDiffuseColor = materialColor;
-	vec3 materialAmbientColor = 0.3 * materialDiffuseColor;
+	vec3 materialAmbientColor = 0.3 * materialColor;
 	vec3 materialSpecularColor = materialDiffuseColor;
 	float materialShininess = 5;
 
 	// Position of the light in world space
-	vec3 lightPosition_worldspace = vec3(1.1, 1.0, 2.0);
+	vec3 lightPosition_worldspace = vec3(0.5, 1.0, 6.0);
 
 	// Vector that goes from the vertex to the light, in camera space. M is omitted because it's identity.
 	vec3 lightPosition_cameraspace = (V * vec4(lightPosition_worldspace, 1.0)).xyz;

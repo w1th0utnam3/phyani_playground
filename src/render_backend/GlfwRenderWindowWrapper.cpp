@@ -48,7 +48,7 @@ GlfwRenderWindowWrapper::GlfwRenderWindowWrapper(const ContextSettings& settings
 
 	// Load the OpenGL functions
 	auto contextScope = GlfwScopedContextSwitcher(m_window);
-	CommonOpenGl::loadOpenGl();
+	common_opengl::loadOpenGl();
 	glfwSwapInterval(1);
 
 	// Initialize window content

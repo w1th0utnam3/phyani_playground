@@ -61,7 +61,8 @@ void ImGuiScene::renderSceneContent()
 
 	ImGuizmo::BeginFrame();
 	ImGuizmo::Enable(m_options.gizmoEnabled);
-	editTransform(m_options.tempTransform);
+    if (m_options.gizmoEnabled)
+        editTransform(m_options.tempTransform);
 
 	drawMainWindow();
 

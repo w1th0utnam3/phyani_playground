@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -13,7 +15,7 @@
 
 #include "MathHelper.h"
 
-namespace CommonOpenGl {
+namespace common_opengl {
 
 //! Loads the OpenGL functions using GLAD.
 inline void loadOpenGl()
@@ -97,5 +99,58 @@ inline GLint64 getGlValue<GLint64>(GLenum pname)
 	return data;
 }
 
+//! Returns a boolean representing the compile status flag of the shader with the specified id
+inline bool getGlShaderCompileStatus(GLuint shader)
+{
+	GLint status;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+
+	return (status == GL_TRUE);
+}
+
+//! Returns a string containing the info log of the shader with the specified id (may be empty)
+inline std::string getGlShaderInfoLog(GLuint shader)
+{
+	std::string logString;
+	GLint infoLogLength;
+
+	// Check if there is a log message
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+	// Potentially get the info log
+	if (infoLogLength > 0) {
+		logString.resize(infoLogLength);
+		glGetShaderInfoLog(shader, infoLogLength, nullptr, &logString[0]);
+	}
+
+	return logString;
+}
+
+//! Returns a boolean representing the link status flag of the program with the specified id
+inline bool getGlProgramLinkStatus(GLuint program)
+{
+	GLint status;
+	glGetProgramiv(program, GL_LINK_STATUS, &status);
+
+	return (status == GL_TRUE);
+}
+
+//! Returns a string containing the info log of the program with the specified id (may be empty)
+inline std::string getGlProgramInfoLog(GLuint program)
+{
+	std::string logString;
+	GLint infoLogLength;
+
+	// Check if there is a log message
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+	// Potentially get the info log
+	if (infoLogLength > 0) {
+		logString.resize(infoLogLength);
+		glGetProgramInfoLog(program, infoLogLength, NULL, &logString[0]);
+	}
+
+	return logString;
+}
 
 }

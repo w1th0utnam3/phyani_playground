@@ -4,7 +4,7 @@ uniform mat4 viewMat;
 uniform mat4 projectionMat;
 
 in mat4 modelMat;
-in vec3 vertexColor;
+in vec4 vertexColor;
 in vec3 vertexPosition_modelspace;
 in vec3 vertexNormal_modelspace;
 
@@ -32,5 +32,6 @@ void main()
 	normal_cameraspace = (V * M_inv_trans * vec4(vertexNormal_modelspace, 0.0)).xyz;
 
 	// Set the output color
-	materialColor = vertexColor;
+	materialColor = normalize(normalize(vertexNormal_modelspace) + 1);
+	//materialColor = vertexColor.xyz;
 }

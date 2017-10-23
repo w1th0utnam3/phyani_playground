@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "DrawableManager.h"
 #include "MathHelper.h"
 #include "CommonOpenGl.h"
 #include "ShaderProgram.h"
@@ -20,18 +21,20 @@ protected:
 	virtual void renderSceneContent() override;
 
 private:
-	uniform_real_rng<float> m_random;
-
 	ShaderProgram m_shaderProgram;
-	GLuint m_vertex_buffer, m_normal_buffer, m_model_mat_buffer, m_model_color_buffer;
-	GLuint m_vertex_shader, m_fragment_shader, m_vao;
-	GLint m_view_mat_location, m_projection_mat_location, m_model_mat_location;
-	GLint m_model_color_location, m_vert_pos_location, m_vert_norm_location;
+	GLuint m_vertex_buffer, m_normal_buffer, m_index_buffer, m_instance_buffer;
+	GLuint m_vao;
+	GLuint m_view_mat_location, m_projection_mat_location, m_model_mat_location;
+	GLuint m_model_color_location, m_vert_pos_location, m_vert_norm_location;
 
 	double m_lastTime;
-	std::vector<glm::fvec3> m_model_colors;
-	std::vector<glm::fmat4> m_model_mats;
 
-	std::vector<GLfloat> m_vertices;
-	std::vector<GLfloat> m_normals;
+	struct InstanceData {
+		GLubyte color[4];
+		glm::fmat4 model_mat;
+	};
+
+	GLuint m_cubeDrawableId, m_sphereDrawableId;
+
+	DrawableManager<InstanceData> m_drawables;
 };
