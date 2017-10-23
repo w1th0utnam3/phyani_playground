@@ -22,3 +22,6 @@
 [submodule "submodules/variant"]
 	path = submodules/variant
 	url = https://github.com/mpark/variant.git
+[submodule "submodules/tinyobjloader"]
+	path = submodules/tinyobjloader
+	url = https://github.com/syoyo/tinyobjloader.git

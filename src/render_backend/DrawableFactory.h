@@ -14,12 +14,12 @@ public:
 		//! Type used to represent vertex components
 		using VertexT = glm::fvec3;
 		//! Type used to represent vertx indices
-		using IndexT = GLushort;
+		using IndexT = GLuint;
 
 		//! The number of instances of VertexT to represent one vertex in OpenGL
 		static constexpr GLubyte bufferEntriesPerVertex = 1;
 		//! Type of the index values
-		static constexpr GLenum glIndexType = GL_UNSIGNED_SHORT;
+		static constexpr GLenum glIndexType = GL_UNSIGNED_INT;
 
 		//! OpenGL drawing mode for the drawable
 		GLenum glMode;
@@ -35,6 +35,8 @@ public:
 	static DrawableSource createCube();
 	//! Returns a drawable with vertices representing a sphere.
 	static DrawableSource createSphere(const int recursionLevel = 2);
+	//! Returns a drawable created from an obj file
+	static DrawableSource createFromObj(const std::string& objFilename);
 
 private:
 	//! Calculates normals of a triangle mesh by using normals averaged over adjacent triangles

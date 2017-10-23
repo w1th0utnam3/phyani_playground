@@ -12,6 +12,15 @@ void CubeShaderTestScene::initializeSceneContent()
 	m_cubeDrawableId = m_drawables.registerDrawable(DrawableFactory::createCube());
 	m_sphereDrawableId = m_drawables.registerDrawable(DrawableFactory::createSphere(4));
 
+	{
+		auto bunnyDrawable = DrawableFactory::createFromObj("models/bunny.obj");
+		if (bunnyDrawable.vertices.size() > 0) {
+			m_objDrawableId = m_drawables.registerDrawable(bunnyDrawable);
+		} else {
+			m_objDrawableId = m_sphereDrawableId;
+		}
+	}
+
 	// The number of cubes per edge of the "cube grid"
 	const int edgeLength = 2;
 	// The distance in cubes between adjacent cubes
@@ -64,7 +73,7 @@ void CubeShaderTestScene::initializeSceneContent()
 		lightSphere.color[3] = 0;
 		lightSphere.model_mat = id;
 
-		m_drawables.storeInstance(m_sphereDrawableId, lightSphere);
+		m_drawables.storeInstance(m_objDrawableId, lightSphere);
 
 		lightSphere.model_mat = glm::translate(id, glm::fvec3(0.5f, 1.0f, 6.0f));
 		lightSphere.model_mat = glm::scale(lightSphere.model_mat, glm::fvec3(0.2f, 0.2f, 0.2f));
@@ -174,6 +183,15 @@ void CubeShaderTestScene::renderSceneContent()
 	const double currentTime = glfwGetTime();
 	const double dt = currentTime - m_lastTime;
 	m_lastTime = currentTime;
+
+	// Rotate the central drawable
+	{
+		auto drawable = m_drawables.drawable(m_objDrawableId);
+		drawable.lockUnique();
+
+		InstanceData* data = drawable.instanceData();
+		data->model_mat = glm::rotate(data->model_mat, static_cast<float>(0.5*dt), glm::fvec3(0.0f, 1.0f, 0.0f));
+	}
 
 	// Loop over all drawables
 	for (const auto drawableData : m_drawables)

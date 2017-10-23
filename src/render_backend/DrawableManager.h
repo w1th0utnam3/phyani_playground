@@ -165,7 +165,7 @@ public:
 
 		// Set drawing mode and check whether it is valid
 		drawableData.glMode = drawable.glMode;
-		assert(CommonOpenGl::isValidGlMode(drawable.glMode));
+		assert(common_opengl::isValidGlMode(drawable.glMode));
 
 		// Make sure that all vertices of the new drawable are indexable using the index type
 		assert(drawable.vertices.size()/bufferEntriesPerVertex < std::numeric_limits<IndexT>::max());

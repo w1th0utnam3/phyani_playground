@@ -1,6 +1,10 @@
 #include "DrawableFactory.h"
 
 #include <numeric>
+#include <cstring>
+
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
 
 DrawableFactory::DrawableSource DrawableFactory::createCube()
 {
@@ -305,6 +309,52 @@ DrawableFactory::DrawableSource DrawableFactory::createSphere(const int recursio
 	}
 
 	drawable.normals = calculateAveragedTriangleNormals(drawable.vertices, drawable.indices);
+
+	return drawable;
+}
+
+DrawableFactory::DrawableSource DrawableFactory::createFromObj(const std::string& objFilename)
+{
+	DrawableSource drawable;
+	drawable.glMode = GL_TRIANGLES;
+
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string err;
+	std::string base_dir = "";
+
+	static_assert(std::is_same<decltype(attrib.vertices)::value_type, float>::value, "Vertex type has to be float!");
+	static_assert(std::is_same<decltype(attrib.normals)::value_type, float>::value, "Normal type has to be float!");
+
+	bool result = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, objFilename.c_str(), base_dir.c_str(), false);
+
+	if (!result) {
+		std::cerr << err;
+	} else {
+		// Make sure that all vertices can be indexed with the specified index type
+		assert(attrib.vertices.size() / 3 < std::numeric_limits<DrawableSource::IndexT>::max());
+		assert(shapes.size() > 0);
+
+		// Make room for vertices and normals
+		drawable.vertices.resize(attrib.vertices.size() / 3, glm::fvec3{1.0f, 0.0f, 0.0f});
+		drawable.normals.resize(attrib.vertices.size() / 3, glm::fvec3{1.0f, 0.0f, 0.0f});
+
+		// Copy vertices to drawable
+		std::memcpy(drawable.vertices.data(), attrib.vertices.data(), attrib.vertices.size() * sizeof(float));
+
+		const auto& mesh = shapes[0].mesh;
+		drawable.indices.resize(mesh.indices.size(), 0);
+		for (std::size_t i = 0; i < mesh.indices.size(); i++) {
+			const auto vi = mesh.indices[i].vertex_index;
+			const auto ni = mesh.indices[i].normal_index;
+
+			// Store the vertex index
+			drawable.indices[i] = vi;
+			// Fix ordering of normals to correspond to vertex ordering
+			std::memcpy(&drawable.normals[vi], &attrib.normals[3*ni], 3 * sizeof(float));
+		}
+	}
 
 	return drawable;
 }
