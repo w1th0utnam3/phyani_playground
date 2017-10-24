@@ -31,15 +31,20 @@ public:
 		std::vector<IndexT> indices;
 	};
 
+	//! Returns a drawable that represents a simple line.
+	static DrawableSource createLine();
 	//! Returns a drawable with vertices and normals representing a cube.
 	static DrawableSource createCube();
 	//! Returns a drawable with vertices representing a sphere.
 	static DrawableSource createSphere(const int recursionLevel = 2);
-	//! Returns a drawable created from an obj file
+	//! Returns a drawable created from an obj file.
 	static DrawableSource createFromObj(const std::string& objFilename);
 
+	//! Returns a model matrix to transform the simple line drawable into a line connecting arbitrary points.
+	static glm::fmat4 transformLine(const glm::fvec3& pStart, const glm::fvec3& pEnd);
+
 private:
-	//! Calculates normals of a triangle mesh by using normals averaged over adjacent triangles
+	//! Calculates normals of a triangle mesh by using normals averaged over adjacent triangles.
 	static std::vector<DrawableSource::VertexT> calculateAveragedTriangleNormals(
 			const std::vector<DrawableSource::VertexT>& vertices,
 			const std::vector<DrawableSource::IndexT>& indices);

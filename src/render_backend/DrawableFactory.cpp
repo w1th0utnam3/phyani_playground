@@ -6,6 +6,41 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
+DrawableFactory::DrawableSource DrawableFactory::createLine()
+{
+	DrawableSource drawable;
+	drawable.glMode = GL_LINES;
+
+	// Use x-axis as base line
+	drawable.vertices = {glm::fvec3(0.0f, 0.0f, 0.0f), glm::fvec3(1.0f, 0.0f, 0.0f)};
+	drawable.normals = {glm::fvec3(0.0f, 1.0f, 0.0f), glm::fvec3(0.0f, 1.0f, 0.0f)};
+	drawable.indices = {0, 1};
+
+	return drawable;
+}
+
+glm::fmat4 DrawableFactory::transformLine(const glm::fvec3& pStart, const glm::fvec3& pEnd)
+{
+	glm::fmat4 transform(1.0f);
+
+	// Translate start point into coordinate origin
+	glm::fvec3 line = pEnd - pStart;
+	float length = glm::length(line);
+	glm::fvec3 normalizedLineDirection = (1.0f / length) * line;
+
+	// Rotation axis: cross product of x-axis and the normalized line
+	glm::fvec3 axis(0.0f, normalizedLineDirection.z, -normalizedLineDirection.y);
+	// Rotation angle: dot product of x-axis with the normalized line
+	float angle = std::acos(normalizedLineDirection.x);
+
+	// Calculate and compose transformation matrices
+	transform = glm::translate(transform, pStart);
+	transform = glm::rotate(transform, angle, axis);
+	transform = glm::scale(transform, glm::fvec3(length, 1.0f, 1.0f));
+
+	return transform;
+}
+
 DrawableFactory::DrawableSource DrawableFactory::createCube()
 {
 	DrawableSource drawable;

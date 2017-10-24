@@ -9,6 +9,7 @@
 
 void CubeShaderTestScene::initializeSceneContent()
 {
+	m_lineDrawableId = m_drawables.registerDrawable(DrawableFactory::createLine());
 	m_cubeDrawableId = m_drawables.registerDrawable(DrawableFactory::createCube());
 	m_sphereDrawableId = m_drawables.registerDrawable(DrawableFactory::createSphere(4));
 
@@ -38,27 +39,36 @@ void CubeShaderTestScene::initializeSceneContent()
 
 	// Generate the initial cube grid
 	{
-		GLuint instanceOffset = m_drawables.createInstances(m_cubeDrawableId, instanceCount);
+		GLsizei cubeInstanceOffset = m_drawables.createInstances(m_cubeDrawableId, instanceCount);
+		GLsizei lineInstanceOffset = m_drawables.createInstances(m_lineDrawableId, instanceCount);
 
 		// Lock the drawable manager against reallocations
 		auto bufferLock = m_drawables.createSharedLock();
-		auto drawableData = m_drawables.drawable(m_cubeDrawableId);
+		auto cubeDrawableData = m_drawables.drawable(m_cubeDrawableId);
+		auto lineDrawableData = m_drawables.drawable(m_lineDrawableId);
 
-		// Lock the drawable in order to write to the instance data buffer
-		drawableData.lockUnique();
-		InstanceData* data = drawableData.instanceData() + instanceOffset;
+		// Lock the drawables in order to write to the instance data buffer
+		cubeDrawableData.lockUnique();
+		lineDrawableData.lockUnique();
+		// Obtain pointers to the instance data buffers
+		InstanceData* cubeData = cubeDrawableData.instanceData() + cubeInstanceOffset;
+		InstanceData* lineData = lineDrawableData.instanceData() + lineInstanceOffset;
 
 		for (int i = 0; i < edgeLength; i++) {
 			for (int j = 0; j < edgeLength; j++) {
 				for (int k = 0; k < edgeLength; k++) {
-					data->model_mat = glm::translate(id, glm::fvec3(i*distance - disp, j*distance - disp, k*distance - disp));
+					// Position vector of the current cube
+					auto cubePos = glm::fvec3(i*distance - disp, j*distance - disp, k*distance - disp);
 
-					data->color[0] = 255;
-					data->color[1] = 0;
-					data->color[2] = 0;
-					data->color[3] = 0;
+					cubeData->model_mat = glm::translate(id, cubePos);
+					lineData->model_mat = DrawableFactory::transformLine(glm::fvec3(0.0f, 0.0f, 0.0f), cubePos);
 
-					data++;
+					cubeData->color[0] = 255;
+					cubeData->color[1] = 0;
+					cubeData->color[2] = 0;
+					cubeData->color[3] = 0;
+
+					++cubeData; ++lineData;
 				}
 			}
 		}

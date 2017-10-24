@@ -34,7 +34,7 @@ private:
 		glm::fmat4 model_mat;
 	};
 
-	GLuint m_lineDrawableId, m_cubeDrawableId, m_sphereDrawableId, m_objDrawableId;
+	GLsizei m_lineDrawableId, m_cubeDrawableId, m_sphereDrawableId, m_objDrawableId;
 
 	DrawableManager<InstanceData> m_drawables;
 };
