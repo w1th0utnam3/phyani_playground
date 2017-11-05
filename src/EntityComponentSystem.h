@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <atomic>
 
-#include <registry.hpp>
+#include <entt/entity/registry.hpp>
 
 #include <Eigen/Geometry>
 
@@ -93,6 +93,6 @@ struct RenderData
 	common::variant::variant<Cuboid, Joint> properties;
 };
 
-using EntityComponentSystemBase = entt::StandardRegistry<EntityType, TranslationalAnimatedBody, RotationalAnimatedBody, Joint, RenderData>;
+using EntityComponentSystemBase = entt::Registry<EntityType>;
 
 class EntityComponentSystem : public EntityComponentSystemBase {};
