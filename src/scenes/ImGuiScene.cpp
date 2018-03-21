@@ -10,7 +10,6 @@
 
 #include "Simulation.h"
 #include "AnimationLoop.h"
-#include "DemoScene.h"
 
 ImGuiScene::ImGuiScene()
 {
@@ -111,7 +110,7 @@ void ImGuiScene::drawMainWindow()
 	if (ImGui::CollapsingHeader("Animation")) {
 		AnimationLoop& animationLoop = Simulation::getAnimationLoop();
 
-		if (ImGui::Button("Reset scene")) Simulation::getAnimationScene().resetScene();
+		//if (ImGui::Button("Reset scene")) Simulation::getAnimationScene().resetScene();
 
 		ImGui::Text("Automatic timestepping");
 		if (ImGui::Checkbox("Start/stop time", &m_options.automaticTimestepping)
